@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/item_spacing_small"
+    >
+
+    <TextView
+        android:id="@+id/occupation_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textColor="@android:color/black"
+        tools:text="RHY name in finnish or swedish\nOccupation or role description\nbegin date - end date"
+        />
+
+    <View
+        android:id="@+id/occupation_separator"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/light_border_color"
+        android:layout_below="@+id/occupation_description"
+        />
+
+</RelativeLayout>

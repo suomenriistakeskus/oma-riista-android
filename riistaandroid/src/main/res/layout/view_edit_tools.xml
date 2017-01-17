@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    >
+    
+    <ImageButton
+        android:id="@+id/btn_edit_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_image_button"
+        android:src="@drawable/ic_calendar" />
+    
+    <TextView
+        android:id="@+id/txt_edit_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/btn_edit_date"
+        android:layout_centerVertical="true"
+        android:textColor="@color/text_dark"
+        android:text="23. Toukokuu 2015" />
+    
+    <ImageButton
+        android:id="@+id/btn_edit_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/bg_image_button"
+        android:src="@drawable/ic_delete" />
+    
+    <ImageButton
+        android:id="@+id/btn_edit_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/btn_edit_delete"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/bg_image_button"
+        android:src="@drawable/ic_menu_edit" />
+    
+</RelativeLayout>

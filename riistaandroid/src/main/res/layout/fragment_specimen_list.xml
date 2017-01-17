@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/page_padding_vertical"
+    android:paddingRight="@dimen/page_padding_vertical"
+    android:paddingTop="@dimen/page_padding_horizontal"
+    android:background="@color/log_entry_background"
+    >
+
+    <ListView
+        android:id="@+id/specimenListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/page_padding_vertical"
+        android:clipToPadding="false"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:cacheColorHint="@android:color/transparent"
+        tools:listitem="@layout/view_specimen_list_item"
+        />
+
+</LinearLayout>

@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/page_padding_vertical"
+        android:alpha="0.4"
+        android:src="@drawable/half_horn"
+        />
+
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@drawable/horizontal_divider"
+            android:showDividers="middle|end"
+            android:orientation="vertical"
+            >
+
+            <fi.riista.mobile.ui.HeaderTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/page_padding_vertical"
+                android:text="@string/my_details_title_person"
+                style="@style/my_details_section_title"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_name"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_name_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="Pentti Mujunen"
+                    style="@style/my_details_item_value_emphasize"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_date_of_birth"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_date_of_birth_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="01.01.1950"
+                    style="@style/my_details_item_value"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_home_municipality"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_home_municipality_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="Kotikunta"
+                    style="@style/my_details_item_value"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_address"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_address_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="Mujunenkatu\n00004 Mujunenkaupunki\nMujunenmaa"
+                    style="@style/my_details_item_value"
+                    />
+
+            </LinearLayout>
+
+            <fi.riista.mobile.ui.HeaderTextView
+                android:id="@+id/my_details_occupations_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_section_spacing"
+                android:text="@string/my_details_assignments_title"
+                android:visibility="gone"
+                tools:visibility="visible"
+                style="@style/my_details_section_title"
+                />
+
+            <LinearLayout
+                android:id="@+id/my_details_occupations_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible"
+                style="@style/my_details_item"
+                />
+
+            <fi.riista.mobile.ui.HeaderTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_section_spacing"
+                android:text="@string/my_details_title_hunting_license"
+                style="@style/my_details_section_title"
+                />
+
+            <TextView
+                android:id="@+id/my_details_no_valid_license"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:gravity="right"
+                android:text="@string/my_details_no_valid_license"
+                android:textColor="@android:color/black"
+                android:visibility="gone"
+                tools:visibility="visible"
+                style="@style/my_details_item"
+                />
+
+            <LinearLayout
+                android:id="@+id/my_details_hunting_ban_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_hunting_ban"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_hunting_ban_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="1.1.2001 - 31.12.2014"
+                    style="@style/my_details_item_value"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/my_details_hunter_id_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_hunter_id"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_hunter_id_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="00000000"
+                    style="@style/my_details_item_value_emphasize"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/my_details_payment_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_payment"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_payment_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="Maksettu\n1.1.2001 - 31.12.2014"
+                    style="@style/my_details_item_value"
+                    />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/my_details_membership_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/my_details_item_spacing"
+                android:orientation="horizontal"
+                style="@style/my_details_item"
+                >
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/my_details_membership"
+                    style="@style/my_details_item_key"
+                    />
+
+                <TextView
+                    android:id="@+id/my_details_membership_value"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    tools:text="Esimerkkiseura (000)"
+                    style="@style/my_details_item_value"
+                    />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/my_details_insurance_policy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/my_details_insurance_policy_text"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:visibility="gone"
+                tools:visibility="visible"
+                style="@style/my_details_item"
+                />
+
+        </LinearLayout>
+
+
+    </ScrollView>
+
+</RelativeLayout>

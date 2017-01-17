@@ -1,0 +1,169 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="@dimen/page_padding_vertical"
+    android:divider="@drawable/horizontal_divider"
+    android:orientation="vertical"
+    android:showDividers="middle"
+    >
+
+    <RelativeLayout
+        style="@style/settings_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="@string/synchronization"
+            android:textColor="@android:color/black"
+            />
+
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical"
+            >
+
+            <RadioButton
+                android:id="@+id/manual"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/manual"
+                android:textColor="@android:color/black"
+                android:theme="@style/RadioButtonAppTheme"
+                />
+
+            <RadioButton
+                android:id="@+id/automatic"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/automatic"
+                android:textColor="@android:color/black"
+                android:theme="@style/RadioButtonAppTheme"
+                />
+
+        </RadioGroup>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        style="@style/settings_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="@string/language"
+            android:textColor="@android:color/black"
+            />
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/languageSpinner"
+            style="@style/SpinnerAppTheme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:minWidth="120dp"
+            android:prompt="@string/language_prompt"
+            />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        style="@style/settings_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="@string/settings_map_type_title"
+            android:textColor="@android:color/black"
+            />
+
+        <RadioGroup
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical"
+            >
+
+            <RadioButton
+                android:id="@+id/map_type_google_button"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/settings_map_type_google"
+                android:textColor="@android:color/black"
+                android:theme="@style/RadioButtonAppTheme"
+                />
+
+            <RadioButton
+                android:id="@+id/map_type_mml_button"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="@string/settings_map_type_mml"
+                android:textColor="@android:color/black"
+                android:theme="@style/RadioButtonAppTheme"
+                />
+
+        </RadioGroup>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        style="@style/settings_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/version"
+            android:textColor="@android:color/black"
+            />
+
+        <TextView
+            android:id="@+id/versionnumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:textColor="@android:color/black"
+            tools:text="1.0.0"
+            />
+
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/licences_button"
+        style="@style/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="@string/licences_dialog_title"
+        />
+
+
+</LinearLayout>

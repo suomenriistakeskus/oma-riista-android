@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:baselineAligned="false"
+    tools:background="@android:color/white"
+    >
+
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/item_spacing_small"
+        android:orientation="vertical"
+        >
+
+        <TextView
+            android:id="@+id/specimen_list_item_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
+            tools:text="Fasaani 1"
+            />
+
+        <fi.riista.mobile.ui.HarvestSpecimenView
+            android:id="@+id/specimen_list_item"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/specimen_list_item_title"
+            android:layout_toLeftOf="@+id/specimen_list_item_remove"
+            />
+
+        <ImageButton
+            android:id="@+id/specimen_list_item_remove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@id/specimen_list_item"
+            android:layout_marginLeft="2dp"
+            android:src="@drawable/ic_remove"
+            android:background="@drawable/remove_item_button_background"
+            />
+
+    </RelativeLayout>
+
+</LinearLayout>

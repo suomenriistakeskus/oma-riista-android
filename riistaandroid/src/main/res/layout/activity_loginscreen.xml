@@ -1,0 +1,88 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="@drawable/login_bg"
+    android:gravity="center_horizontal"
+    android:paddingLeft="20dp"
+    android:paddingRight="20dp"
+    android:id="@+id/layout"
+    android:weightSum="10"
+    tools:context=".Loginscreen"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="6"
+        android:orientation="vertical"
+        >
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:paddingTop="40dp"
+            android:src="@drawable/sarvi_logo"
+            android:contentDescription="@string/logo"
+            />
+
+        <TextView
+            android:text="@string/login_description"
+            android:id="@+id/textView1"
+            android:gravity="center"
+            android:textColor="@color/login_description_color"
+            android:textSize="18sp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:paddingLeft="0dp"
+            android:paddingTop="0dp"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:layout_weight="4"
+        >
+
+        <EditText
+            android:id="@+id/username"
+            style="@style/EditTextAppTheme"
+            android:inputType="textEmailAddress"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="10dp"
+            android:hint="@string/username"
+            android:fontFamily="sans-serif"
+            android:textSize="17sp"
+            android:nextFocusDown="@+id/password"
+            />
+
+        <EditText
+            android:id="@+id/password"
+            style="@style/EditTextAppTheme"
+            android:inputType="textPassword"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginBottom="20dp"
+            android:hint="@string/password"
+            android:fontFamily="sans-serif"
+            android:textSize="17sp"
+            android:nextFocusDown="@+id/loginbutton"
+            />
+
+        <Button
+            android:id="@+id/loginbutton"
+            style="@style/button"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="@string/login"
+            />
+    </LinearLayout>
+
+</LinearLayout>

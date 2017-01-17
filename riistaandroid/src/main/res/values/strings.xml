@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <string name="app_name">Oma riista</string>
+    <string name="login_description">Kirjaudu sisään oma.riista.fi:ssä luoduilla tunnuksilla</string>
+    <string name="logo">Logo</string>
+    <string name="username">Käyttäjänimi</string>
+    <string name="password">Salasana</string>
+    <string name="login">Kirjaudu sisään</string>
+
+    <string name="add">Lisää</string>
+    <string name="edit">Muokkaa</string>
+
+    <!-- Page/navigation item titles -->
+    <string name="menu_front_page">Etusivu</string>
+    <string name="menu_game_log">Riistaloki</string>
+    <string name="menu_my_details">Omat tiedot</string>
+    <string name="menu_announcements">Viestit</string>
+    <string name="menu_settings">Asetukset</string>
+    <string name="menu_contact_details">Yhteystiedot</string>
+    <string name="menu_more">Lisää</string>
+    <string name="logout">Kirjaudu ulos</string>
+
+    <string name="title_front_page">Etusivu</string>
+    <string name="title_game_log">Riistaloki</string>
+    <string name="title_my_details">Omat tiedot</string>
+    <string name="title_announcements">Viestit</string>
+    <string name="title_settings">Asetukset</string>
+    <string name="title_contact_details">Yhteystiedot</string>
+
+    <string name="season">Metsästyskausi %1$s</string>
+    <string name="season_srva">Kalenterivuosi %1$s</string>
+    <string name="catch_total">%1$s saalista</string>
+    <string name="observation_total">%1$s havaintoa</string>
+    <string name="srva_total">%1$s tapahtumaa</string>
+    <string name="loggame">Kirjaa saalis</string>
+    <string name="game">Saalis</string>
+    <string name="observation">Havainto</string>
+    <string name="srva">SRVA</string>
+    <string name="edititem_template">%1$s</string>
+    <string name="loggame_template">Kirjaa saalis\n%1$s</string>
+
+    <string name="logobservation">Kirjaa havainto</string>
+    <string name="logobservation_template">Kirjaa havainto\n%1$s</string>
+
+    <string name="logsrva">Kirjaa SRVA-tapahtuma</string>
+
+    <string name="new_log_event">Uusi kirjaus</string>
+    <string name="logs">Kirjaukset</string>
+
+    <string-array name="months">
+        <item>Tammikuu</item>
+        <item>Helmikuu</item>
+        <item>Maaliskuu</item>
+        <item>Huhtikuu</item>
+        <item>Toukokuu</item>
+        <item>Kesäkuu</item>
+        <item>Heinäkuu</item>
+        <item>Elokuu</item>
+        <item>Syyskuu</item>
+        <item>Lokakuu</item>
+        <item>Marraskuu</item>
+        <item>Joulukuu</item>
+    </string-array>
+
+    <!-- Settings page -->
+    <string name="language">Kieli</string>
+    <string name="language_prompt">Valitse kieli</string>
+
+    <string name="Finnish">Suomi</string>
+    <string name="Swedish">Svenska</string>
+    <string name="English">English</string>
+
+    <string name="sharing">Jakaminen</string>
+    <string name="facebook">Facebook</string>
+    <string name="twitter">Twitter</string>
+
+    <!-- Contact details page -->
+    <string name="feedback">Palaute</string>
+    <string name="sendemail">Lähetä sähköpostia</string>
+    <string name="version">Versio</string>
+    <string name="unknown">Ei tiedossa</string>
+    <string name="emailtemplate">Sovellusversio: %1$s\nPuhelinmalli: %2$s\nAndroid-versio: %3$s</string>
+    <string name="customer_service">Oma riista neuvonta</string>
+    <string name="customer_service_times">Palvelemme arkisin klo %1$s</string>
+    <string name="customer_service_service_time">12&#8211;16</string>
+    <string name="customer_service_phone_number">029 431 2111</string>
+    <string name="support_and_feedback">Tuki ja palaute</string>
+    <string name="email">Sähköposti</string>
+    <string name="customer_service_email_address">oma@riista.fi</string>
+    <string name="riista_url">www.riista.fi</string>
+
+    <!-- My details page -->
+    <string name="my_details_title_person">Henkilötiedot</string>
+    <string name="my_details_name">Nimi</string>
+    <string name="my_details_date_of_birth">Syntymäaika</string>
+    <string name="my_details_home_municipality">Kotipaikka</string>
+    <string name="my_details_address">Osoite</string>
+    <string name="my_details_title_registry">Metsästäjärekisteri</string>
+    <string name="my_details_hunter_id">Metsästäjänumero</string>
+    <string name="my_details_title_hunting_license">Metsästyskortti</string>
+    <string name="my_details_insurance_policy_text">Tässä kortissa mainitulla metsästäjällä on metsästäjävakuutus, joka on voimassa kaikissa Pohjoismaissa ja EU-maissa.</string>
+    <string name="my_details_payment">Riistanhoitomaksu</string>
+    <string name="my_details_exam_date">Tutkinnon suorituspäivä</string>
+    <string name="my_details_membership">RHY jäsenyys</string>
+    <string name="my_details_fee_paid_format">Maksettu\n%1$s - %2$s</string>
+    <string name="my_details_fee_not_paid">Ei maksettu</string>
+    <string name="my_details_no_valid_license">Ei voimassaolevaa metsästyskorttia</string>
+    <string name="my_details_hunting_ban">Metsästyskielto</string>
+    <string name="my_details_assignments_title">Tehtävät</string>
+    <string name="duration_indefinite">Toistaiseksi</string>
+
+    <!-- New diary entry page -->
+    <string name="species">Laji</string>
+    <string name="species_prompt">Valitse laji</string>
+    <string name="dismiss">Hylkää</string>
+    <string name="add_description">Lisää kuvaus</string>
+    <string name="save">Tallenna</string>
+    <string name="pictures_and_description">Kuvat ja kuvaus</string>
+    <string name="share">Jaa</string>
+    <string name="date_time">Ajankohta</string>
+    <string name="image_prompt">Valitse kuvan lähde</string>
+    <string name="take_picture">Ota kuva</string>
+    <string name="pick_gallery">Poimi galleriasta</string>
+    <string name="gps_prompt">GPS ei ole tällä hetkellä käytössä. Haluatko ottaa GPS:n käyttöön?</string>
+    <string name="yes">Kyllä</string>
+    <string name="no">Ei</string>
+    <string name="cancel">Peru</string>
+    <string name="gps_good">GPS HYVÄ</string>
+    <string name="gps_bad">GPS HUONO</string>
+    <string name="gps_none">GPS SAAVUTTAMATON</string>
+    <string name="go_to_current_location">Vie nykyiseen GPS-sijaintiin</string>
+    <string name="set_location">Aseta uusi sijainti kartalla</string>
+    <string name="map_coordinates">P %1$s, I %2$s (ETRS-TM35FIN)</string>
+    <string name="select_preferred_intent">Valitse haluttu jakotapa</string>
+    <string name="ok">OK</string>
+    <string name="delete">Poista</string>
+    <string name="delete_entry_caption">Poista merkintä?</string>
+    <string name="deleta_entry_text">Haluatko poistaa merkinnän? Tällöin myös siihen mahdollisesti liittyvät kuvat poistetaan.</string>
+    <string name="harvest_amount">Määrä</string>
+    <string name="entry_details_permit">Riistakeskuksen luvalla</string>
+
+    <string name="harvest_create_report">Tee lakisääteinen saalisilmoitus</string>
+    <string name="harvest_proposed">Saalisilmoitus esitetty</string>
+    <string name="harvest_sent_for_approval">Saalisilmoitus lähetetty</string>
+    <string name="harvest_approved">Saalisilmoitus hyväksytty</string>
+    <string name="harvest_rejected">Saalisilmoitus hylätty</string>
+
+    <string name="harvest_permit_proposed">Ehdotettu lupaan</string>
+    <string name="harvest_permit_accepted">Hyväksytty lupaan</string>
+    <string name="harvest_permit_rejected">Hylätty luvasta</string>
+
+    <string name="permit_list_page_title">Valitse lupa</string>
+    <string name="permit_list_input_prompt">Etsi lupanumerolla</string>
+    <string name="permit_list_button">Hae tiedot</string>
+    <string name="permit_list_amount_short">kpl</string>
+    <string name="permit_list_section_header">Lupatiedot</string>
+    <string name="permit_list_help_text">Hirvieläimille ei tarvitse syöttää lupanumeroa</string>
+    <string name="permit_list_not_available">Lupa ei ole käytettävissä. Ota yhteyttä luvansaajaan</string>
+
+    <string name="connecting_failed">Palvelimeen ei saatu yhteyttä. Ole hyvä ja yritä myöhemmin uudelleen.</string>
+    <string name="login_failed">Väärä käyttäjänimi tai salasana. Ole hyvä ja yritä uudelleen.</string>
+
+    <string name="imageViewTemplate">Kuva %1$s/%2$s</string>
+
+    <string name="error">Virhe</string>
+    <string name="version_outdated">Ohjelmaversio on vanhentunut. Päivitä ohjelma uuteen versioon jatkaaksesi käyttöä.</string>
+    <string name="eventeditfailed">Tapahtuman muokkaaminen epäonnistui.</string>
+    <string name="eventoutdated">Tapahtuman muokkaaminen epäonnistui. Palvelimella on uudempi versio tapahtumasta.</string>
+
+    <string name="synchronization">Synkronointi</string>
+    <string name="refresh">Päivitä</string>
+    <string name="manual">Manuaalinen</string>
+    <string name="automatic">Automaattinen</string>
+    <string name="licences_dialog_title">Avoimen lähdekoodin käyttöluvat</string>
+
+    <string name="settings_map_type_title">Kartta-aineisto</string>
+    <string name="settings_map_type_google">Google</string>
+    <string name="settings_map_type_mml">MML</string>
+    <string name="map_type_select">Karttatyyppi</string>
+    <string name="map_type_topographic">Maastokartta</string>
+    <string name="map_type_background">Taustakartta</string>
+    <string name="map_type_aerial">Ortokuva</string>
+    <string name="map_copyright_mml">©Maanmittauslaitos</string>
+
+    <!-- Specimen details -->
+    <string name="specimen_details">Yksilötiedot</string>
+
+    <string name="gender_input_header">Sukupuoli</string>
+    <string name="age_input_header">Ikä</string>
+    <string name="weight_input_header">Paino (kg)</string>
+
+    <string name="gender_value_female">Naaras</string>
+    <string name="gender_value_male">Uros</string>
+    <string name="gender_value_unknown">Tuntematon</string>
+
+    <string name="age_value_adult">Aikuinen</string>
+    <string name="age_value_young">Alle 1V</string>
+    <string name="age_value_unknown">Tuntematon</string>
+
+    <!-- Moose specimen details -->
+    <string name="moose_not_edible">Ihmisravinnoksi kelpaamaton</string>
+    <string name="moose_weight_estimated">Arvioitu teuraspaino (kg)</string>
+    <string name="moose_weight_weighted">Punnittu teuraspaino (kg)</string>
+    <string name="moose_fitness_class">Kuntoluokka</string>
+    <string name="moose_antlers_type">Sarvityyppi</string>
+    <string name="moose_antlers_width">Sarvien kärkiväli (cm)</string>
+    <string name="moose_antlers_points_left">Sarvipiikit vasen</string>
+    <string name="moose_antlers_points_right">Sarvipiikit oikea</string>
+    <string name="moose_additional_info">Lisätiedot</string>
+
+    <!-- Moose enum values -->
+    <string name="moose_fitness_class_excellent">Erinomainen</string>
+    <string name="moose_fitness_class_normal">Normaali</string>
+    <string name="moose_fitness_class_thin">Laiha</string>
+    <string name="moose_fitness_class_starved">Nääntynyt</string>
+
+    <string name="moose_antlers_type_hanko">Hanko</string>
+    <string name="moose_antlers_type_lapio">Lapio</string>
+    <string name="moose_antlers_type_seka">Seka</string>
+
+    <!-- Observation edit page -->
+    <string name="observation_type">Havaintotyyppi</string>
+    <string name="observation_state">Eläimen tila</string>
+    <string name="observation_marked">Eläin merkitty</string>
+    <string name="within_moose_hunting">Hirvenmetsästyksen yhteydessä</string>
+
+    <!-- Observation mappings -->
+    <string name="observation_unknown">Tuntematon</string>
+
+    <string name="type_sight">Näkö</string>
+    <string name="type_track">Jälki</string>
+    <string name="type_excrement">Uloste</string>
+    <string name="type_sound">Ääni</string>
+    <string name="type_game_camera">Riistakamera</string>
+    <string name="type_dog">Koiran riistatyö</string>
+    <string name="type_ground_count">Maastolaskenta</string>
+    <string name="type_triangulation_count">Kolmiolaskenta</string>
+    <string name="type_air_count">Lentolaskenta</string>
+    <string name="type_carcass">Haaska</string>
+    <string name="type_feeding">Syönnös</string>
+    <string name="type_kelomispuu">Kelomispuu</string>
+    <string name="type_kiimakuoppa">Kiimakuoppa</string>
+    <string name="type_laying_location">Makuupaikka</string>
+    <string name="type_nest">Pesä</string>
+    <string name="type_nest_mound">Kekopesä</string>
+    <string name="type_nest_bank">Penkkapesä</string>
+    <string name="type_nest_mixed">Sekapesä</string>
+    <string name="type_dam">"Pato"</string>
+    <string name="type_soidin">Soidin</string>
+    <string name="type_caves">Luolasto</string>
+    <string name="type_nesting_islet">Pesimäluoto</string>
+    <string name="type_resting_islet">Lepäilyluoto</string>
+    <string name="type_nesting_swamp">Pesimäsuo</string>
+    <string name="type_migration_resting_area">Muuton aikainen lepäilyalue</string>
+    <string name="type_game_path">Riistankulkupaikka</string>
+    <string name="type_other">Muu</string>
+
+    <string name="age_adult">Aikuinen</string>
+    <string name="age_less_than_year">Alle 1 v</string>
+    <string name="age_year_or_two">1-2 vuotias</string>
+    <string name="age_eraus">Eraus</string>
+
+    <string name="state_healthy">Terve</string>
+    <string name="state_ill">Sairas</string>
+    <string name="state_wounded">Loukkaantunut</string>
+    <string name="state_carcass">Haaska</string>
+    <string name="state_dead">Kuollut</string>
+
+    <string name="marked_none">Ei merkkiä</string>
+    <string name="marked_collar">Panta / Radiolähetin</string>
+    <string name="marked_ring">Jalkarengas, Siipimerkki</string>
+    <string name="marked_ear">Korvamerkki</string>
+
+    <!-- Mooselike -->
+    <string name="mooselike_male">Aikuisia uroksia</string>
+    <string name="mooselike_female">Vasattomia naaraita</string>
+    <string name="mooselike_female_calf">Naaras + 1 vasa</string>
+    <string name="mooselike_female_calfs2">Naaras + 2 vasaa</string>
+    <string name="mooselike_female_calfs3">Naaras + 3 vasaa</string>
+    <string name="mooselike_female_calfs4">Naaras + 4 vasaa</string>
+    <string name="mooselike_unknown">Tuntemattomia</string>
+
+    <!-- SRVA -->
+    <string name="srva_other_species_description">Muu laji</string>
+    <string name="srva_event">Tapahtuma</string>
+    <string name="srva_type">Tyyppi</string>
+    <string name="srva_type_description">Tyypin kuvaus</string>
+
+    <string name="srva_result">Tulos</string>
+    <string name="srva_method">Menetelmä</string>
+    <string name="srva_method_description">Menetelmän kuvaus</string>
+    <string name="srva_person_count">Osallistuneita henkilöitä</string>
+    <string name="srva_time_spent">Työtunteja yhteensä</string>
+
+    <string name="srva_accident">Onnettomuus</string>
+    <string name="srva_deportation">Karkotus</string>
+    <string name="srva_sick_animal">Sairas eläin</string>
+
+    <string name="srva_traffic_accident">Liikenneonnettomuus</string>
+    <string name="srva_railway_accident">Onnettomuus rautatiellä</string>
+    <string name="srva_other">Muu</string>
+
+    <string name="srva_animal_near_houses">Eläin asutuksen tuntumassa</string>
+    <string name="srva_animal_at_food_destination">Eläin ravintokohteilla</string>
+
+    <string name="srva_injured_animal">Loukkaantunut eläin</string>
+    <string name="srva_animal_on_ice">Eläin jäällä</string>
+
+    <string name="srva_animal_found_dead">Eläin löydettiin kuolleena</string>
+    <string name="srva_animal_found_and_terminated">Eläin löydettiin ja lopetettiin</string>
+    <string name="srva_animal_found_and_not_terminated">Eläin löydettiin ja jätettiin henkiin</string>
+    <string name="srva_accident_site_not_found">Onnettomuuspaikkaa ei löytynyt</string>
+    <string name="srva_animal_not_found">Eläintä ei löydetty</string>
+    <string name="srva_undue_alarm">Aiheeton hälytys</string>
+
+    <string name="srva_animal_terminated">Eläin lopetettiin</string>
+    <string name="srva_animal_deported">Eläin karkotettiin</string>
+
+    <string name="srva_method_dog">Koira</string>
+    <string name="srva_method_traced_with_dog">Jäljitettiin koiran kanssa</string>
+    <string name="srva_method_traced_without_dog">Jäljitettiin ilman koiraa</string>
+    <string name="srva_method_pain_equipment">Kipua tuottavat laitteet</string>
+    <string name="srva_method_sound_equipment">Ääntä tuottavat laitteet</string>
+
+    <string name="srva_approver">Hyväksyjä</string>
+    <string name="srva_rejecter">Hylkääjä</string>
+
+    <string name="display_all">Näytä kokonaan</string>
+    <string name="announcements_none">Ei viestejä</string>
+    <string name="announcements_fetch_failed">Viestien hakeminen epäonnistui</string>
+
+</resources>

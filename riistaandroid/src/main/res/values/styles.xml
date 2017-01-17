@@ -1,0 +1,180 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Base application theme, dependent on API level. This theme is replaced
+        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+    -->
+    <style name="AppBaseTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+        <!--
+            Theme customizations available in newer API levels can go in
+            res/values-vXX/styles.xml, while customizations related to
+            backward-compatibility can go here.
+        -->
+        <item name="actionBarStyle">@style/MyActionBar</item>
+    </style>
+
+    <!-- Application theme. -->
+    <style name="AppTheme" parent="AppBaseTheme">
+        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:editTextStyle">@style/EditTextAppTheme</item>
+        <item name="android:checkboxStyle">@style/CheckBoxAppTheme</item>
+        <item name="android:spinnerStyle">@style/SpinnerAppTheme</item>
+        <item name="android:spinnerItemStyle">@style/RiistaSpinnerItem</item>
+        <item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemAppTheme</item>
+
+        <item name="actionBarStyle">@style/MyActionBar</item>
+        <item name="android:actionBarStyle">@style/MyActionBar</item>
+
+        <item name="android:popupMenuStyle">@style/Widget.AppCompat.PopupMenu</item>
+    </style>
+
+    <style name="SplashTheme" parent="AppBaseTheme">
+        <item name="windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="MyActionBar" parent="@style/Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/actionbar_color</item>
+        <item name="background">@color/actionbar_color</item>
+        <item name="logo">@drawable/ic_menu_logo</item>
+        <item name="indeterminateProgressStyle">@style/IndeterminateProgress</item>
+        <item name="contentInsetStart">0dp</item>
+    </style>
+
+    <style name="IndeterminateProgress" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/ic_action_refresh</item>
+        <item name="android:layout_width">52dip</item>
+        <item name="android:minWidth">52dip</item>
+        <item name="android:maxWidth">52dip</item>
+        <item name="android:minHeight">32dip</item>
+        <item name="android:maxHeight">32dip</item>
+    </style>
+
+    <style name="EditTextAppTheme" parent="@android:style/Widget.EditText">
+        <item name="android:textColor">@color/input_text_color</item>
+        <item name="android:textColorHint">@color/input_text_color</item>
+        <item name="android:background">@drawable/apptheme_edit_text_holo_light</item>
+    </style>
+
+    <style name="CheckBoxAppTheme" parent="Widget.AppCompat.CompoundButton.CheckBox">
+        <item name="colorAccent">@color/checkbox_checked_color</item>
+        <item name="android:textColorSecondary">@color/checkbox_enabled_color</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="RadioButtonAppTheme" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="colorControlNormal">@color/radiobutton_enabled_color</item>
+        <item name="colorControlActivated">@color/radiobutton_checked_color</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="SpinnerAppTheme" parent="Widget.AppCompat.Spinner.Underlined">
+        <item name="android:background">@drawable/apptheme_spinner_background_holo_light</item>
+        <item name="android:dropDownSelector">@drawable/apptheme_list_selector_holo_light</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:spinnerMode">dialog</item>
+    </style>
+
+    <style name="SpinnerDropDownItemAppTheme" parent="android:Widget.DropDownItem.Spinner">
+        <item name="android:checkMark">@drawable/apptheme_btn_radio_holo_light</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="basebutton" parent="@android:style/Widget.Button">
+        <item name="android:textColor">@color/button_text_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="togglebutton" parent="@android:style/Widget.Button">
+        <item name="android:background">@drawable/tab_indicator</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="buttontext" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">@color/button_text_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="dismissbutton" parent="basebutton">
+        <item name="android:background">@drawable/buttongray</item>
+    </style>
+
+    <style name="button" parent="basebutton">
+        <item name="android:background">@drawable/button</item>
+    </style>
+
+    <style name="button_specimen_details" parent="@android:style/Widget.Button">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:gravity">center_vertical|left</item>
+        <item name="android:background">@drawable/button_specimen_details</item>
+    </style>
+
+    <style name="coordinate_text" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">#333</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="my_details_section_title" parent="@android:style/Widget.TextView">
+        <item name="android:layout_marginLeft">@dimen/page_padding_horizontal</item>
+        <item name="android:layout_marginRight">@dimen/page_padding_horizontal</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="my_details_item">
+        <item name="android:paddingTop">@dimen/my_details_item_spacing</item>
+        <item name="android:paddingBottom">@dimen/my_details_item_spacing</item>
+        <item name="android:layout_marginLeft">@dimen/page_padding_horizontal</item>
+        <item name="android:layout_marginRight">@dimen/page_padding_horizontal</item>
+    </style>
+
+    <style name="my_details_item_key" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="my_details_item_value" parent="@android:style/Widget.TextView">
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:layout_marginLeft">12dp</item>
+    </style>
+
+    <style name="my_details_item_value_emphasize" parent="my_details_item_value">
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="specimen_weight_input" parent="EditTextAppTheme">
+        <item name="android:background">@drawable/edit_text_no_border_disabled</item>
+    </style>
+
+    <style name="settings_item">
+        <item name="android:paddingTop">@dimen/settings_item_spacing</item>
+        <item name="android:paddingBottom">@dimen/settings_item_spacing</item>
+        <item name="android:layout_marginLeft">@dimen/page_padding_horizontal</item>
+        <item name="android:layout_marginRight">@dimen/page_padding_horizontal</item>
+    </style>
+
+    <style name="buttonSpinnerBackgroundStyle" parent="android:Widget.Holo.Spinner">
+        <item name="android:background">@drawable/spinner_button_hide_bg_disabled</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="RiistaSpinnerItem" parent="android:Widget.TextView.SpinnerItem">
+        <item name="android:textAppearance">@style/RiistaTextAppearanceSpinnerItem</item>
+    </style>
+
+    <style name="RiistaTextAppearanceSpinnerItem" parent="android:TextAppearance.Widget.TextView.SpinnerItem">
+        <item name="android:textColor">@color/text_dark</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="announcement_text" parent="android:Widget.TextView">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+</resources>

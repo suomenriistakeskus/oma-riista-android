@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="WebImageView">
+        <attr name="animateFadeIn" format="boolean"/>
+        <attr name="loadingResource" format="reference"/>
+        <attr name="imageUri" format="string"/>
+        <attr name="targetImageSize" format="dimension"/>
+    </declare-styleable>
+    
+</resources>

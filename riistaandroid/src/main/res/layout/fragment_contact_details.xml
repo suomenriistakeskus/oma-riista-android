@@ -1,0 +1,114 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/page_padding_vertical"
+    android:paddingRight="@dimen/page_padding_vertical"
+    >
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:src="@drawable/riista_logo"
+        android:contentDescription="@string/logo"
+        />
+
+    <fi.riista.mobile.ui.HeaderTextView
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:text="@string/customer_service"
+        />
+
+    <LinearLayout
+        android:background="@drawable/bottomborder"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_stat_phone"
+            android:contentDescription="@null"
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            >
+
+            <TextView
+                android:id="@+id/phonenumber"
+                android:layout_width="fill_parent"
+                android:layout_height="30dp"
+                android:textColor="@android:color/black"
+                android:gravity="center_vertical"
+                />
+
+            <TextView
+                android:id="@+id/customer_service_times"
+                android:layout_width="fill_parent"
+                android:layout_height="20dp"
+                android:textColor="@android:color/black"
+                android:gravity="center_vertical"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <fi.riista.mobile.ui.HeaderTextView
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:text="@string/support_and_feedback"
+        />
+
+    <LinearLayout
+        android:background="@drawable/bottomborder"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_stat_email"
+            android:contentDescription="@string/email"
+            />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="10dp"
+            android:id="@+id/sendemail"
+            >
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="30dp"
+                android:text="@string/email"
+                android:textColor="@android:color/black"
+                android:gravity="center_vertical"
+                />
+
+            <TextView
+                android:id="@+id/emailtext"
+                android:layout_width="fill_parent"
+                android:layout_height="15dp"
+                android:textSize="12sp"
+                android:textColor="@color/small_text_color"
+                android:gravity="center_vertical"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

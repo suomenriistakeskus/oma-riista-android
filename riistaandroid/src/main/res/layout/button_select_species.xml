@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <ImageView
+        android:id="@+id/species_image"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@null"
+        />
+
+    <RelativeLayout
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        >
+
+        <Button
+            android:id="@+id/speciesButton"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="left|center_vertical"
+            android:layout_alignParentLeft="true"
+            android:enabled="false"
+            style="?android:attr/spinnerStyle"
+            />
+
+        <TextView
+            android:id="@+id/speciestext"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="0dp"
+            android:textColor="#000"
+            android:textSize="20sp"
+            android:text="@string/species_prompt"
+            android:gravity="center_vertical"
+            android:layout_alignParentLeft="true"
+            />
+
+        <TextView
+            android:id="@+id/speciesmandatorymark"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textColor="@color/required_indicator_color"
+            android:textSize="20sp"
+            android:gravity="center_vertical"
+            android:layout_toRightOf="@+id/speciestext"
+            android:paddingLeft="3dp"
+            android:paddingRight="0dp"
+            android:text="*"
+            />
+
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/harvestAmount"
+        android:layout_width="60dp"
+        android:layout_height="50dp"
+        android:drawablePadding="10dp"
+        android:gravity="center"
+        android:enabled="false"
+        android:visibility="visible"
+        android:inputType="number"
+        android:maxLength="3"
+        android:maxLines="1"
+        android:imeOptions="actionDone"
+        android:selectAllOnFocus="true"
+        android:textColor="@android:color/black"
+        style="@style/EditTextAppTheme"
+        />
+
+</LinearLayout>

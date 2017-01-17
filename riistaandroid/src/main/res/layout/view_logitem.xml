@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/logitem_background"
+    >
+
+    <fi.vincit.androidutilslib.view.WebImageView
+        android:id="@+id/speciesimage"
+        android:layout_gravity="left"
+        android:layout_width="@dimen/logimage_size"
+        android:layout_height="@dimen/logimage_size"
+        android:scaleType="centerCrop"
+        android:paddingLeft="0dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        android:layout_marginRight="10dp"
+        android:layout_alignParentLeft="true"
+        android:contentDescription="@null"
+        />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@+id/speciesimage"
+        android:orientation="vertical"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+
+            <TextView
+                android:id="@+id/itemText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"
+                android:textColor="#000"
+                />
+
+            <ImageView
+                android:id="@+id/harvestStateIndicator"
+                android:layout_height="10dp"
+                android:layout_width="10dp"
+                android:layout_marginLeft="4dp"
+                android:baselineAlignBottom="true"
+                android:src="@drawable/circle"
+                />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/itemDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="5dp"
+            android:textSize="12sp"
+            android:textColor="#787878"
+            />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/logitemuploadedimage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/logitemtypeimage"
+        android:layout_marginRight="10dp"
+        android:contentDescription="@null"
+        />
+
+    <ImageView
+        android:id="@+id/logitemtypeimage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10dp"
+        android:contentDescription="@null"
+        />
+
+</RelativeLayout>

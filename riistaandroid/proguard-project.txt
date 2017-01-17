@@ -1,0 +1,114 @@
+# To enable ProGuard in your project, edit project.properties
+# to define the proguard.config property as described in that file.
+#
+# Add project specific ProGuard rules here.
+# By default, the flags in this file are appended to flags specified
+# in ${sdk.dir}/tools/proguard/proguard-android.txt
+# You can edit the include path and order by changing the ProGuard
+# include property in project.properties.
+#
+# For more details, see
+#   http://developer.android.com/guide/developing/tools/proguard.html
+
+# Add any project specific keep options here:
+
+# General
+# For debug purposes, remove when releasing
+-keepattributes SourceFile,LineNumberTable
+
+# JSON parsing uses reflection to find attribute getters and setters, don't modify them
+-keep public class com.teleste.tsemp.** {
+   public void set*(***);
+   public *** get*();
+ }
+
+-keep public class fi.riista.mobile.models.** {
+    public void set*(***);
+    public *** get*();
+}
+
+# Libraries
+-dontskipnonpubliclibraryclassmembers
+-libraryjars libs
+-keep class org.slf4j.** { *; }
+-keep interface org.slf4j.** { *; }
+-keep class com.google.** { *; }
+-keep interface com.google.** { *; }
+-keep class org.apache.** { *; }
+-keep interface org.apache.** { *; }
+-keep class org.hamcrest.** { *; }
+-keep interface org.hamcrest.** { *; }
+
+-keep class org.fasterxml.** { *; }
+-keep interface org.fasterxml.** { *; }
+-keepattributes Signature, *Annotation*,EnclosingMethod
+-keepnames class com.fasterxml.jackson.** { *; }
+-keep,allowshrinking class com.fasterxml.jackson.** { *; }
+
+-keep interface com.teleste.** { *; }
+-keep class com.teleste.** { *; }
+
+# Google play services
+-keep class * extends java.util.ListResourceBundle {
+    protected Object[][] getContents();
+}
+-keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
+    public static final *** NULL;
+}
+-keepnames @com.google.android.gms.common.annotation.KeepName class *
+-keepclassmembernames class * {
+    @com.google.android.gms.common.annotation.KeepName *;
+}
+-keepnames class * implements android.os.Parcelable {
+    public static final ** CREATOR;
+}
+
+#Remove logging
+-assumenosideeffects class com.teleste.ace8android.Log { static *; }
+
+-assumenosideeffects class org.slf4j.Logger {
+public *** trace(...);
+public *** debug(...);
+}
+
+-dontwarn com.sun.xml.internal.**
+-dontwarn com.sun.istack.internal.**
+-dontwarn org.codehaus.jackson.**
+-dontwarn org.springframework.**
+-dontwarn java.awt.**
+-dontwarn javax.security.**
+-dontwarn java.beans.**
+-dontwarn javax.xml.**
+-dontwarn java.util.**
+-dontwarn org.w3c.dom.**
+-dontwarn com.google.common.**
+-dontwarn com.octo.android.robospice.persistence.**
+-dontwarn org.apache.log4j.**
+-dontwarn com.fasterxml.jackson.dataformat.xml.**
+
+-keepattributes *Annotation*,EnclosingMethod,Signature
+-keepnames class com.fasterxml.jackson.** { *; }
+ -dontwarn com.fasterxml.jackson.databind.**
+ -keep class org.codehaus.** { *; }
+ -keepclassmembers public final enum org.codehaus.jackson.annotate.JsonAutoDetect$Visibility {
+ public static final org.codehaus.jackson.annotate.JsonAutoDetect$Visibility *; }
+-keep public class your.class.** {
+  public void set*(***);
+  public *** get*();
+}
+
+-keep class com.fasterxml.jackson.databind.ObjectMapper {
+    public <methods>;
+    protected <methods>;
+}
+-keep class com.fasterxml.jackson.databind.ObjectWriter {
+    public ** writeValueAsString(**);
+}
+
+-dontwarn org.joda.convert.**
+-dontwarn org.joda.time.**
+-keep class org.joda.time.** { *; }
+-keep interface org.joda.time.** { *; }
+
+-keep class org.joda.convert.** { *; }
+-keep interface org.joda.convert.** { *; }

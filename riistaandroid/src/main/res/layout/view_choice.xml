@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/edit_choice_bg">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/separator" />
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:id="@+id/check_choice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="5dp"
+        android:theme="@style/CheckBoxAppTheme" />
+
+    <TextView
+        android:id="@+id/txt_choice_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/check_choice"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/observation_type"
+        android:textColor="@color/text_dark"
+        android:textSize="16sp"
+        tools:ignore="RelativeOverlap" />
+
+    <android.support.v7.widget.AppCompatSpinner
+        android:id="@+id/spinner_choice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txt_choice_title"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        style="@style/SpinnerAppTheme" />
+
+    <EditText
+        android:id="@+id/edit_text_choice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txt_choice_title"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:gravity="start"
+        android:inputType="number"
+        android:textColor="@android:color/black"
+        style="@style/EditTextAppTheme"/>
+
+    <LinearLayout
+        android:id="@+id/container_check_boxes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txt_choice_title"
+        android:orientation="vertical">
+
+        <!-- Views added in code -->
+
+    </LinearLayout>
+
+    <View
+        android:id="@+id/separator_choice_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/separator" />
+
+</RelativeLayout>

@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <string name="app_name">Oma riista</string>
+    <string name="login_description">Logga in med koderna som skapats i oma.riista.fi </string>
+    <string name="logo">Logo</string>
+    <string name="username">Användarnamn</string>
+    <string name="password">Lösenord</string>
+    <string name="login">Logga in</string>
+
+    <string name="add">Lägg till</string>
+    <string name="edit">Redigera</string>
+
+    <!-- Page/navigation item titles -->
+    <string name="menu_front_page">Hems.</string>
+    <string name="menu_game_log">Viltlogg</string>
+    <string name="menu_my_details">Egna uppg.</string>
+    <string name="menu_announcements">Medd.</string>
+    <string name="menu_settings">Inställningar</string>
+    <string name="menu_contact_details">Kontaktuppgifter</string>
+    <string name="menu_more">Mer</string>
+    <string name="logout">Logga ut</string>
+
+    <string name="title_front_page">Första sidan</string>
+    <string name="title_game_log">Viltlogg</string>
+    <string name="title_my_details">Egna uppgifter</string>
+    <string name="title_announcements">Meddelanden</string>
+    <string name="title_settings">Inställningar</string>
+    <string name="title_contact_details">Kontaktuppgifter</string>
+
+    <string name="season">Jaktperiod %1$s</string>
+    <string name="season_srva">Kalenderår %1$s</string>
+    <string name="catch_total">%1$s byten</string>
+    <string name="observation_total">%1$s observationen</string>
+    <string name="srva_total">%1$s händelser</string>
+    <string name="loggame">Anteckna byte</string>
+    <string name="game">Byte</string>
+    <string name="observation">Observation</string>
+    <string name="srva">SRVA</string>
+    <string name="edititem_template">%1$s</string>
+    <string name="loggame_template">Anteckna byte\n%1$s</string>
+
+    <string name="logobservation">Anteckna observation</string>
+    <string name="logobservation_template">Anteckna observation\n%1$s</string>
+
+    <string name="logsrva">Anteckna SRVA-händelse</string>
+
+    <string name="new_log_event">Ny anteckning</string>
+    <string name="logs">Anteckningar</string>
+
+    <string-array name="months">
+        <item>Januari</item>
+        <item>Februari</item>
+        <item>Mars</item>
+        <item>April</item>
+        <item>Maj</item>
+        <item>Juni</item>
+        <item>Juli</item>
+        <item>Augusti</item>
+        <item>September</item>
+        <item>Oktober</item>
+        <item>November</item>
+        <item>December</item>
+    </string-array>
+
+    <!-- Settings page -->
+    <string name="language">Språk</string>
+    <string name="language_prompt">Välj språk</string>
+
+    <string name="Finnish">Suomi</string>
+    <string name="Swedish">Svenska</string>
+    <string name="English">English</string>
+
+    <string name="sharing">Dela</string>
+    <string name="facebook">Facebook</string>
+    <string name="twitter">Twitter</string>
+
+    <!-- Contact details page -->
+    <string name="feedback">Respons</string>
+    <string name="sendemail">Sänd e-post</string>
+    <string name="version">Version</string>
+    <string name="unknown">Ej kännt</string>
+    <string name="emailtemplate">Applikationsversion: %1$s\nTelefonmodell: %2$s\nAndroid-version: %3$s</string>
+    <string name="customer_service">Oma riista information</string>
+    <string name="customer_service_times">Vi betjänar vardagar kl %1$s</string>
+    <string name="customer_service_service_time">12&#8211;16</string>
+    <string name="customer_service_phone_number">029 431 2111</string>
+    <string name="support_and_feedback">Stöd och respons</string>
+    <string name="email">E-post</string>
+    <string name="customer_service_email_address">oma@riista.fi</string>
+    <string name="riista_url">www.riista.fi</string>
+
+    <!-- My details page -->
+    <string name="my_details_title_person">Personuppgifter</string>
+    <string name="my_details_name">Namn</string>
+    <string name="my_details_date_of_birth">Födelsedag</string>
+    <string name="my_details_home_municipality">Hemort</string>
+    <string name="my_details_address">Adress</string>
+    <string name="my_details_title_registry">Jägarregistret</string>
+    <string name="my_details_hunter_id">Jägarnummer</string>
+    <string name="my_details_title_hunting_license">Jaktkort</string>
+    <string name="my_details_insurance_policy_text">I detta kort nämnda jägare har en jägarförsäkring, som är giltig i alla nordiska länder och EU-länder.</string>
+    <string name="my_details_payment">Jaktvårdsavgift</string>
+    <string name="my_details_exam_date">Datum för avläggande av examen</string>
+    <string name="my_details_membership">JVF medlemsskap</string>
+    <string name="my_details_fee_paid_format">Betald\n%1$s - %2$s</string>
+    <string name="my_details_fee_not_paid">Betald inte</string>
+    <string name="my_details_no_valid_license">Jaktkort inte giltig</string>
+    <string name="my_details_hunting_ban">Jaktförbud</string>
+    <string name="my_details_assignments_title">Uppdrag</string>
+    <string name="duration_indefinite">Tills vidare</string>
+
+    <!-- New diary entry page -->
+    <string name="species">Art</string>
+    <string name="species_prompt">Välj art</string>
+    <string name="dismiss">Förkasta</string>
+    <string name="add_description">Lägg till beskrivning</string>
+    <string name="save">Spara</string>
+    <string name="pictures_and_description">Bilder och beskrivning</string>
+    <string name="share">Dela</string>
+    <string name="date_time">Tidpunkt</string>
+    <string name="image_prompt">Välj bildkälla</string>
+    <string name="take_picture">Ta bild</string>
+    <string name="pick_gallery">Plocka från galleriet</string>
+    <string name="gps_prompt">GPS är inte i bruk för tillfället. Vill du ta GPS i bruk?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nej</string>
+    <string name="cancel">Ångra</string>
+    <string name="gps_good">GPS BRA</string>
+    <string name="gps_bad">GPS DÅLIG</string>
+    <string name="gps_none">GPS ONÅBAR</string>
+    <string name="go_to_current_location">Gå till den aktuella GPS platsen</string>
+    <string name="set_location">Ställ en ny platts på kartan</string>
+    <string name="map_coordinates">N %1$s, E %2$s (ETRS-TM35FIN)</string>
+    <string name="select_preferred_intent">Välj önskat sätt att dela</string>
+    <string name="ok">OK</string>
+    <string name="delete">Ta bort</string>
+    <string name="delete_entry_caption">Ta bort anteckningen?</string>
+    <string name="deleta_entry_text">Vill du ta bort anteckningen? Då avlägsnas också till den eventuellt bifogade bilder.</string>
+    <string name="harvest_amount">Antal</string>
+    <string name="entry_details_permit">Bytet har fångats med stöd av Viltcentralen beviljad dispens eller jaktlicens</string>
+
+    <string name="harvest_create_report">Gör en lagstadgad bytesanmälan</string>
+    <string name="harvest_proposed">Bytesanmälan framförd</string>
+    <string name="harvest_sent_for_approval">Bytesanmälan skickad</string>
+    <string name="harvest_approved">Bytesanmälan godkänd</string>
+    <string name="harvest_rejected">Bytesanmälan avslagen</string>
+
+    <string name="harvest_permit_proposed">Framställts till licensen</string>
+    <string name="harvest_permit_accepted">Godkänts till licensen</string>
+    <string name="harvest_permit_rejected">Avslagits från licensen</string>
+
+    <string name="permit_list_page_title">Välj licens</string>
+    <string name="permit_list_input_prompt">Sök efter licensnummer</string>
+    <string name="permit_list_button">Sök detaljer</string>
+    <string name="permit_list_amount_short">st.</string>
+    <string name="permit_list_section_header">Detaljer licenser</string>
+    <string name="permit_list_help_text">För hjortdjur behöver man inte skriva in licensnumret</string>
+    <string name="permit_list_not_available">Dispens finns inte att tillgå. Tag kontakt med dispensmottagaren.</string>
+
+    <string name="connecting_failed">Kontakt med servern ficks ej. Var god och försök senare igen.</string>
+    <string name="login_failed">Fel användarnamn eller lösenord. Var god och försök igen.</string>
+
+    <string name="imageViewTemplate">Bild %1$s/%2$s</string>
+
+    <string name="error">Misstag</string>
+    <string name="version_outdated">Programversionen är föråldrad. Uppdatera programmet till en ny version för att fortsätta användningen.</string>
+    <string name="eventeditfailed">Redigeringen av evenemanget misslyckades.</string>
+    <string name="eventoutdated">Redigeringen av evenemanget misslyckades. Det finns en nyare version av evenemanget på servern.</string>
+
+    <string name="synchronization">Synkronisering</string>
+    <string name="refresh">Uppdatera</string>
+    <string name="manual">Manuell</string>
+    <string name="automatic">Automatisk</string>
+    <string name="licences_dialog_title">Licenser för öppen källkod</string>
+
+    <string name="settings_map_type_title">Kartor</string>
+    <string name="settings_map_type_google">Google</string>
+    <string name="settings_map_type_mml">MML</string>
+    <string name="map_type_select">Karta typ</string>
+    <string name="map_type_topographic">Terrängkarta</string>
+    <string name="map_type_background">Grundkarta</string>
+    <string name="map_type_aerial">Ortofoton</string>
+    <string name="map_copyright_mml">©Maanmittauslaitos</string>
+
+    <!-- Specimen details -->
+    <string name="specimen_details">Individuppgifter</string>
+
+    <string name="gender_input_header">Kön</string>
+    <string name="age_input_header">Ålder</string>
+    <string name="weight_input_header">Vikt (kg)</string>
+
+    <string name="gender_value_female">Hondjur</string>
+    <string name="gender_value_male">Handjur</string>
+    <string name="gender_value_unknown">Okänd</string>
+
+    <string name="age_value_adult">Vuxen</string>
+    <string name="age_value_young">Under 1 År</string>
+    <string name="age_value_unknown">Okänd</string>
+
+    <!-- Moose specimen details -->
+    <string name="moose_not_edible">Människoföda oduglig</string>
+    <string name="moose_weight_estimated">Slaktvikt uppskattad (kg)</string>
+    <string name="moose_weight_weighted">Slaktvikt vägd (kg)</string>
+    <string name="moose_fitness_class">Konditionsklass</string>
+    <string name="moose_antlers_type">Typ av horn</string>
+    <string name="moose_antlers_width">Hornutläggets avstånd (cm)</string>
+    <string name="moose_antlers_points_left">Horntaggar vänster</string>
+    <string name="moose_antlers_points_right">Horntaggar höger</string>
+    <string name="moose_additional_info">Tilläggsuppgifter</string>
+
+    <!-- Moose enum values -->
+    <string name="moose_fitness_class_excellent">Utmärkt</string>
+    <string name="moose_fitness_class_normal">Normal</string>
+    <string name="moose_fitness_class_thin">Mager</string>
+    <string name="moose_fitness_class_starved">Undernärd</string>
+
+    <string name="moose_antlers_type_hanko">Stång</string>
+    <string name="moose_antlers_type_lapio">Skovel</string>
+    <string name="moose_antlers_type_seka">Bland</string>
+
+    <!-- Observation edit page -->
+    <string name="observation_type">Typ av observation</string>
+    <string name="observation_state">Djurets kondition</string>
+    <string name="observation_marked">Djuret märkts</string>
+    <string name="within_moose_hunting">I samband med älgjakten</string>
+
+    <!-- Observation mappings -->
+    <string name="observation_unknown">Okänd</string>
+
+    <string name="type_sight">Synobservation</string>
+    <string name="type_track">Spårobservation</string>
+    <string name="type_excrement">Exkrement</string>
+    <string name="type_sound">Ljud</string>
+    <string name="type_game_camera">Viltkamera</string>
+    <string name="type_dog">Hundens viltarbete</string>
+    <string name="type_ground_count">Markinventering</string>
+    <string name="type_triangulation_count">Triangelinventering</string>
+    <string name="type_air_count">Flyginventering</string>
+    <string name="type_carcass">Åtel</string>
+    <string name="type_feeding">Uppstötning</string>
+    <string name="type_kelomispuu">Fejningsträd</string>
+    <string name="type_kiimakuoppa">Brunstgrop</string>
+    <string name="type_laying_location">Daglega</string>
+    <string name="type_nest">Rede</string>
+    <string name="type_nest_mound">Bäckhydda</string>
+    <string name="type_nest_bank">Bankhydda</string>
+    <string name="type_nest_mixed">Älvhydda</string>
+    <string name="type_dam">"Damm"</string>
+    <string name="type_soidin">Spel</string>
+    <string name="type_caves">Gryt</string>
+    <string name="type_nesting_islet">Häckningskär</string>
+    <string name="type_resting_islet">Viloskär</string>
+    <string name="type_nesting_swamp">Häckningsmyr</string>
+    <string name="type_migration_resting_area">Viloplats för flyttande fågel</string>
+    <string name="type_game_path">Viltpassage</string>
+    <string name="type_other">Annat</string>
+
+    <string name="age_adult">Vuxen</string>
+    <string name="age_less_than_year">Under 1 år</string>
+    <string name="age_year_or_two">1-2-åring</string>
+    <string name="age_eraus">Överåring</string>
+
+    <string name="state_healthy">Frisk</string>
+    <string name="state_ill">Sjuk</string>
+    <string name="state_wounded">Skadad</string>
+    <string name="state_carcass">Kadaver</string>
+    <string name="state_dead">Död</string>
+
+    <string name="marked_none">Inga märken</string>
+    <string name="marked_collar">Halsband / radiosändare</string>
+    <string name="marked_ring">Ringmärke, vingmärke</string>
+    <string name="marked_ear">Öronmärke</string>
+
+    <!-- Mooselike -->
+    <string name="mooselike_male">Vuxna tjurar</string>
+    <string name="mooselike_female">Kor utan kalvar</string>
+    <string name="mooselike_female_calf">Ko + 1 kalv</string>
+    <string name="mooselike_female_calfs2">Ko + 2 kalvar</string>
+    <string name="mooselike_female_calfs3">Ko + 3 kalvar</string>
+    <string name="mooselike_female_calfs4">Ko + 4 kalvar</string>
+    <string name="mooselike_unknown">Okända</string>
+
+    <!-- SRVA -->
+    <string name="srva_other_species_description">Annan art</string>
+    <string name="srva_event">Händelse</string>
+    <string name="srva_type">Typ</string>
+    <string name="srva_type_description">Beskrivning av typ</string>
+
+    <string name="srva_result">Resultat</string>
+    <string name="srva_method">Metod</string>
+    <string name="srva_method_description">Beskrivning av metoden</string>
+    <string name="srva_person_count">Personer som deltog</string>
+    <string name="srva_time_spent">Arbetstimmar sammanlagt</string>
+
+    <string name="srva_accident">Händelse</string>
+    <string name="srva_deportation">Fördrivning</string>
+    <string name="srva_sick_animal">Sjukt djur</string>
+
+    <string name="srva_traffic_accident">Trafikolycka</string>
+    <string name="srva_railway_accident">Olycka på järnväg</string>
+    <string name="srva_other">Övrigt</string>
+
+    <string name="srva_animal_near_houses">Djur i närheten av bosättning</string>
+    <string name="srva_animal_at_food_destination">Djur vid näringskälla</string>
+
+    <string name="srva_injured_animal">Skadat djur</string>
+    <string name="srva_animal_on_ice">Djur på isen</string>
+
+    <string name="srva_animal_found_dead">Djuret hittades dött</string>
+    <string name="srva_animal_found_and_terminated">Djuret hittades och avlivades</string>
+    <string name="srva_animal_found_and_not_terminated">Djuret hittades och lämnades vid liv</string>
+    <string name="srva_accident_site_not_found">Olycksplatsen hittades inte</string>
+    <string name="srva_animal_not_found">Djuret hittades inte</string>
+    <string name="srva_undue_alarm">Obefogat larm</string>
+
+    <string name="srva_animal_terminated">Djuret avlivades</string>
+    <string name="srva_animal_deported">Djuret fördrevs</string>
+
+    <string name="srva_method_dog">Hund</string>
+    <string name="srva_method_traced_with_dog">Spårades med hund</string>
+    <string name="srva_method_traced_without_dog">Spårades utan hund</string>
+    <string name="srva_method_pain_equipment">Anordning som orsakar smärta</string>
+    <string name="srva_method_sound_equipment">Anordning som skapar ljud</string>
+
+    <string name="srva_approver">Godkännare</string>
+    <string name="srva_rejecter">Förkastare</string>
+
+    <string name="display_all">Visa hela</string>
+    <string name="announcements_none">Inga meddelanden</string>
+    <string name="announcements_fetch_failed">Hämtning av meddelanden misslyckadesi</string>
+
+</resources>

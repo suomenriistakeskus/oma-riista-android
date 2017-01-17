@@ -1,0 +1,159 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ToggleButton
+            style="@style/togglebutton"
+            android:id="@+id/btn_show_harvest"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/game"
+            android:textOn="@string/game"
+            android:textOff="@string/game"/>
+        
+        <ToggleButton
+            style="@style/togglebutton"
+            android:id="@+id/btn_show_observations"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/observation"
+            android:textOn="@string/observation"
+            android:textOff="@string/observation"/>
+        
+        <ToggleButton
+            style="@style/togglebutton"
+            android:id="@+id/btn_show_srvas"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/srva"
+            android:textOn="@string/srva"
+            android:textOff="@string/srva"/>
+        
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/season_container_color"
+        android:paddingTop="10dp"
+        >
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" >
+
+            <fi.riista.mobile.ui.HeaderTextView
+                android:id="@+id/season_text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true" />
+
+            <TextView
+                android:id="@+id/catch_total"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:gravity="right"
+                android:textColor="@color/header_text_color"
+                />
+            
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/bottomborder"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" >
+
+            <ImageButton
+                android:id="@+id/calendar_previous"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/bg_image_button"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/arrow_left"
+                android:visibility="invisible" />
+
+            <LinearLayout
+                android:id="@+id/calendar_years"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingBottom="5dp"
+                android:paddingLeft="35dp"
+                android:paddingRight="35dp"
+                android:paddingTop="5dp" >
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/calendar_next"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/bg_image_button"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/arrow_right"
+                android:visibility="invisible" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="10dp"
+            >
+        
+            <fi.riista.mobile.ui.UnscrollableViewPager
+                android:id="@+id/calendar"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/season_stats_height"
+                android:background="@drawable/logitem_background"
+                android:orientation="horizontal"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
+                />
+        
+        </LinearLayout>
+
+    </LinearLayout>
+
+    
+    <ListView
+        android:id="@+id/historyListView"
+        android:headerDividersEnabled="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:cacheColorHint="@android:color/transparent"
+        android:drawSelectorOnTop="true"
+        android:listSelector="@drawable/list_selector"
+        android:padding="10dp"
+        />
+
+</LinearLayout>

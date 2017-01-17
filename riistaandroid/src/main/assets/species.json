@@ -1,0 +1,705 @@
+{
+  "categories" : [ {
+    "id" : 1,
+    "name" : {
+      "fi" : "Riistalinnut",
+      "sv" : "Viltfågel",
+      "en" : "Game birds"
+    }
+  }, {
+    "id" : 2,
+    "name" : {
+      "fi" : "Riistanisäkkäät",
+      "sv" : "Viltdäggdjur",
+      "en" : "Game mammals"
+    }
+  }, {
+    "id" : 3,
+    "name" : {
+      "fi" : "Rauhoittamattomat eläimet",
+      "sv" : "Icke fredade djur",
+      "en" : "Unprotected species"
+    }
+  } ],
+  "species" : [ {
+    "id" : 47348,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Karhu",
+      "sv" : "Björn",
+      "en" : "Brown bear"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 46615,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Ilves",
+      "sv" : "Lo",
+      "en" : "Lynx"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47503,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Hirvi",
+      "sv" : "Älg",
+      "en" : "Moose"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47507,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Metsäkauris",
+      "sv" : "Rådjur",
+      "en" : "Roe deer"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 50106,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Metsäjänis",
+      "sv" : "Skogshare",
+      "en" : "Mountain hare"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 50386,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Rusakko",
+      "sv" : "Fälthare",
+      "en" : "Brown hare"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 48089,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Orava",
+      "sv" : "Ekorre",
+      "en" : "Red squirrel"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 48251,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Euroopanmajava",
+      "sv" : "Bäver",
+      "en" : "European beaver"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 48250,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Kanadanmajava",
+      "sv" : "Amerikansk bäver",
+      "en" : "Canadian beaver"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 48537,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Piisami",
+      "sv" : "Bisam",
+      "en" : "Muskrat"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 50336,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Rämemajava",
+      "sv" : "Sumpbäver",
+      "en" : "Nutria"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 46549,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Susi",
+      "sv" : "Varg",
+      "en" : "Wolf"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 46542,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Tarhattu naali",
+      "sv" : "I farm uppfödd fjällräv",
+      "en" : "Blue fox"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 46587,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Kettu",
+      "sv" : "Rödräv",
+      "en" : "Red fox"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47329,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Pesukarhu",
+      "sv" : "Tvättbjörn",
+      "en" : "Raccoon"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47230,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Kärppä",
+      "sv" : "Hermelin",
+      "en" : "Ermine"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47240,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Hilleri",
+      "sv" : "Iller",
+      "en" : "Polecat"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47169,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Saukko",
+      "sv" : "Utter",
+      "en" : "Otter"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47223,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Näätä",
+      "sv" : "Mård",
+      "en" : "Pine marten"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47243,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Minkki",
+      "sv" : "Mink",
+      "en" : "American mink"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47212,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Ahma",
+      "sv" : "Järv",
+      "en" : "Wolverine"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 200555,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Itämerennorppa",
+      "sv" : "Östersjövikare",
+      "en" : "Ringed seal"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47305,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Kirjohylje",
+      "sv" : "Knubbsäl",
+      "en" : "Harbour seal"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47282,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Halli",
+      "sv" : "Gråsäl",
+      "en" : "Grey seal"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47926,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Villisika",
+      "sv" : "Vildsvin",
+      "en" : "Wild boar"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47484,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Kuusipeura",
+      "sv" : "Dovhjort",
+      "en" : "Fallow deer"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47476,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Saksanhirvi",
+      "sv" : "Kronhjort",
+      "en" : "Red deer"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47479,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Japaninhirvi ",
+      "sv" : "Sikahjort",
+      "en" : "Sika deer"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47629,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Valkohäntäpeura",
+      "sv" : "Vitsvanshjort",
+      "en" : "White-tailed deer"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 200556,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Metsäpeura",
+      "sv" : "Skogsren",
+      "en" : "Wild forest deer"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 47774,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Mufloni",
+      "sv" : "Mufflon",
+      "en" : "Mufflon"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 53004,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Villiintynyt kissa",
+      "sv" : "Förvildad katt",
+      "en" : "Wild cat"
+    },
+    "multipleSpecimenAllowedOnHarvests" : false,
+    "imageUrl" : null
+  }, {
+    "id" : 27048,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Peltopyy",
+      "sv" : "Rapphöna",
+      "en" : "Partridge"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26298,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Kanadanhanhi",
+      "sv" : "Kanadagås",
+      "en" : "Canada goose"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26291,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Merihanhi",
+      "sv" : "Grågås",
+      "en" : "Greylag goose"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26287,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Metsähanhi",
+      "sv" : "Sädgås",
+      "en" : "Bean goose"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26373,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Heinäsorsa",
+      "sv" : "Gräsand",
+      "en" : "Mallard"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26366,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Tavi",
+      "sv" : "Kricka",
+      "en" : "Teal"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26360,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Haapana",
+      "sv" : "Bläsand",
+      "en" : "Wigeon"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26382,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Jouhisorsa",
+      "sv" : "Stjärtand",
+      "en" : "Pintail"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26388,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Heinätavi",
+      "sv" : "Årta",
+      "en" : "Garganey"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26394,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Lapasorsa",
+      "sv" : "Skedand",
+      "en" : "Shoveler"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26407,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Punasotka",
+      "sv" : "Brunand",
+      "en" : "Pochard"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26415,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Tukkasotka",
+      "sv" : "Vigg",
+      "en" : "Tufted duck"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26419,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Haahka",
+      "sv" : "Ejder",
+      "en" : "Common eider"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26427,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Alli",
+      "sv" : "Alfågel",
+      "en" : "Long-tailed duck"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26435,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Telkkä",
+      "sv" : "Knipa",
+      "en" : "Goldeneye"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26440,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Tukkakoskelo",
+      "sv" : "Småskrake",
+      "en" : "Red-breasted merganser"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26442,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Isokoskelo",
+      "sv" : "Storskrake",
+      "en" : "Goosander"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26921,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Riekko",
+      "sv" : "Dalripa",
+      "en" : "Willow grouse"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26922,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Kiiruna",
+      "sv" : "Fjällripa",
+      "en" : "Ptarmigan"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26931,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Pyy",
+      "sv" : "Järpe",
+      "en" : "Hazel grouse"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26926,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Teeri",
+      "sv" : "Orre",
+      "en" : "Black grouse"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 26928,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Metso",
+      "sv" : "Tjäder",
+      "en" : "Capercaillie"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 27152,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Fasaani",
+      "sv" : "Fasan",
+      "en" : "Pheasant"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 27381,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Nokikana",
+      "sv" : "Sothöna",
+      "en" : "Coot"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 27649,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Lehtokurppa",
+      "sv" : "Morkulla",
+      "en" : "Woodcock"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 27911,
+    "categoryId" : 1,
+    "name" : {
+      "fi" : "Sepelkyyhky",
+      "sv" : "Ringduva",
+      "en" : "Wood pigeon"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 50114,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Villikani",
+      "sv" : "Vildkanin",
+      "en" : "Rabbit"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 46564,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Supikoira",
+      "sv" : "Mårdhund",
+      "en" : "Raccoon dog"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 47180,
+    "categoryId" : 2,
+    "name" : {
+      "fi" : "Mäyrä",
+      "sv" : "Grävling",
+      "en" : "Badger"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 37178,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Korppi",
+      "sv" : "Korp",
+      "en" : "Raven"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 37166,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Varis",
+      "sv" : "Kråka",
+      "en" : "Crow"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 37122,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Harakka",
+      "sv" : "Skata",
+      "en" : "Magpie"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 27750,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Harmaalokki",
+      "sv" : "Gråtrut",
+      "en" : "Herring gull"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 27759,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Merilokki",
+      "sv" : "Havstrut",
+      "en" : "Sea gull"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 200535,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Kesykyyhky",
+      "sv" : "Tamduva",
+      "en" : "Feral pigeon"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
+    "id" : 33117,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Räkättirastas",
+      "sv" : "Björktrast",
+      "en" : "Field fare"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  } ]
+}

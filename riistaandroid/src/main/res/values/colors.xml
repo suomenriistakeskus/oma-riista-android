@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimaryLight">#EAEAEA</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorText">#136925</color>
+    <color name="colorIcon">#136925</color>
+
+    <!-- Login activity colors -->
+    <color name="login_description_color">#FFFFFF</color>
+    <color name="input_text_color">#747474</color>
+    <color name="text_dark">#404040</color>
+
+    <!-- Button colors -->
+    <color name="button_background_color">#136925</color>
+    <color name="button_disabled_background_color">#A3C9A5</color>
+    <color name="button_hilight_color">#238935</color>
+    <color name="button_background_color_gray">#676767</color>
+    <color name="button_hilight_color_gray">#878787</color>
+    <color name="button_text_color">#FFFFFF</color>
+
+    <!-- CheckBox colors -->
+    <color name="checkbox_enabled_color">#747474</color>
+    <color name="checkbox_checked_color">@color/actionbar_color</color>
+    <color name="checkbox_disabled_color">#898989</color>
+
+    <!-- RadioButton colors -->
+    <color name="radiobutton_enabled_color">@color/input_text_color</color>
+    <color name="radiobutton_disabled_color">#898989</color>
+    <color name="radiobutton_checked_color">@color/actionbar_color</color>
+
+    <color name="main_background_color">#F0F0F0</color>
+    <color name="navigation_background_color">#FFFFFF</color>
+    <color name="navigation_separator_color">#D7D7D7</color>
+    <color name="drawer_item_text_color">#000000</color>
+    <color name="drawer_item_background_color">#E7F7ED</color>
+    <color name="actionbar_color">#2E862F</color>
+    <color name="light_border_color">#CFCFC8</color>
+
+    <color name="header_text_color">#000000</color>
+    <color name="header_border_color">#000000</color>
+
+    <color name="season_container_color">#FFFFFF</color>
+    <color name="season_separator_color">#CFCFC8</color>
+    <color name="calendar_item_color">#106627</color>
+    <color name="catch_category_color">#787878</color>
+    <color name="small_text_color">#787878</color>
+    <color name="logitem_header_background_color">#9F9F9F</color>
+
+    <!-- Misc. colors -->
+    <color name="link_text_color">#057700</color>
+    <color name="accuracy_circle_fill_color">#550000FF</color>
+    <color name="progress_overlay_color">#66676767</color>
+    <color name="required_indicator_color">#F00</color>
+
+    <!-- Log entry page colors -->
+    <color name="log_entry_background">@android:color/white</color>
+
+    <!-- Harvest report state indicator colors -->
+    <color name="harvest_create_report">#c44d4a</color>
+    <color name="harvest_proposed">#d2ad00</color>
+    <color name="harvest_sent_for_approval">#d2ad00</color>
+    <color name="harvest_approved">#004923</color>
+    <color name="harvest_rejected">#c44d4a</color>
+
+    <!-- Permit state indicator colors -->
+    <color name="permit_proposed">#d2ad00</color>
+    <color name="permit_accepted">#004923</color>
+    <color name="permit_rejected">#c44d4a</color>
+
+    <!-- Segmented control button -->
+    <color name="segmented_button_pressed">@color/button_background_color</color>
+    <color name="segmented_button_checked">@color/actionbar_color</color>
+    <color name="segmented_button_not_checked">@color/main_background_color</color>
+    <color name="segmented_button_text">@color/button_text_color</color>
+    <color name="segmented_button_text_inverted">@color/input_text_color</color>
+
+    <!-- not used -->
+    <color name="login_image_background_color">#85CB41</color>
+
+    <!-- App theme color that can be used to colorize pure white images -->
+    <color name="icon_colorize">#6eb36c</color>
+    <color name="icon_colorize_transparent">#806eb36c</color>
+    <color name="separator">#BBBBBB</color>
+
+    <color name="edit_bg">#EAEAEA</color>
+    <color name="edit_choice_bg">#FFF</color>
+
+    <color name="announcement_activity_bg">#EAEAEA</color>
+    <color name="announcement_item_bg">@android:color/white</color>
+    <color name="announcement_header_bg">#FAFAFA</color>
+</resources>

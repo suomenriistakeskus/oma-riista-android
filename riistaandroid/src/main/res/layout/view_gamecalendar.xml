@@ -1,0 +1,27 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <LinearLayout
+        android:id="@+id/months"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/season_months_height"
+        android:background="@drawable/bottomborder"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        />
+
+    <LinearLayout
+        android:id="@+id/categories"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:paddingLeft="0dp"
+        android:layout_marginTop="1dp"
+        />
+
+</LinearLayout>
