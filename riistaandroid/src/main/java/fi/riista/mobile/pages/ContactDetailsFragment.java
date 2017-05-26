@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import fi.riista.mobile.R;
+import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.utils.Utils;
 
 public class ContactDetailsFragment extends PageFragment {
@@ -26,6 +27,8 @@ public class ContactDetailsFragment extends PageFragment {
         super.onResume();
 
         setViewTitle(getString(R.string.title_contact_details));
+        ((BaseActivity) getActivity()).onHasActionbarMenu(false);
+
     }
 
     @Override

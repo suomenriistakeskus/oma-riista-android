@@ -1,14 +1,18 @@
 package fi.riista.mobile.network;
 
 import android.content.DialogInterface;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
+
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.R;
+import fi.riista.mobile.RiistaApplication;
 import fi.riista.mobile.database.GameDatabase;
 import fi.riista.mobile.observation.ObservationMetadataHelper;
 import fi.riista.mobile.srva.SrvaParametersHelper;
+import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.listener.BaseWorkAsyncTaskListener;
 import fi.vincit.androidutilslib.task.TextTask;
@@ -31,11 +35,9 @@ public class LoginTask extends TextTask {
         addParameter("client", "mobileapiv2");
         setCookieStore(GameDatabase.getInstance().getCookieStore());
 
-        try {
-            String version = workContext.getContext().getPackageManager().getPackageInfo(workContext.getContext().getPackageName(), 0).versionName;
+        String version = Utils.getAppVersionName(workContext.getContext());
+        if (version != null) {
             setHeader("mobileClientVersion", version);
-        } catch (NameNotFoundException e) {
-            e.printStackTrace();
         }
         setHeader("platform", "android");
         setHeader("device", android.os.Build.MODEL);
@@ -46,8 +48,27 @@ public class LoginTask extends TextTask {
                 //When login attempt ends, try to fetch observation metadata and SRVA parameters
                 ObservationMetadataHelper.getInstance().fetchMetadata();
                 SrvaParametersHelper.getInstance().fetchParameters();
+
+                sendRegistrationToServer();
             }
         });
+    }
+
+    private void sendRegistrationToServer() {
+        final FirebaseInstanceId instance = FirebaseInstanceId.getInstance();
+        final String instanceId = instance.getId();
+        final String instanceToken = instance.getToken();
+
+        Log.d(Utils.LOG_TAG, "Current instanceId is: " + instanceId);
+        Log.d(Utils.LOG_TAG, "Current registration id is: " + instanceToken);
+
+        if (instanceToken == null) {
+            return;
+        }
+
+        WorkContext workContext = RiistaApplication.getInstance().getWorkContext();
+        RegisterPushDeviceTask registerPushDeviceTask = new RegisterPushDeviceTask(workContext, instanceToken);
+        registerPushDeviceTask.start();
     }
 
     @Override

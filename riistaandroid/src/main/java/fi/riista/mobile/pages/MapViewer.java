@@ -180,6 +180,8 @@ public class MapViewer extends DetailsPageFragment implements LocationListener, 
         inflater.inflate(R.menu.map_viewer, menu);
         MenuItem addItem = menu.findItem(R.id.select_map_layer);
         addItem.setVisible(AppPreferences.getMapTileSource(getActivity()) != AppPreferences.MapTileSource.GOOGLE);
+
+        ((BaseActivity) getActivity()).onHasActionbarMenu(addItem.isVisible());
     }
 
     @Override

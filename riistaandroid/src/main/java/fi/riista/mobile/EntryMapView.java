@@ -14,7 +14,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -111,8 +110,8 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         if (mTiletype != AppPreferences.MapTileSource.GOOGLE) {
             mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
             mMap.setMyLocationEnabled(false);
-
-            setMapBounds(mMap, MAP_ZOOM_LEVEL_MIN, MAP_ZOOM_LEVEL_MAX);
+            mMap.setMaxZoomPreference(MAP_ZOOM_LEVEL_MAX);
+            mMap.setMinZoomPreference(MAP_ZOOM_LEVEL_MIN);
 
             mTileProvider = new MmlTileProvider(256, 256);
             mTileProvider.setMapType(mTiletype);
@@ -131,21 +130,6 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
             onLocationUpdated(mUpdatedLocation);
             mUpdatedLocation = null;
         }
-    }
-
-    private void setMapBounds(final GoogleMap map, final float minZoom, final float maxZoom) {
-        assert map != null;
-
-        map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
-            @Override
-            public void onCameraChange(CameraPosition cameraPosition) {
-                if (cameraPosition.zoom > maxZoom) {
-                    map.animateCamera(CameraUpdateFactory.zoomTo(maxZoom));
-                } else if (cameraPosition.zoom < minZoom) {
-                    map.animateCamera(CameraUpdateFactory.zoomTo(minZoom));
-                }
-            }
-        });
     }
 
     private TextView setupCopyright() {

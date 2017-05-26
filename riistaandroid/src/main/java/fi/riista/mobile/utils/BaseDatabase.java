@@ -59,7 +59,7 @@ public class BaseDatabase<T> {
         });
     }
 
-    protected String getUsername() {
+    public static String getUsername() {
         UserInfo info = AppPreferences.getUserInfo(RiistaApplication.getInstance());
         if (info != null && info.getUsername() != null) {
             return info.getUsername();

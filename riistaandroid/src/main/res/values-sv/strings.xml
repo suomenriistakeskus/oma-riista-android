@@ -2,7 +2,6 @@
 
 <resources>
 
-    <string name="app_name">Oma riista</string>
     <string name="login_description">Logga in med koderna som skapats i oma.riista.fi </string>
     <string name="logo">Logo</string>
     <string name="username">Användarnamn</string>
@@ -19,6 +18,7 @@
     <string name="menu_announcements">Medd.</string>
     <string name="menu_settings">Inställningar</string>
     <string name="menu_contact_details">Kontaktuppgifter</string>
+    <string name="menu_show_magazine">Läs senaste numret av Jägaren</string>
     <string name="menu_more">Mer</string>
     <string name="logout">Logga ut</string>
 

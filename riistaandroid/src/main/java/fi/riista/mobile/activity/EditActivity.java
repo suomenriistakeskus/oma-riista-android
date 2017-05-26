@@ -18,6 +18,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 
 import org.joda.time.DateTime;
 
@@ -380,14 +381,26 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
         map.setOnMapClickListener(new OnMapClickListener() {
             @Override
             public void onMapClick(LatLng loaction) {
-                Intent intent = new Intent(EditActivity.this, MapViewerActivity.class);
-                intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, mEditMode);
-                intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, currentLocation());
-                intent.putExtra(MapViewerActivity.EXTRA_NEW, mNew);
-                intent.putExtra(MapViewerActivity.EXTRA_LOCATION_SOURCE, mEditBridge.getLocationSource());
-                startActivityForResult(intent, MapViewerActivity.LOCATION_REQUEST_CODE);
+                viewMap();
             }
         });
+
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                viewMap();
+                return true;
+            }
+        });
+    }
+
+    private void viewMap() {
+        Intent intent = new Intent(EditActivity.this, MapViewerActivity.class);
+        intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, mEditMode);
+        intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, currentLocation());
+        intent.putExtra(MapViewerActivity.EXTRA_NEW, mNew);
+        intent.putExtra(MapViewerActivity.EXTRA_LOCATION_SOURCE, mEditBridge.getLocationSource());
+        startActivityForResult(intent, MapViewerActivity.LOCATION_REQUEST_CODE);
     }
 
     private Location currentLocation() {

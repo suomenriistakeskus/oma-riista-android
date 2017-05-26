@@ -48,7 +48,7 @@ public class BaseActivity extends AppCompatActivity implements WorkContextProvid
         v.setLayoutParams(lp);
 
         // Extra padding should be calculated separately for views with/without options menu items
-        int padding = Math.round(UnitConverter.dipToPx(this, 60));
+        int padding = Math.round(UnitConverter.dipToPx(this, 64));
         mTitleView.setPadding(mTitleView.getPaddingLeft(), mTitleView.getPaddingTop(), padding, mTitleView.getPaddingBottom());
 
         setCustomTitle(getString(R.string.app_name));
@@ -126,6 +126,12 @@ public class BaseActivity extends AppCompatActivity implements WorkContextProvid
     public void setCustomTitle(String title) {
         TextView textView = (TextView) mTitleView.findViewById(R.id.title);
         textView.setText(title);
+    }
+
+    public void onHasActionbarMenu(final boolean hasMenu) {
+        // Position actionbar custom view near center whether view has menu or not
+        int padding = Math.round(UnitConverter.dipToPx(BaseActivity.this, hasMenu ? 28 : 64));
+        mTitleView.setPadding(mTitleView.getPaddingLeft(), mTitleView.getPaddingTop(), padding, mTitleView.getPaddingBottom());
     }
 
     void setSyncNotification(boolean enabled) {

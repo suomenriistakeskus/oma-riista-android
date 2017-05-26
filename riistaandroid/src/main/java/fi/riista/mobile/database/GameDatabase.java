@@ -29,6 +29,7 @@ import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import fi.riista.mobile.AppLifecycleHandler;
 import fi.riista.mobile.activity.LoginActivity;
 import fi.riista.mobile.database.DiaryEntryUpdate.UpdateType;
 import fi.riista.mobile.models.GameHarvest;
@@ -62,8 +63,11 @@ public class GameDatabase implements DiarySync.DiarySyncReceiver {
     private SynchronizedCookieStore mCookieStore = new SynchronizedCookieStore();
     private String PREFS_LOGIN_USERNAME_KEY = "username";
     private String PREFS_LOGIN_PASSWORD_KEY = "password";
+
     private Handler mSyncHandler = new Handler();
     private Runnable mSyncTask = null;
+    private boolean mIsSyncQueued = false;
+
     // Whether events have been tried to be sent for first time
     private boolean mFirstTimeSent = false;
     private SharedPreferences mUpdateTimePreferences = null;
@@ -645,32 +649,44 @@ public class GameDatabase implements DiarySync.DiarySyncReceiver {
      * @param workContext
      * @param initialWait Wait time before making first synchronization in milliseconds
      */
-    public void initSync(final WorkContext workContext, int initialWait) {
+    public synchronized void initSync(final WorkContext workContext, int initialWait) {
+        if (mIsSyncQueued) {
+            return;
+        }
+
         mSyncTask = new Runnable() {
             @Override
             public void run() {
                 // Synchronize and send unsent events
                 syncAndSend(workContext);
 
-                // Only continue further syncs when in automatic mode
-                if (getSyncMode(workContext.getContext()) == SyncMode.SYNC_AUTOMATIC) {
-                    mSyncHandler.postDelayed(this, UPDATE_INTERVAL_SECONDS * 1000);
+                synchronized (GameDatabase.this) {
+                    // Only continue further syncs when app is active
+                    if (AppLifecycleHandler.getInstance().isApplicationInForeground() && getSyncMode(workContext.getContext()) == SyncMode.SYNC_AUTOMATIC) {
+                        mSyncHandler.postDelayed(this, UPDATE_INTERVAL_SECONDS * 1000);
+                        mIsSyncQueued = true;
+                    } else {
+                        mIsSyncQueued = false;
+                        Log.d(Utils.LOG_TAG, "Not queuing next sync");
+                    }
                 }
             }
         };
 
         mSyncHandler.postDelayed(mSyncTask, initialWait);
+        mIsSyncQueued = true;
     }
 
-    public void stopSyncing() {
+    public synchronized void stopSyncing() {
         mSyncHandler.removeCallbacks(mSyncTask);
+        mIsSyncQueued = false;
     }
 
-    public void doSyncAndResetTimer() {
+    public synchronized void doSyncAndResetTimer() {
         mSyncHandler.removeCallbacks(mSyncTask);
         mSyncHandler.post(mSyncTask);
+        mIsSyncQueued = true;
     }
-
 
     public void manualSync(final WorkContext workContext) {
         // Synchnonizes and sends unsent events

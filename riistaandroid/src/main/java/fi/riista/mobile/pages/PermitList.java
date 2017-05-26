@@ -32,7 +32,6 @@ import java.util.List;
 import fi.riista.mobile.R;
 import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.HarvestPermitActivity;
-import fi.riista.mobile.activity.MainActivity;
 import fi.riista.mobile.database.PermitManager;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.models.GameHarvest;
@@ -166,7 +165,7 @@ public class PermitList extends PageFragment {
                 mPermitNumberButton.setEnabled(false);
                 hideKeyboard();
 
-                CheckPermitNumberTask task = new CheckPermitNumberTask(((MainActivity) getActivity()).getWorkContext(), mPermitNumberInput.getText().toString()) {
+                CheckPermitNumberTask task = new CheckPermitNumberTask(((BaseActivity) getActivity()).getWorkContext(), mPermitNumberInput.getText().toString()) {
                     @Override
                     protected void onDone(Permit permit) {
                         mPermitNumberProgress.setVisibility(View.GONE);

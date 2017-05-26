@@ -3,11 +3,11 @@ package fi.riista.mobile;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileProvider;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,9 +21,9 @@ class MmlTileProvider implements TileProvider {
 
     private static final String REFERER_KEY = "Referer";
     private static final String REFERER_VALUE = "https://oma.riista.fi";
-    private static final String MML_TOPOGRAPHIC_TILE_URL_FORMAT = "https://kartta.riista.fi/tms/1.0.0/maasto_mobile/EPSG_3857/%d/%d/%d.png";
-    private static final String MML_AERIAL_TILE_URL_FORMAT = "https://kartta.riista.fi/tms/1.0.0/orto_mobile/EPSG_3857/%d/%d/%d.png";
-    private static final String MML_BACKGROUND_TILE_URL_FORMAT = "https://kartta.riista.fi/tms/1.0.0/tausta_mobile/EPSG_3857/%d/%d/%d.png";
+    private static final String MML_TOPOGRAPHIC_TILE_URL_FORMAT = "http://kartta.riista.fi/tms/1.0.0/maasto_mobile/EPSG_3857/%d/%d/%d.png";
+    private static final String MML_AERIAL_TILE_URL_FORMAT = "http://kartta.riista.fi/tms/1.0.0/orto_mobile/EPSG_3857/%d/%d/%d.png";
+    private static final String MML_BACKGROUND_TILE_URL_FORMAT = "http://kartta.riista.fi/tms/1.0.0/tausta_mobile/EPSG_3857/%d/%d/%d.png";
 
     private final int mWidth;
     private final int mHeight;
@@ -69,39 +69,24 @@ class MmlTileProvider implements TileProvider {
             return NO_TILE;
         } else {
             Tile tile;
-            HttpURLConnection urlConnection = null;
-            try {
-                urlConnection = (HttpURLConnection) tileUrl.openConnection();
-                urlConnection.setRequestProperty(REFERER_KEY, REFERER_VALUE);
-                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                readStream(in, out);
+            InputStream in = null;
 
-                tile = new Tile(this.mWidth, this.mHeight, out.toByteArray());
+            try {
+                HttpURLConnection urlConnection = (HttpURLConnection) tileUrl.openConnection();
+                urlConnection.setRequestProperty(REFERER_KEY, REFERER_VALUE);
+                in = new BufferedInputStream(urlConnection.getInputStream());
+
+                tile = new Tile(this.mWidth, this.mHeight, IOUtils.toByteArray(in));
             } catch (IOException e) {
                 tile = null;
             } finally {
-                if (urlConnection != null) {
-                    urlConnection.disconnect();
+                if (in != null) try {
+                    in.close();
+                } catch (Exception ignored) {
                 }
             }
 
             return tile;
-        }
-    }
-
-    private static long readStream(InputStream inputStream, OutputStream outputStream) throws IOException {
-        byte[] byteData = new byte[4096];
-        long dataLength = 0L;
-
-        while (true) {
-            int bytesRead = inputStream.read(byteData);
-            if (bytesRead == -1) {
-                return dataLength;
-            }
-
-            outputStream.write(byteData, 0, bytesRead);
-            dataLength += (long) bytesRead;
         }
     }
 }

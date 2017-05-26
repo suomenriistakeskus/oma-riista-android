@@ -36,6 +36,7 @@ import java.util.List;
 
 import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.R;
+import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.HarvestActivity;
 import fi.riista.mobile.activity.MainActivity;
@@ -331,6 +332,8 @@ public class GameLogFragment extends PageFragment implements DatabaseUpdateListe
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.gamelog, menu);
         super.onCreateOptionsMenu(menu, inflater);
+
+        ((BaseActivity) getActivity()).onHasActionbarMenu(true);
     }
 
     @Override
@@ -625,7 +628,9 @@ public class GameLogFragment extends PageFragment implements DatabaseUpdateListe
 
         if (mCalendarYears.size() == 0) {
             //No events, create a dummy year
-            mCalendarYear = DateTimeUtils.getSeasonStartYearFromDate(Calendar.getInstance());
+            mCalendarYear = (TAB_SRVAS == mShowTab)
+                    ? Calendar.getInstance().get(Calendar.YEAR)
+                    : DateTimeUtils.getSeasonStartYearFromDate(Calendar.getInstance());
 
             CalendarYear year = new CalendarYear();
             year.year = mCalendarYear;
@@ -634,7 +639,7 @@ public class GameLogFragment extends PageFragment implements DatabaseUpdateListe
         }
 
         if (mCalendarYear < 0) {
-            mCalendarYear = newestHuntingYear;
+            mCalendarYear = (TAB_SRVAS == mShowTab) ? newestYear : newestHuntingYear;
         }
 
         mCalendarAdapter.notifyDataSetChanged();

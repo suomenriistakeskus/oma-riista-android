@@ -51,6 +51,7 @@ public class SettingsFragment extends PageFragment {
         super.onResume();
 
         setViewTitle(getString(R.string.title_settings));
+        ((BaseActivity) getActivity()).onHasActionbarMenu(false);
     }
 
     void setupSyncMode(final View view) {

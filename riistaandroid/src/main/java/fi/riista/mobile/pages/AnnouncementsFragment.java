@@ -3,6 +3,7 @@ package fi.riista.mobile.pages;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,18 +13,24 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import fi.riista.mobile.R;
+import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.adapter.AnnouncementAdapter;
 import fi.riista.mobile.models.announcement.Announcement;
-import fi.riista.mobile.network.ListAnnouncementsTask;
-import fi.riista.mobile.utils.Utils;
+import fi.riista.mobile.storage.AnnouncementSync;
+import fi.riista.mobile.storage.StorageDatabase;
 import fi.vincit.androidutilslib.util.ViewAnnotations;
 
 public class AnnouncementsFragment extends PageFragment {
     List<Announcement> mDataModels = new ArrayList<>();
     AnnouncementAdapter mAdapter;
+
+    @ViewAnnotations.ViewId(R.id.fragment_announcements)
+    SwipeRefreshLayout mSwipeContainer;
 
     @ViewAnnotations.ViewId(R.id.announcements_state)
     TextView mStatusText;
@@ -67,7 +74,26 @@ public class AnnouncementsFragment extends PageFragment {
             }
         });
 
+        setupPullToRefresh();
+
         return view;
+    }
+
+    private void setupPullToRefresh() {
+        mSwipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                AnnouncementSync syncer = new AnnouncementSync();
+                syncer.sync(new AnnouncementSync.AnnouncementSyncListener() {
+                    @Override
+                    public void onFinish() {
+                        mSwipeContainer.setRefreshing(false);
+
+                        refreshAnnouncements();
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -75,11 +101,21 @@ public class AnnouncementsFragment extends PageFragment {
         super.onResume();
 
         setViewTitle(getString(R.string.title_announcements));
-        fetchAnnouncements();
+        ((BaseActivity) getActivity()).onHasActionbarMenu(false);
+
+        refreshAnnouncements();
     }
 
     void setDataModels(@NonNull List<Announcement> dataModels) {
         mDataModels = dataModels;
+
+        // Sort descending by datetime
+        Collections.sort(mDataModels, new Comparator<Announcement>() {
+            @Override
+            public int compare(Announcement a1, Announcement a2) {
+                return a2.pointOfTime.compareTo(a1.pointOfTime);
+            }
+        });
 
         if (mDataModels.size() > 0) {
             mStatusText.setVisibility(View.GONE);
@@ -93,35 +129,19 @@ public class AnnouncementsFragment extends PageFragment {
         mAdapter.notifyDataSetChanged();
     }
 
-    void fetchAnnouncements() {
+    void refreshAnnouncements() {
         mProgress.setVisibility(View.VISIBLE);
 
-        ListAnnouncementsTask task = new ListAnnouncementsTask(getWorkContext()) {
+        StorageDatabase.getInstance().fetchAnnouncements(new StorageDatabase.AnnouncementsListener() {
             @Override
-            protected void onFinishObjects(List<Announcement> results) {
+            public void onFinish(List<Announcement> announcements) {
                 mStatusText.setVisibility(View.GONE);
-                if (isAdded()) {
-                    AnnouncementsFragment.this.setDataModels(results);
-                }
-            }
-
-            @Override
-            protected void onError() {
-                Utils.LogMessage("Failed to fetch announcements: " + getError().getMessage());
+                mProgress.setVisibility(View.GONE);
 
                 if (isAdded()) {
-                    mStatusText.setText(getString(R.string.announcements_fetch_failed));
-                    mStatusText.setVisibility(View.VISIBLE);
+                    AnnouncementsFragment.this.setDataModels(announcements);
                 }
             }
-
-            @Override
-            protected void onEnd() {
-                if (isAdded()) {
-                    mProgress.setVisibility(View.GONE);
-                }
-            }
-        };
-        task.start();
+        });
     }
 }

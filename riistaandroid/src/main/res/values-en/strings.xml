@@ -2,7 +2,6 @@
 
 <resources>
 
-    <string name="app_name">Oma riista</string>
     <string name="login_description">Login with username and password created in oma.riista.fi</string>
     <string name="logo">Logo</string>
     <string name="username">Username</string>
@@ -19,6 +18,7 @@
     <string name="menu_announcements">Messages</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_contact_details">Contacts</string>
+    <string name="menu_show_magazine">Read latest Metsästäjä magazine</string>
     <string name="menu_more">More</string>
     <string name="logout">Logout</string>
 

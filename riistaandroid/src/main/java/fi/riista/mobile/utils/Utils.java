@@ -2,6 +2,8 @@ package fi.riista.mobile.utils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
@@ -11,6 +13,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -30,6 +33,7 @@ import java.util.Locale;
 
 import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.R;
+import fi.riista.mobile.RiistaApplication;
 import fi.riista.mobile.SpeciesMapping;
 import fi.riista.mobile.database.DiaryDataSource;
 import fi.riista.mobile.database.GameDatabase;
@@ -41,6 +45,7 @@ import fi.riista.mobile.network.BitmapWorkerTask;
 import fi.riista.mobile.network.LogImageTask;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.task.NetworkTask;
+import fi.vincit.androidutilslib.task.WorkAsyncTask;
 import fi.vincit.androidutilslib.view.WebImageView;
 
 public class Utils {
@@ -70,6 +75,30 @@ public class Utils {
             return false;
         }
         return true;
+    }
+
+    public static void unregisterNotificationsAsync() {
+        WorkAsyncTask task = new WorkAsyncTask(RiistaApplication.getInstance().getWorkContext()) {
+            @Override
+            protected void onAsyncRun() throws Exception {
+                //This is a blocking call
+                FirebaseInstanceId.getInstance().deleteInstanceId();
+            }
+        };
+        task.start();
+    }
+
+    public static String getAppVersionName(Context context) {
+        try {
+            final String packageName = context.getPackageName();
+            final PackageManager packageManager = context.getPackageManager();
+            final PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+
+            return packageInfo.versionName;
+
+        } catch (PackageManager.NameNotFoundException e) {
+            return null;
+        }
     }
 
     public static void hideKeyboard(Context context, View view) {

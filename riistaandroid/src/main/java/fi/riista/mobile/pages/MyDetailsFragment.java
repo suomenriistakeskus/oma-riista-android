@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 
 import fi.riista.mobile.R;
+import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.models.user.Address;
 import fi.riista.mobile.models.user.Occupation;
 import fi.riista.mobile.models.user.Rhy;
@@ -88,6 +89,7 @@ public class MyDetailsFragment extends PageFragment {
         super.onResume();
 
         setViewTitle(getString(R.string.title_my_details));
+        ((BaseActivity) getActivity()).onHasActionbarMenu(false);
 
         UserInfo info = AppPreferences.getUserInfo(mContext);
 

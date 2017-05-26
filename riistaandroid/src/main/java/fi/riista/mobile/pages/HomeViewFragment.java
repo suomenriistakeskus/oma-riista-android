@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fi.riista.mobile.R;
+import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.HarvestActivity;
 import fi.riista.mobile.activity.MainActivity;
@@ -115,6 +116,8 @@ public class HomeViewFragment extends PageFragment implements DatabaseUpdateList
         super.onStart();
 
         setViewTitle(getString(R.string.title_front_page));
+        ((BaseActivity) getActivity()).onHasActionbarMenu((GameDatabase.getInstance().getSyncMode(getActivity()) == GameDatabase.SyncMode.SYNC_MANUAL));
+
         updateQuickButtons();
 
         GameDatabase.getInstance().registerListener(this);
@@ -353,20 +356,18 @@ public class HomeViewFragment extends PageFragment implements DatabaseUpdateList
                     db.doSyncAndResetTimer();
                 }
             }
-        } else if (requestCode == EditActivity.NEW_OBSERVATION_REQUEST_CODE) {
+        } else if (requestCode == EditActivity.NEW_OBSERVATION_REQUEST_CODE ||
+                requestCode == EditActivity.NEW_SRVA_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 boolean didSave = data.getBooleanExtra(EditActivity.RESULT_DID_SAVE, false);
 
                 if (didSave) {
                     // Move to game log and select observation tab
                 }
-            }
-        } else if (requestCode == EditActivity.NEW_SRVA_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                boolean didSave = data.getBooleanExtra(EditActivity.RESULT_DID_SAVE, false);
 
-                if (didSave) {
-                    // Move to game log and select srva tab
+                GameDatabase db = GameDatabase.getInstance();
+                if (db.getSyncMode(getContext()) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
+                    db.doSyncAndResetTimer();
                 }
             }
         } else {

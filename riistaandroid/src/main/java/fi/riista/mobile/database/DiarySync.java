@@ -14,6 +14,7 @@ import fi.riista.mobile.observation.ObservationSync;
 import fi.riista.mobile.observation.ObservationSync.ObservationSyncListener;
 import fi.riista.mobile.srva.SrvaSync;
 import fi.riista.mobile.srva.SrvaSync.SrvaSyncListener;
+import fi.riista.mobile.storage.AnnouncementSync;
 import fi.riista.mobile.utils.ImageUtils;
 import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.context.WorkContext;
@@ -98,39 +99,51 @@ public class DiarySync {
         return years;
     }
 
-    private void syncYears(List<Integer> harvestYears, List<Integer> observationYears, final boolean retry) {
-        final GameDatabase database = GameDatabase.getInstance();
+    private void syncYears(List<Integer> harvestYears, final List<Integer> observationYears, final boolean retry) {
         mYears = harvestYears;
         mSyncsDone = 0;
 
-        //Sync observations
-        ObservationSync observationSync = new ObservationSync();
-        observationSync.sync(observationYears, new ObservationSyncListener() {
+        //Sync announcements
+        AnnouncementSync announcementSync = new AnnouncementSync();
+        announcementSync.sync(new AnnouncementSync.AnnouncementSyncListener() {
             @Override
             public void onFinish() {
-                //Sync SRVA events
-                SrvaSync srvaSync = new SrvaSync();
-                srvaSync.sync(new SrvaSyncListener() {
+                //Sync observations
+                ObservationSync observationSync = new ObservationSync();
+                observationSync.sync(observationYears, new ObservationSyncListener() {
                     @Override
                     public void onFinish() {
-                        //Then sync harvest
-                        if (mYears.size() > 0) {
-                            for (int i = 0; i < mYears.size(); i++) {
-                                Date date = database.getUpdateTimeForEventYear(mYears.get(i));
-                                if (date != null && Utils.isRecentTime(date, SYNC_MIN_INTERVAL)) {
-                                    syncDone(null);
-                                } else {
-                                    final int year = mYears.get(i);
-                                    syncData(year, retry);
-                                }
+                        //Sync SRVA events
+                        SrvaSync srvaSync = new SrvaSync();
+                        srvaSync.sync(new SrvaSyncListener() {
+                            @Override
+                            public void onFinish() {
+                                //Then sync harvest
+                                syncHarvest(retry);
                             }
-                        } else {
-                            syncCompletedInternal();
-                        }
+                        });
                     }
                 });
             }
         });
+    }
+
+    private void syncHarvest(final boolean retry) {
+        final GameDatabase database = GameDatabase.getInstance();
+
+        if (mYears.size() > 0) {
+            for (int i = 0; i < mYears.size(); i++) {
+                Date date = database.getUpdateTimeForEventYear(mYears.get(i));
+                if (date != null && Utils.isRecentTime(date, SYNC_MIN_INTERVAL)) {
+                    syncDone(null);
+                } else {
+                    final int year = mYears.get(i);
+                    syncData(year, retry);
+                }
+            }
+        } else {
+            syncCompletedInternal();
+        }
     }
 
     private void syncData(int year, final boolean retry) {

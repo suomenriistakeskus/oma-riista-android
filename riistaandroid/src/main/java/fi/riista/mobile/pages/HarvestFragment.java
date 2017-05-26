@@ -31,6 +31,7 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 
 import org.joda.time.DateTime;
 
@@ -766,6 +767,14 @@ public class HarvestFragment extends DetailsPageFragment implements LocationList
                 viewMap();
             }
         });
+
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                viewMap();
+                return true;
+            }
+        });
     }
 
     @Override
@@ -1235,7 +1244,7 @@ public class HarvestFragment extends DetailsPageFragment implements LocationList
         }
     }
 
-    public void viewMap() {
+    private void viewMap() {
         Intent intent = new Intent(getActivity(), MapViewerActivity.class);
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, mEditModeEnabled && mEvent.isEditable());
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, mEvent.hasNonDefaultLocation() ? mEvent.mLocation : null);

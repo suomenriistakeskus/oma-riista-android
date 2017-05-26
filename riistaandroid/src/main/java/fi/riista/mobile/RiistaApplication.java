@@ -7,6 +7,7 @@ import fi.riista.mobile.observation.ObservationDatabase;
 import fi.riista.mobile.observation.ObservationMetadataHelper;
 import fi.riista.mobile.srva.SrvaDatabase;
 import fi.riista.mobile.srva.SrvaParametersHelper;
+import fi.riista.mobile.storage.StorageDatabase;
 import fi.vincit.androidutilslib.application.WorkApplication;
 import fi.vincit.androidutilslib.config.AndroidUtilsLibConfig;
 
@@ -18,6 +19,8 @@ public class RiistaApplication extends WorkApplication {
     public void onCreate() {
         super.onCreate();
 
+        registerActivityLifecycleCallbacks(AppLifecycleHandler.getInstance());
+
         sInstance = this;
 
         adjustBitmapCache();
@@ -25,6 +28,7 @@ public class RiistaApplication extends WorkApplication {
         ObservationMetadataHelper.init(getWorkContext());
         ObservationDatabase.init(this);
         SrvaDatabase.init(this);
+        StorageDatabase.init(this);
 
         SrvaParametersHelper.init(getWorkContext());
     }

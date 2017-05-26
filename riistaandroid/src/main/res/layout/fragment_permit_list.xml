@@ -89,6 +89,7 @@
             android:layout_below="@+id/permit_list_manual_input"
             android:layout_marginTop="@dimen/item_spacing_normal"
             android:visibility="gone"
+            android:textColor="@android:color/black"
             android:text="@string/permit_list_not_available"
             />
     </RelativeLayout>

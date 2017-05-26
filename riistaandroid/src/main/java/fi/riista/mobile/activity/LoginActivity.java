@@ -19,8 +19,11 @@ import java.util.Locale;
 
 import fi.riista.mobile.R;
 import fi.riista.mobile.database.GameDatabase;
+import fi.riista.mobile.models.announcement.Announcement;
 import fi.riista.mobile.network.LoginTask;
+import fi.riista.mobile.storage.StorageDatabase;
 import fi.riista.mobile.utils.AppPreferences;
+import fi.riista.mobile.utils.JsonUtils;
 import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.activity.WorkActivity;
 
@@ -29,15 +32,33 @@ import fi.vincit.androidutilslib.activity.WorkActivity;
  */
 public class LoginActivity extends WorkActivity {
 
-    public static String EVENT_YEARS_EXTRA = "gameDiaryYears";
+    public static final String EVENT_YEARS_EXTRA = "gameDiaryYears";
+    public static final String SHOW_ANNOUNCEMENTS_EXTRA = "showAnnouncements";
+
     private Button mLoginButton = null;
+    private boolean showAnnouncements = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        checkNotificationIntentData();
+
         setupLocaleFromSetting();
         setContentView(R.layout.activity_loginscreen);
         setupButtons(false);
+    }
+
+    private void checkNotificationIntentData() {
+        String announcement = getIntent().getStringExtra("announcement");
+        if (announcement != null) {
+            //We got announcement data from a notification, so save it if we can.
+            showAnnouncements = true;
+            Announcement ann = JsonUtils.jsonToObject(announcement, Announcement.class);
+            if (ann != null) {
+                StorageDatabase.getInstance().updateAnnouncement(ann, null);
+            }
+        }
     }
 
     @Override
@@ -83,7 +104,7 @@ public class LoginActivity extends WorkActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                startActivity(intent);
+                replaceWithMainActivity(intent);
             }
         };
         log.start();
@@ -111,7 +132,7 @@ public class LoginActivity extends WorkActivity {
                 }
                 GameDatabase.getInstance().loginWithStoredCredentials(getWorkContext(), false);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
+                replaceWithMainActivity(intent);
                 return;
             }
 
@@ -132,5 +153,14 @@ public class LoginActivity extends WorkActivity {
                 return false;
             }
         });
+    }
+
+    void replaceWithMainActivity(Intent intent) {
+        //Check if the main activity should show the announcement page
+        boolean show = getIntent().getBooleanExtra(SHOW_ANNOUNCEMENTS_EXTRA, false) || showAnnouncements;
+        intent.putExtra(SHOW_ANNOUNCEMENTS_EXTRA, show);
+        startActivity(intent);
+
+        finish();
     }
 }

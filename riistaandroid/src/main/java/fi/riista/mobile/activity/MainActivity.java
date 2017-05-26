@@ -25,6 +25,7 @@ import com.roughike.bottombar.BottomBar;
 import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
+import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.NetworkConnectivityReceiver;
 import fi.riista.mobile.R;
 import fi.riista.mobile.database.DiarySync.DiarySyncContext;
@@ -77,7 +78,12 @@ public class MainActivity extends BaseActivity implements DiarySyncContext {
         registerReceiver(mConnectivityReceiver, intentFilter);
 
         if (mDatabase.getSyncMode(this) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
-            mDatabase.initSync(getWorkContext(), 1000);
+            mDatabase.initSync(getWorkContext(), 500);
+        }
+
+        if (getIntent().getBooleanExtra(LoginActivity.SHOW_ANNOUNCEMENTS_EXTRA, false)) {
+            getIntent().removeExtra(LoginActivity.SHOW_ANNOUNCEMENTS_EXTRA);
+            mBottomNavigationView.selectTabWithId(R.id.menu_announcements);
         }
     }
 
@@ -92,6 +98,16 @@ public class MainActivity extends BaseActivity implements DiarySyncContext {
         }
 
         mDatabase.close();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Handle resuming sync when returning to app
+        if (mDatabase.getSyncMode(this) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
+            mDatabase.initSync(getWorkContext(), 500);
+        }
     }
 
     @Override
@@ -188,6 +204,16 @@ public class MainActivity extends BaseActivity implements DiarySyncContext {
                     case R.id.menu_settings:
                         innerFragment = SettingsFragment.newInstance();
                         break;
+                    case R.id.menu_magazine:
+                        Intent intent = new Intent(MainActivity.this, MagazineActivity.class);
+                        if (AppPreferences.LANGUAGE_CODE_SV.equalsIgnoreCase(AppPreferences.getLanguageCodeSetting(MainActivity.this))) {
+                            intent.putExtra(MagazineActivity.EXTRA_URL, AppConfig.MAGAZINE_URL_SV);
+                        }
+                        else {
+                            intent.putExtra(MagazineActivity.EXTRA_URL, AppConfig.MAGAZINE_URL_FI);
+                        }
+                        startActivity(intent);
+                        break;
                     case R.id.menu_logout:
                         confirmLogout();
                         break;
@@ -235,10 +261,12 @@ public class MainActivity extends BaseActivity implements DiarySyncContext {
     }
 
     public void logout() {
+        mDatabase.stopSyncing();
         mDatabase.clearUpdateTimes();
         mDatabase.removeCredentials(this);
         AppPreferences.setUserInfo(this, null);
         PermitManager.getInstance(this).clearPermits();
+        Utils.unregisterNotificationsAsync();
 
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

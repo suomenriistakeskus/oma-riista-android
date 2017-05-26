@@ -2,7 +2,6 @@
 
 <resources>
 
-    <string name="app_name">Oma riista</string>
     <string name="login_description">Kirjaudu sisään oma.riista.fi:ssä luoduilla tunnuksilla</string>
     <string name="logo">Logo</string>
     <string name="username">Käyttäjänimi</string>
@@ -19,6 +18,7 @@
     <string name="menu_announcements">Viestit</string>
     <string name="menu_settings">Asetukset</string>
     <string name="menu_contact_details">Yhteystiedot</string>
+    <string name="menu_show_magazine">Lue viimeisin Metsästäjä-lehti</string>
     <string name="menu_more">Lisää</string>
     <string name="logout">Kirjaudu ulos</string>
 

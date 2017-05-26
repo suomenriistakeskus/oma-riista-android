@@ -3,6 +3,7 @@ package fi.riista.mobile.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.widget.ListView;
 
 import fi.riista.mobile.R;
@@ -55,6 +56,16 @@ public class ObservationSpecimensActivity extends BaseActivity {
             }
             setCustomTitle(title);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

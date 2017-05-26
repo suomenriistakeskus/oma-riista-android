@@ -29,3 +29,7 @@ local.properties
 build/
 
 google_maps_api*.xml
+
+*.keystore
+riista.properties
+google-services.json

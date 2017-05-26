@@ -18,6 +18,8 @@ The full text of the license can be found at [LICENSE](LICENSE).
 
 ## Development and workflow
 
+Instructions to setup development environment can be found at [docs/development.md](docs/development.md)
+
 Feedback, suggestions, bug reports and other issues should be sent to **oma@riista.fi**
 
 Any source code pull-requests are regularly processed during the iterative development process.
