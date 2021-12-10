@@ -15,11 +15,8 @@
  */
 package fi.vincit.androidutilslib.factory;
 
+import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
 import fi.vincit.androidutilslib.task.NetworkTask;
-import fi.vincit.httpclientandroidlib.conn.ClientConnectionManager;
-import fi.vincit.httpclientandroidlib.impl.client.AbstractHttpClient;
-import fi.vincit.httpclientandroidlib.impl.client.DefaultHttpClient;
-import fi.vincit.httpclientandroidlib.impl.client.HttpClientBuilder;
 
 /**
  * Factory class for creating HTTP client's for a NetworkTask. 
@@ -37,7 +34,7 @@ public class HttpClientFactory
      */
     public HttpClientBuilder newClient(NetworkTask task, HttpClientBuilder builder)
     {
-        //Use defaults
+        // Use defaults
         return builder;
     }
     
@@ -47,6 +44,6 @@ public class HttpClientFactory
      */
     public void configureClient(HttpClientBuilder builder)
     {
-        //Use defaults
+        // Use defaults
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true" android:drawable="@color/segmented_button_pressed"/>
-    <item android:state_checked="true" android:drawable="@color/segmented_button_checked"/>
-    <item android:drawable="@color/segmented_button_not_checked"/>
+    <item android:drawable="@color/colorPrimary" android:state_pressed="true" />
+    <item android:drawable="@color/colorPrimary" android:state_checked="true" />
+    <item android:drawable="@android:color/white"/>
 </selector>

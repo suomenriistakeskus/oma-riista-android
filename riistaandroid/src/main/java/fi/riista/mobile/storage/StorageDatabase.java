@@ -1,23 +1,28 @@
 package fi.riista.mobile.storage;
 
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fi.riista.mobile.models.announcement.Announcement;
-import fi.riista.mobile.utils.BaseDatabase;
 import fi.riista.mobile.utils.JsonUtils;
+import fi.riista.mobile.utils.UserInfoStore;
 import fi.vincit.androidutilslib.database.AsyncCursor;
 import fi.vincit.androidutilslib.database.AsyncDatabase;
+
+import static java.util.Objects.requireNonNull;
 
 public class StorageDatabase {
 
     public interface UpdateListener {
         void onUpdate();
+
         void onError();
     }
 
@@ -27,35 +32,45 @@ public class StorageDatabase {
 
     private static StorageDatabase sInstance;
 
-    public static void init(Context context) {
+    private final UserInfoStore mUserInfoStore;
+
+    public static void init(@NonNull final Context context, @NonNull final UserInfoStore userInfoStore) {
         StorageDatabaseHelper.init(context);
 
-        sInstance = new StorageDatabase();
+        sInstance = new StorageDatabase(userInfoStore);
     }
 
     public static StorageDatabase getInstance() {
         return sInstance;
     }
 
-    private ContentValues announcementToValues(Announcement item, String userName) {
-        ContentValues values = new ContentValues();
-        values.put("username", userName);
+    private static ContentValues announcementToValues(final Announcement item, final String username) {
+        final ContentValues values = new ContentValues();
+        values.put("username", username);
         values.put("remoteId", item.remoteId);
         values.put("status", 0);
         values.put("content", JsonUtils.objectToJson(item));
         return values;
     }
 
-    public void updateAnnouncements(final List<Announcement> annoucements, final UpdateListener listener) {
-        StorageDatabaseHelper helper = StorageDatabaseHelper.getInstance();
-        final String userName = BaseDatabase.getUsername();
+    private StorageDatabase(@NonNull final UserInfoStore userInfoStore) {
+        mUserInfoStore = requireNonNull(userInfoStore);
+    }
+
+    public void updateAnnouncements(@NonNull final List<Announcement> announcements,
+                                    @NonNull final UpdateListener listener) {
+
+        final StorageDatabaseHelper helper = StorageDatabaseHelper.getInstance();
+
         helper.write(new AsyncDatabase.AsyncWrite() {
-            protected void onAsyncWrite(SQLiteDatabase db) {
-                //Delete all existing announcements. No need to use userName here.
+            protected void onAsyncWrite(final SQLiteDatabase db) {
+                // Delete all existing announcements. No need to use username here.
                 db.delete("announcement", null, null);
 
-                for (Announcement item : annoucements) {
-                    ContentValues values = announcementToValues(item, userName);
+                final String username = getUsername();
+
+                for (final Announcement item : announcements) {
+                    final ContentValues values = announcementToValues(item, username);
                     db.replace("announcement", null, values);
                 }
             }
@@ -70,20 +85,20 @@ public class StorageDatabase {
         });
     }
 
-    public void updateAnnouncement(final Announcement item, final UpdateListener listener) {
-        StorageDatabaseHelper helper = StorageDatabaseHelper.getInstance();
-        final String userName = BaseDatabase.getUsername();
+    public void updateAnnouncement(@NonNull final Announcement item, @Nullable final UpdateListener listener) {
+        final StorageDatabaseHelper helper = StorageDatabaseHelper.getInstance();
 
         helper.write(new AsyncDatabase.AsyncWrite() {
             @Override
-            protected void onAsyncWrite(SQLiteDatabase db) {
-                ContentValues values = announcementToValues(item, userName);
+            protected void onAsyncWrite(final SQLiteDatabase db) {
+                final String username = getUsername();
+                final ContentValues values = announcementToValues(item, username);
 
-                //First try to update existing entry with a specific remoteId
-                int changes = db.update("announcement", values, "remoteId = ? AND userName = ?",
-                        new String[] {"" + item.remoteId, userName});
+                // First try to update existing entry with a specific remoteId
+                final int changes = db.update("announcement", values, "remoteId = ? AND userName = ?",
+                        new String[]{"" + item.remoteId, username});
                 if (changes == 0) {
-                    //Row does not exist, so insert it now.
+                    // Row does not exist, so insert it now.
                     db.insert("announcement", null, values);
                 }
             }
@@ -102,17 +117,15 @@ public class StorageDatabase {
         });
     }
 
-    public void fetchAnnouncements(final AnnouncementsListener listener) {
-        StorageDatabaseHelper helper = StorageDatabaseHelper.getInstance();
-        final String userName = BaseDatabase.getUsername();
+    public void fetchAnnouncements(@NonNull final AnnouncementsListener listener) {
+        final StorageDatabaseHelper helper = StorageDatabaseHelper.getInstance();
 
-        helper.query(new AsyncDatabase.AsyncQuery("SELECT * FROM announcement WHERE userName = ?", userName) {
-            private ArrayList<Announcement> mResults = new ArrayList<Announcement>();
+        helper.query(new AsyncDatabase.AsyncQuery("SELECT * FROM announcement WHERE userName = ?", getUsername()) {
+            private final ArrayList<Announcement> mResults = new ArrayList<>();
 
-            protected void onAsyncQuery(AsyncCursor cursor) {
+            protected void onAsyncQuery(final AsyncCursor cursor) {
                 while (cursor.moveToNext()) {
-                    Announcement ann = JsonUtils.jsonToObject(cursor.getString("content"), Announcement.class);
-                    mResults.add(ann);
+                    mResults.add(JsonUtils.jsonToObject(cursor.getString("content"), Announcement.class));
                 }
             }
 
@@ -126,4 +139,7 @@ public class StorageDatabase {
         });
     }
 
+    private String getUsername() {
+        return mUserInfoStore.getUsernameOrEmpty();
+    }
 }

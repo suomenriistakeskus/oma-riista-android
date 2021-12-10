@@ -1,26 +1,27 @@
 package fi.riista.mobile.ui;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.PorterDuff.Mode;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import java.util.ArrayList;
+import java.util.Locale;
 
 import fi.riista.mobile.R;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.models.Species;
-import fi.riista.mobile.models.Specimen.SpecimenAge;
-import fi.riista.mobile.models.Specimen.SpecimenGender;
+import fi.riista.mobile.models.specimen.GameAge;
+import fi.riista.mobile.models.specimen.Gender;
 import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.models.srva.SrvaSpecimen;
-import fi.riista.mobile.ui.ChoiceView.OnChoiceListener;
 
-public class SrvaSpecimenView extends LinearLayout {
+public class SrvaSpecimenView extends ConstraintLayout {
 
     private SrvaEvent mEvent;
     private SrvaSpecimen mSpecimen;
@@ -28,9 +29,12 @@ public class SrvaSpecimenView extends LinearLayout {
     private boolean mEditMode = true;
     private TextView mHeader;
     private LinearLayout mDetailsContainer;
-    private ImageButton mMaleButton;
-    private ImageButton mFemaleButton;
-    private ImageButton mUnknownButton;
+    private RadioGroup mGenderSelect;
+    private RadioButtonImageText mMaleButton;
+    private RadioButtonImageText mFemaleButton;
+    private RadioButtonImageText mUnknownButton;
+
+    private ImageButton mRemoveButton;
 
     public SrvaSpecimenView(Context context, SrvaEvent event, SrvaSpecimen specimen, int position, boolean editMode) {
         super(context);
@@ -42,94 +46,99 @@ public class SrvaSpecimenView extends LinearLayout {
 
         LayoutInflater.from(context).inflate(R.layout.view_observation_specimen, this);
 
-        mHeader = (TextView) findViewById(R.id.txt_specimen_header);
-        mDetailsContainer = (LinearLayout) findViewById(R.id.layout_specimen_details);
+        mHeader = findViewById(R.id.txt_specimen_header);
+        mDetailsContainer = findViewById(R.id.layout_specimen_details);
+
+        mGenderSelect = findViewById(R.id.gender_select);
+        mMaleButton = findViewById(R.id.gender_select_male);
+        mFemaleButton = findViewById(R.id.gender_select_female);
+        mUnknownButton = findViewById(R.id.gender_select_unknown);
+
+        mRemoveButton = findViewById(R.id.btn_specimen_item_remove);
 
         initHeader();
         initGenderButtons();
         initAgeChoice();
+
+        mRemoveButton.setVisibility(mEditMode ? VISIBLE : GONE);
     }
 
     private void initHeader() {
         Species species = SpeciesInformation.getSpecies(mEvent.gameSpeciesCode);
         if (species != null) {
-            mHeader.setText(species.mName + " " + (mPosition + 1));
+            mHeader.setText(String.format(Locale.getDefault(), "%s %d", species.mName, mPosition + 1));
         }
     }
 
     private void initGenderButtons() {
-        mMaleButton = initGenderButton(SpecimenGender.MALE.toString(), R.id.btn_specimen_male);
-        mFemaleButton = initGenderButton(SpecimenGender.FEMALE.toString(), R.id.btn_specimen_female);
-        mUnknownButton = initGenderButton(SpecimenGender.UNKNOWN.toString(), R.id.btn_specimen_unknown);
-    }
-
-    private ImageButton initGenderButton(final String gender, int buttonId) {
-        boolean selected = gender.equals(mSpecimen.gender);
-
-        ImageButton button = (ImageButton) findViewById(buttonId);
-        button.setEnabled(mEditMode);
-        button.setSelected(selected);
-        updateGenderIconFilter(button);
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (v.isSelected()) {
-                    //Deselect existing
-                    deselectAllGenderButtons();
-
-                    mSpecimen.gender = null;
-                } else {
-                    //Select this one
-                    deselectAllGenderButtons();
-                    v.setSelected(true);
-
-                    mSpecimen.gender = gender;
-                }
-                updateGenderIconFilter((ImageButton) v);
+        mGenderSelect.setOnCheckedChangeListener((group, checkedId) -> {
+            if (mSpecimen != null) {
+                final Gender selectedGender = getSelectedGender();
+                mSpecimen.gender = selectedGender != null ? selectedGender.name() : null;
             }
         });
-        return button;
+
+        mGenderSelect.setEnabled(mEditMode);
+        mFemaleButton.setEnabled(mEditMode);
+        mMaleButton.setEnabled(mEditMode);
+        mUnknownButton.setEnabled(mEditMode);
+        setSelectedGender(mSpecimen.gender);
+
+        mGenderSelect.setVisibility(View.VISIBLE);
+
+        mMaleButton.setToggleEnabled(true);
+        mFemaleButton.setToggleEnabled(true);
+        mUnknownButton.setToggleEnabled(true);
     }
 
-    private void updateGenderIconFilter(ImageButton button) {
-        if (button.isSelected()) {
-            button.setColorFilter(null);
-        } else {
-            button.setColorFilter(Color.GRAY, Mode.MULTIPLY);
+    public void setOnRemoveListener(Integer tag, View.OnClickListener listener) {
+        if (mEditMode) {
+            setTag(tag);
+            mRemoveButton.setOnClickListener(listener);
         }
     }
 
-    private void deselectAllGenderButtons() {
-        mMaleButton.setSelected(false);
-        updateGenderIconFilter(mMaleButton);
+    private Gender getSelectedGender() {
+        int selectedId = mGenderSelect.getCheckedRadioButtonId();
 
-        mFemaleButton.setSelected(false);
-        updateGenderIconFilter(mFemaleButton);
+        if (mMaleButton.getId() == selectedId) {
+            return Gender.MALE;
+        } else if (mFemaleButton.getId() == selectedId) {
+            return Gender.FEMALE;
+        } else if (mUnknownButton.getId() == selectedId) {
+            return Gender.UNKNOWN;
+        }
 
-        mUnknownButton.setSelected(false);
-        updateGenderIconFilter(mUnknownButton);
+        return null;
+    }
+
+    private void setSelectedGender(String value) {
+        if (Gender.MALE.toString().equals(value)) {
+            mGenderSelect.check(mMaleButton.getId());
+        } else if (Gender.FEMALE.toString().equals(value)) {
+            mGenderSelect.check(mFemaleButton.getId());
+        } else if (Gender.UNKNOWN.toString().equals(value)) {
+            mGenderSelect.check(mUnknownButton.getId());
+        } else {
+            mGenderSelect.clearCheck();
+        }
     }
 
     private void initAgeChoice() {
-        ChoiceView choiceView = new ChoiceView(getContext(), getResources().getString(R.string.age_input_header));
+        ChoiceView<String> choiceView = new ChoiceView<>(getContext(), getResources().getString(R.string.age_title));
 
-        choiceView.setLocalizationAlias(SpecimenAge.YOUNG.toString(), R.string.age_value_young);
+        choiceView.setLocalizationAlias(GameAge.YOUNG.toString(), R.string.age_young);
 
-        ArrayList<String> ages = new ArrayList<String>();
-        for (SpecimenAge age : SpecimenAge.values()) {
+        ArrayList<String> ages = new ArrayList<>();
+        for (final GameAge age : GameAge.values()) {
             ages.add(age.toString());
         }
 
-        choiceView.setChoices(ages, mSpecimen.age, true, new OnChoiceListener() {
-            @Override
-            public void onChoice(int position, String age) {
-                mSpecimen.age = age;
-            }
-        });
+        choiceView.setChoices(ages, mSpecimen.age, true, (position, age) -> mSpecimen.age = age);
         addChoiceView(choiceView);
     }
 
-    private void addChoiceView(ChoiceView choiceView) {
+    private void addChoiceView(ChoiceView<String> choiceView) {
         mDetailsContainer.addView(choiceView);
         choiceView.setChoiceEnabled(mEditMode);
     }

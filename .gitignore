@@ -33,3 +33,6 @@ google_maps_api*.xml
 *.keystore
 riista.properties
 google-services.json
+
+fastlane/README.md
+fastlane/report.xml

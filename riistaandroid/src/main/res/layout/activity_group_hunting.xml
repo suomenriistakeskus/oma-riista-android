@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:id="@+id/layout_group_hunting_available"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        tools:context=".feature.groupHunting.GroupHuntingActivity">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_hunting_group_filters"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layoutManager="LinearLayoutManager"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/group_hunting_guideline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.5"/>
+
+            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+                android:id="@+id/group_hunting_hunting_days"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="@dimen/hunting_group_horizontal_margin"
+                android:layout_marginTop="@dimen/hunting_group_vertical_margin"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toStartOf="@+id/group_hunting_guideline"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rv_hunting_group_filters"
+                app:buttonImage="@drawable/ic_calendar"
+                app:buttonText="@string/group_hunting_hunting_days"
+                app:notificationVisibility="gone" />
+
+            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+                android:id="@+id/group_hunting_diary_on_map"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/hunting_group_horizontal_margin"
+                android:layout_marginEnd="@dimen/hunting_group_vertical_margin"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/group_hunting_guideline"
+                app:layout_constraintTop_toBottomOf="@+id/rv_hunting_group_filters"
+                app:buttonImage="@drawable/ic_map"
+                app:buttonText="@string/group_hunting_entries_on_map"
+                app:notificationVisibility="gone" />
+
+            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+                android:id="@+id/group_hunting_new_harvest"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="@dimen/hunting_group_horizontal_margin"
+                android:visibility="gone"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toStartOf="@+id/group_hunting_guideline"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/group_hunting_hunting_days"
+                app:buttonImage="@drawable/ic_harvest"
+                app:buttonText="@string/group_hunting_new_harvest"
+                app:notificationVisibility="gone" />
+
+            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+                android:id="@+id/group_hunting_new_observation"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginEnd="@dimen/hunting_group_horizontal_margin"
+                android:visibility="gone"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/group_hunting_guideline"
+                app:layout_constraintTop_toBottomOf="@+id/group_hunting_diary_on_map"
+                app:buttonImage="@drawable/ic_observation"
+                app:buttonText="@string/group_hunting_new_observation"
+                app:notificationVisibility="gone" />
+
+            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+                android:id="@+id/group_hunting_new_harvest_big"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="visible"
+                app:layout_constraintDimensionRatio="2:1"
+                app:buttonImage="@drawable/ic_harvest"
+                app:buttonText="@string/group_hunting_new_harvest"
+                app:layout_constraintEnd_toEndOf="@id/group_hunting_diary_on_map"
+                app:layout_constraintStart_toStartOf="@id/group_hunting_hunting_days"
+                app:layout_constraintTop_toBottomOf="@+id/group_hunting_hunting_days"
+                app:layout_constrainedHeight="@id/group_hunting_diary_on_map"
+                app:notificationVisibility="gone" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+    <!-- The layout to be displayed when group hunting is not available -->
+    <LinearLayout
+        android:id="@+id/layout_group_hunting_not_available"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/page_padding_horizontal"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        >
+
+        <TextView
+            android:id="@+id/tv_group_hunting_not_available_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="@dimen/item_spacing_normal"
+            tools:text="Metsästyksen johtajan tietojen lataus epäonnistui."
+            />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reload_group_hunting_data"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            android:text="@string/try_again"
+            />
+    </LinearLayout>
+</RelativeLayout>

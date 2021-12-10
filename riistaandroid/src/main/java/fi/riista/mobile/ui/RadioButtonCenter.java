@@ -12,7 +12,7 @@ import fi.riista.mobile.R;
 /**
  * Radio button with centered compound button drawable.
  */
-public class RadioButtonCenter extends ToggleRadioButton {
+public class RadioButtonCenter extends RadioButtonToggle {
 
     Drawable mButtonDrawable;
 

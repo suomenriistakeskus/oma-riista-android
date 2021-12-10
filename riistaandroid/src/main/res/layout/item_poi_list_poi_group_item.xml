@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_row_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@null"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_chevron_right"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/item_number"
+        app:layout_constraintBottom_toBottomOf="@id/item_number"
+        android:layout_marginEnd="@dimen/item_spacing_normal"
+        android:tint="@color/colorPrimaryDark"/>
+
+    <TextView
+        style="@style/HeaderText.Bold"
+        android:id="@+id/item_number"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/item_spacing_normal"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:minHeight="@dimen/default_button_height"
+        android:gravity="center_vertical"
+        app:layout_constraintEnd_toStartOf="@id/type"
+        app:layout_constraintStart_toEndOf="@id/iv_row_status"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        tools:text="Pekan passi"/>
+
+    <TextView
+        style="@style/HeaderText"
+        android:id="@+id/type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/default_button_height"
+        android:gravity="center_vertical|end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Passi"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

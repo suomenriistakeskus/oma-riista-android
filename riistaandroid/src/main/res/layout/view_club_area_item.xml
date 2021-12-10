@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:ignore="RtlHardcoded">
+
+    <TextView
+        android:id="@+id/club_area_title"
+        style="@style/SecondaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/item_spacing_small"
+        android:layout_marginLeft="@dimen/item_spacing_small"
+        android:layout_marginTop="@dimen/item_spacing_small"
+        app:layout_constraintEnd_toStartOf="@id/btn_remove_area"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="8152 - Metsähallitus moose" />
+
+    <TextView
+        android:id="@+id/club_area_name"
+        style="@style/PrimaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/item_spacing_small"
+        app:layout_constraintEnd_toEndOf="@id/club_area_title"
+        app:layout_constraintStart_toStartOf="@id/club_area_title"
+        app:layout_constraintTop_toBottomOf="@id/club_area_title"
+        tools:text="Palo-Koutelo-Joutsenaapa" />
+
+    <TextView
+        android:id="@+id/club_area_id"
+        style="@style/PrimaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/item_spacing_small"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/club_area_name"
+        app:layout_constraintStart_toStartOf="@id/club_area_name"
+        app:layout_constraintTop_toBottomOf="@id/club_area_name"
+        tools:text="Aluetunnus: 4455KK2211" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_remove_area"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        android:layout_width="@dimen/default_button_height"
+        android:layout_height="@dimen/default_button_height"
+        app:icon="@drawable/ic_clear"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconTint="@color/colorWarning"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        style="@style/HorizontalSeparator"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

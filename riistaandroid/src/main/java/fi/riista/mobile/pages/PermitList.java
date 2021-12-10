@@ -11,8 +11,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +20,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import org.joda.time.LocalDate;
 
 import java.text.DecimalFormat;
@@ -29,26 +29,47 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import dagger.android.support.AndroidSupportInjection;
 import fi.riista.mobile.R;
 import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.HarvestPermitActivity;
 import fi.riista.mobile.database.PermitManager;
-import fi.riista.mobile.database.SpeciesInformation;
-import fi.riista.mobile.models.GameHarvest;
+import fi.riista.mobile.database.SpeciesResolver;
+import fi.riista.mobile.gamelog.HarvestSpecVersionResolver;
 import fi.riista.mobile.models.Permit;
 import fi.riista.mobile.models.PermitSpeciesAmount;
 import fi.riista.mobile.network.CheckPermitNumberTask;
 import fi.riista.mobile.utils.FinnishHuntingPermitNumberValidator;
-import fi.riista.mobile.utils.Utils;
+import fi.riista.mobile.utils.KeyboardUtils;
+import fi.vincit.androidutilslib.context.WorkContext;
+
+import static fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME;
+import static java.lang.String.format;
 
 public class PermitList extends PageFragment {
 
-    protected static final String DATE_TIME_FORMAT = "dd.MM.yyyy";
+    private static final String TAG = "PermitList";
+    private static final String DATE_TIME_FORMAT = "dd.MM.yyyy";
 
     // Permit items are listed this number of days before and after current data.
-    protected static final int PERMIT_DATE_DAYS_LIMIT = 30;
+    private static final int PERMIT_DATE_DAYS_LIMIT = 30;
 
-    private GameHarvest mLogEvent;
+    @Inject
+    @Named(APPLICATION_WORK_CONTEXT_NAME)
+    WorkContext mNetworkTaskContext;
+
+    @Inject
+    SpeciesResolver mSpeciesResolver;
+
+    @Inject
+    PermitManager mPermitManager;
+
+    @Inject
+    HarvestSpecVersionResolver mHarvestSpecVersionResolver;
+
     private String mPresetNumber;
 
     private EditText mPermitNumberInput;
@@ -59,42 +80,44 @@ public class PermitList extends PageFragment {
     private List<PermitListItem> mPermitListItems = new ArrayList<>();
     private PermitListAdapter mAdapter;
 
-    public static PermitList newInstance(GameHarvest harvest, String permitNumber) {
-        PermitList permitList = new PermitList();
-        permitList.mLogEvent = harvest;
+    public static PermitList newInstance(final String permitNumber) {
+        final PermitList permitList = new PermitList();
         permitList.mPresetNumber = permitNumber;
-
         return permitList;
     }
 
+    // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public void onAttach(@NonNull final Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
+
+    @Override
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         final View root = inflater.inflate(R.layout.fragment_permit_list, container, false);
 
-        mPermitNumberInput = (EditText) root.findViewById(R.id.permit_list_manual_input);
-        mPermitNumberButton = (Button) root.findViewById(R.id.permit_list_manual_button);
-        mPermitNumberProgress = (ProgressBar) root.findViewById(R.id.permit_list_progress_bar);
-        mErrorText = (TextView) root.findViewById(R.id.permit_list_error_text);
+        mPermitNumberInput = root.findViewById(R.id.permit_list_manual_input);
+        mPermitNumberButton = root.findViewById(R.id.permit_list_manual_button);
+        mPermitNumberProgress = root.findViewById(R.id.permit_list_progress_bar);
+        mErrorText = root.findViewById(R.id.permit_list_error_text);
 
         mAdapter = new PermitListAdapter(getActivity(), mPermitListItems);
 
-        ListView permitListView = (ListView) root.findViewById(R.id.permit_list_item_list);
+        final ListView permitListView = root.findViewById(R.id.permit_list_item_list);
         permitListView.setAdapter(mAdapter);
-        permitListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                PermitListItem permitItem = (PermitListItem) mAdapter.getItem(position);
-                if (permitItem != null) {
+        permitListView.setOnItemClickListener((parentView, selectedItemView, position, id) -> {
+            final PermitListItem permitItem = (PermitListItem) mAdapter.getItem(position);
 
-                    Intent result = new Intent();
-                    result.putExtra(HarvestPermitActivity.RESULT_PERMIT_NUMBER, permitItem.getPermitNumber());
-                    result.putExtra(HarvestPermitActivity.RESULT_PERMIT_TYPE, permitItem.getPermitType());
-                    result.putExtra(HarvestPermitActivity.RESULT_PERMIT_SPECIES, permitItem.getGameSpeciesCode());
+            if (permitItem != null) {
+                final Intent result = new Intent();
+                result.putExtra(HarvestPermitActivity.RESULT_PERMIT_NUMBER, permitItem.getPermitNumber());
+                result.putExtra(HarvestPermitActivity.RESULT_PERMIT_TYPE, permitItem.getPermitType());
+                result.putExtra(HarvestPermitActivity.RESULT_PERMIT_SPECIES, permitItem.getGameSpeciesCode());
 
-                    BaseActivity activity = (BaseActivity) getActivity();
-                    activity.setResult(Activity.RESULT_OK, result);
-                    activity.finish();
-                }
+                final BaseActivity activity = (BaseActivity) getActivity();
+                activity.setResult(Activity.RESULT_OK, result);
+                activity.finish();
             }
         });
 
@@ -111,23 +134,18 @@ public class PermitList extends PageFragment {
     public void onResume() {
         super.onResume();
 
-        if (mLogEvent == null) {
-            getActivity().finish();
-        }
-
         setViewTitle(getString(R.string.permit_list_page_title));
 
-        mPermitListItems = permitListToListItems(PermitManager.getInstance(getActivity()).getAvailablePermits());
+        mPermitListItems = permitListToListItems(mPermitManager.getAvailablePermits());
         mAdapter.setItems(mPermitListItems);
         mAdapter.getFilter().filter(mPermitNumberInput.getText().toString());
     }
 
-    private List<PermitListItem> permitListToListItems(List<Permit> permitList) {
-        List<PermitListItem> result = new ArrayList<>();
+    private List<PermitListItem> permitListToListItems(final List<Permit> permitList) {
+        final List<PermitListItem> result = new ArrayList<>();
 
-        for (Permit permit : permitList) {
-
-            // Only list available permits
+        for (final Permit permit : permitList) {
+            // Only list available permits.
             if (!permit.getUnavailable()) {
                 result.addAll(permitToListItems(permit));
             }
@@ -136,22 +154,21 @@ public class PermitList extends PageFragment {
         return result;
     }
 
-    private List<PermitListItem> permitToListItems(Permit permit) {
-        List<PermitListItem> result = new ArrayList<>();
+    private List<PermitListItem> permitToListItems(final Permit permit) {
+        final List<PermitListItem> result = new ArrayList<>();
 
-        if (permit.getUnavailable()) {
-            return result;
-        }
+        if (!permit.getUnavailable()) {
+            for (final PermitSpeciesAmount speciesItem : permit.getSpeciesAmounts()) {
+                if (mPermitManager.isSpeciesSeasonActive(speciesItem, PERMIT_DATE_DAYS_LIMIT)) {
 
-        for (PermitSpeciesAmount speciesItem : permit.getSpeciesAmounts()) {
-            if (PermitManager.getInstance(getActivity()).isSpeciesSeasonActive(speciesItem, PERMIT_DATE_DAYS_LIMIT)) {
+                    final PermitListItem item = new PermitListItem(
+                            permit.getPermitType(), permit.getPermitNumber(),
+                            speciesItem.getGameSpeciesCode(), speciesItem.getAmount(),
+                            speciesItem.getBeginDate(), speciesItem.getEndDate(),
+                            speciesItem.getBeginDate2(), speciesItem.getEndDate2());
 
-                PermitListItem item = new PermitListItem(permit.getPermitType(), permit.getPermitNumber(),
-                        speciesItem.getGameSpeciesCode(), speciesItem.getAmount(),
-                        speciesItem.getBeginDate(), speciesItem.getEndDate(),
-                        speciesItem.getBeginDate2(), speciesItem.getEndDate2());
-
-                result.add(item);
+                    result.add(item);
+                }
             }
         }
 
@@ -159,100 +176,102 @@ public class PermitList extends PageFragment {
     }
 
     private void setupPermitNumberInput() {
-        mPermitNumberButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPermitNumberButton.setEnabled(false);
-                hideKeyboard();
+        mPermitNumberButton.setOnClickListener(v -> {
+            mPermitNumberButton.setEnabled(false);
+            hideKeyboard();
 
-                CheckPermitNumberTask task = new CheckPermitNumberTask(((BaseActivity) getActivity()).getWorkContext(), mPermitNumberInput.getText().toString()) {
-                    @Override
-                    protected void onDone(Permit permit) {
-                        mPermitNumberProgress.setVisibility(View.GONE);
+            final String permitNumberInput = mPermitNumberInput.getText().toString();
 
-                        PermitManager.getInstance(getActivity()).addManualPermit(permit);
-                        mPermitListItems.addAll(permitToListItems(permit));
+            final CheckPermitNumberTask task = new CheckPermitNumberTask(
+                    mNetworkTaskContext,
+                    permitNumberInput,
+                    mHarvestSpecVersionResolver.resolveHarvestSpecVersion()) {
 
-                        mAdapter.notifyDataSetChanged();
-                        mAdapter.getFilter().filter(mPermitNumberInput.getText().toString());
+                @Override
+                protected void onFinishObject(final Permit permit) {
+                    mPermitNumberProgress.setVisibility(View.GONE);
 
-                        updateErrorNoteVisibility(mPermitNumberInput.getText().toString());
-                    }
+                    mPermitManager.addManualPermit(permit);
+                    mPermitListItems.addAll(permitToListItems(permit));
 
-                    @Override
-                    protected void onError() {
-                        Log.d(Utils.LOG_TAG, String.format("Failed to get permit [%d]", getHttpStatusCode()));
+                    mAdapter.notifyDataSetChanged();
+                    mAdapter.getFilter().filter(permitNumberInput);
 
-                        mPermitNumberProgress.setVisibility(View.GONE);
-                    }
-                };
-                mPermitNumberProgress.setVisibility(View.VISIBLE);
-                task.start();
-            }
+                    updateErrorNoteVisibility(permitNumberInput);
+                }
+
+                @Override
+                protected void onError() {
+                    Log.d(TAG, format("Failed to get permit [%d]", getHttpStatusCode()));
+
+                    mPermitNumberProgress.setVisibility(View.GONE);
+                }
+            };
+            mPermitNumberProgress.setVisibility(View.VISIBLE);
+            task.start();
         });
 
         mPermitNumberInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-                String text = mPermitNumberInput.getText().toString();
+            public void afterTextChanged(final Editable s) {
+                final String text = mPermitNumberInput.getText().toString();
 
                 mAdapter.getFilter().filter(s.toString());
 
                 mPermitNumberButton.setEnabled(!text.isEmpty()
                         && FinnishHuntingPermitNumberValidator.validate(text, true)
-                        && PermitManager.getInstance(getActivity()).getPermit(text) == null);
+                        && mPermitManager.getPermit(text) == null);
 
                 updateErrorNoteVisibility(text);
             }
         });
     }
 
-    private void updateErrorNoteVisibility(String input) {
-        boolean isValidInput = !input.isEmpty()
+    private void updateErrorNoteVisibility(final String input) {
+        final boolean isValidInput = !input.isEmpty()
                 && FinnishHuntingPermitNumberValidator.validate(input, true);
 
+        int visibility = View.GONE;
+
         if (isValidInput) {
-            Permit permit = PermitManager.getInstance(getActivity()).getPermit(input);
+            final Permit permit = mPermitManager.getPermit(input);
 
             if (permit != null && permit.getUnavailable()) {
-                mErrorText.setVisibility(View.VISIBLE);
-            } else {
-                mErrorText.setVisibility(View.GONE);
+                visibility = View.VISIBLE;
             }
-        } else {
-            mErrorText.setVisibility(View.GONE);
         }
+
+        mErrorText.setVisibility(visibility);
     }
 
     private void hideKeyboard() {
-        InputMethodManager inputManager = (InputMethodManager) this.getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        final Activity activity = requireActivity();
 
-        // check if no view has focus:
-        View view = this.getActivity().getCurrentFocus();
-        if (view != null) {
-            inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-        }
+        // Check if no view has focus.
+        final View view = activity.getCurrentFocus();
+
+        KeyboardUtils.hideKeyboard(activity, view);
     }
 
     public class PermitListAdapter extends BaseAdapter implements Filterable {
 
         @SuppressLint("SimpleDateFormat")
-        SimpleDateFormat mDateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
+        private final SimpleDateFormat mDateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
 
         private LayoutInflater mInflater;
         private List<PermitListItem> mOriginalItems;
         private List<PermitListItem> mFilteredItems;
         private PermitItemFilter mFilter = new PermitItemFilter();
 
-        PermitListAdapter(Context context, List<PermitListItem> items) {
+        PermitListAdapter(final Context context, final List<PermitListItem> items) {
             mOriginalItems = items;
             mFilteredItems = items;
 
@@ -265,33 +284,33 @@ public class PermitList extends PageFragment {
         }
 
         @Override
-        public Object getItem(int position) {
+        public Object getItem(final int position) {
             return mFilteredItems.get(position);
         }
 
         @Override
-        public long getItemId(int position) {
+        public long getItemId(final int position) {
             return position;
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            ViewHolder viewHolder;
+        public View getView(final int position, View convertView, final ViewGroup parent) {
+            final ViewHolder viewHolder;
 
             if (convertView == null) {
                 convertView = mInflater.inflate(R.layout.view_permit_list_item, parent, false);
 
                 viewHolder = new ViewHolder();
-                viewHolder.numberText = (TextView) convertView.findViewById(R.id.permit_item_number);
-                viewHolder.typeText = (TextView) convertView.findViewById(R.id.permit_item_type);
-                viewHolder.detailsText = (TextView) convertView.findViewById(R.id.permit_item_details);
+                viewHolder.numberText = convertView.findViewById(R.id.permit_item_number);
+                viewHolder.typeText = convertView.findViewById(R.id.permit_item_type);
+                viewHolder.detailsText = convertView.findViewById(R.id.permit_item_details);
 
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
 
-            PermitListItem item = (PermitListItem) getItem(position);
+            final PermitListItem item = (PermitListItem) getItem(position);
 
             viewHolder.numberText.setText(item.getPermitNumber());
             viewHolder.typeText.setText(item.getPermitType());
@@ -305,7 +324,7 @@ public class PermitList extends PageFragment {
          *
          * @param items List items
          */
-        void setItems(List<PermitListItem> items) {
+        void setItems(final List<PermitListItem> items) {
             mOriginalItems = items;
             mFilteredItems = items;
         }
@@ -315,18 +334,18 @@ public class PermitList extends PageFragment {
             return mFilter;
         }
 
-        private String parseSpeciesAmountText(PermitListItem permitListItem) {
-            DecimalFormat amountFormat = new DecimalFormat("0.#");
+        private String parseSpeciesAmountText(final PermitListItem permitListItem) {
+            final DecimalFormat amountFormat = new DecimalFormat("0.#");
 
-            String text = String.format("%s %s %s\n%s - %s",
-                    SpeciesInformation.getSpecies(permitListItem.getGameSpeciesCode()).mName,
+            String text = format("%s %s %s\n%s - %s",
+                    mSpeciesResolver.findSpecies(permitListItem.getGameSpeciesCode()).mName,
                     amountFormat.format(permitListItem.getAmount()),
                     getString(R.string.permit_list_amount_short),
                     mDateFormat.format(permitListItem.getBeginDate().toDate()),
                     mDateFormat.format(permitListItem.getEndDate().toDate()));
 
             if (permitListItem.getBeginDate2() != null && permitListItem.getEndDate2() != null) {
-                text += String.format(",\n%s - %s",
+                text += format(",\n%s - %s",
                         mDateFormat.format(permitListItem.getBeginDate2().toDate()),
                         mDateFormat.format(permitListItem.getEndDate2().toDate())
                 );
@@ -337,22 +356,17 @@ public class PermitList extends PageFragment {
 
         private class PermitItemFilter extends Filter {
             @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
+            protected FilterResults performFiltering(final CharSequence constraint) {
 
-                String filterString = constraint.toString().toLowerCase();
+                final String filterString = constraint.toString().toLowerCase();
 
-                FilterResults results = new FilterResults();
+                final FilterResults results = new FilterResults();
 
                 final List<PermitListItem> list = mOriginalItems;
+                final ArrayList<PermitListItem> resultList = new ArrayList<>(list.size());
 
-                int count = list.size();
-                final ArrayList<PermitListItem> resultList = new ArrayList<>(count);
-
-                String filterableString;
-
-                for (PermitListItem permitItem : list) {
-                    filterableString = permitItem.getPermitNumber();
-                    if (filterableString.toLowerCase().contains(filterString)) {
+                for (final PermitListItem permitItem : list) {
+                    if (permitItem.getPermitNumber().toLowerCase().contains(filterString)) {
                         resultList.add(permitItem);
                     }
                 }
@@ -365,7 +379,7 @@ public class PermitList extends PageFragment {
 
             @SuppressWarnings("unchecked")
             @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
+            protected void publishResults(final CharSequence constraint, final FilterResults results) {
                 mFilteredItems = (ArrayList<PermitListItem>) results.values;
                 notifyDataSetChanged();
             }
@@ -388,7 +402,15 @@ public class PermitList extends PageFragment {
         private LocalDate beginDate2;
         private LocalDate endDate2;
 
-        PermitListItem(String permitType, String permitNumber, Integer gameSpeciesCode, Double amount, LocalDate beginDate, LocalDate endDate, LocalDate beginDate2, LocalDate endDate2) {
+        PermitListItem(final String permitType,
+                       final String permitNumber,
+                       final Integer gameSpeciesCode,
+                       final Double amount,
+                       final LocalDate beginDate,
+                       final LocalDate endDate,
+                       final LocalDate beginDate2,
+                       final LocalDate endDate2) {
+
             this.permitType = permitType;
             this.permitNumber = permitNumber;
             this.gameSpeciesCode = gameSpeciesCode;

@@ -1,0 +1,130 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "88101a47896296f4fe30fdb2502c2099",
+    "entities": [
+      {
+        "tableName": "mh_permit",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`permit_identifier` TEXT NOT NULL, `permit_type` TEXT, `permit_type_sv` TEXT, `permit_type_en` TEXT, `permit_name` TEXT, `permit_name_sv` TEXT, `permit_name_en` TEXT, `area_number` TEXT NOT NULL, `area_name` TEXT, `area_name_sv` TEXT, `area_name_en` TEXT, `begin_date` INTEGER, `end_date` INTEGER, `user_name` TEXT NOT NULL, `harvest_feedback_url` TEXT, `harvest_feedback_url_sv` TEXT, `harvest_feedback_url_en` TEXT, PRIMARY KEY(`permit_identifier`))",
+        "fields": [
+          {
+            "fieldPath": "permitIdentifier",
+            "columnName": "permit_identifier",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "permitType",
+            "columnName": "permit_type",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "permitTypeSwedish",
+            "columnName": "permit_type_sv",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "permitTypeEnglish",
+            "columnName": "permit_type_en",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "permitName",
+            "columnName": "permit_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "permitNameSwedish",
+            "columnName": "permit_name_sv",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "permitNameEnglish",
+            "columnName": "permit_name_en",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "areaNumber",
+            "columnName": "area_number",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "areaName",
+            "columnName": "area_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "areaNameSwedish",
+            "columnName": "area_name_sv",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "areaNameEnglish",
+            "columnName": "area_name_en",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "beginDate",
+            "columnName": "begin_date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "endDate",
+            "columnName": "end_date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "username",
+            "columnName": "user_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "harvestFeedbackUrl",
+            "columnName": "harvest_feedback_url",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "harvestFeedbackUrlSwedish",
+            "columnName": "harvest_feedback_url_sv",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "harvestFeedbackUrlEnglish",
+            "columnName": "harvest_feedback_url_en",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "permit_identifier"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"88101a47896296f4fe30fdb2502c2099\")"
+    ]
+  }
+}

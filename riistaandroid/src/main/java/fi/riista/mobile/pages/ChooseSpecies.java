@@ -3,12 +3,10 @@ package fi.riista.mobile.pages;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -21,7 +19,6 @@ import fi.riista.mobile.activity.ChooseSpeciesActivity;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.models.Species;
 import fi.riista.mobile.models.SpeciesCategory;
-import fi.riista.mobile.utils.Utils;
 
 /**
  * Species selection screen
@@ -32,9 +29,9 @@ public class ChooseSpecies extends PageFragment {
     private ArrayList<Species> mSpeciesList;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_species_list, container, false);
-        ListView list = (ListView) view.findViewById(R.id.speciesListView);
+        ListView list = view.findViewById(R.id.speciesListView);
 
         mSpeciesList = new ArrayList<>();
 
@@ -67,28 +64,25 @@ public class ChooseSpecies extends PageFragment {
                     view = inflater.inflate(R.layout.view_species_item, parent, false);
                 }
 
-                ImageView imageView = (ImageView) view.findViewById(R.id.item_image);
-                imageView.setImageDrawable(Utils.getSpeciesImage(getActivity(), species.mId));
+                ImageView imageView = view.findViewById(R.id.item_image);
+                imageView.setImageDrawable(SpeciesInformation.getSpeciesImage(getActivity(), species.mId));
 
-                TextView textView = (TextView) view.findViewById(R.id.itemText);
+                TextView textView = view.findViewById(R.id.itemText);
                 textView.setText(species.mName);
                 return view;
             }
         };
         list.setAdapter(adapter);
-        list.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                if (mSpeciesList.get(position) != null) {
-                    Species species = mSpeciesList.get(position);
+        list.setOnItemClickListener((parentView, selectedItemView, position, id) -> {
+            if (mSpeciesList.get(position) != null) {
+                Species species = mSpeciesList.get(position);
 
-                    Intent results = new Intent();
-                    results.putExtra(ChooseSpeciesActivity.RESULT_SPECIES, species);
+                Intent results = new Intent();
+                results.putExtra(ChooseSpeciesActivity.RESULT_SPECIES, species);
 
-                    Activity activity = getActivity();
-                    activity.setResult(Activity.RESULT_OK, results);
-                    activity.finish();
-                }
+                Activity activity = getActivity();
+                activity.setResult(Activity.RESULT_OK, results);
+                activity.finish();
             }
         });
         return view;

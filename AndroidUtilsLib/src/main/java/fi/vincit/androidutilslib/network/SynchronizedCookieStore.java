@@ -19,69 +19,61 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import fi.vincit.httpclientandroidlib.client.CookieStore;
-import fi.vincit.httpclientandroidlib.cookie.Cookie;
-import fi.vincit.httpclientandroidlib.impl.client.BasicCookieStore;
+import cz.msebera.android.httpclient.client.CookieStore;
+import cz.msebera.android.httpclient.cookie.Cookie;
+import cz.msebera.android.httpclient.impl.client.BasicCookieStore;
 
 /**
  * Thread safe cookie store implementation.
  */
-public class SynchronizedCookieStore implements CookieStore 
-{
+public class SynchronizedCookieStore implements CookieStore {
+
     private CookieStore mCookieStore;
-    
+
     /**
      * Constructs a cookie store using a basic cookie store.
      */
-    public SynchronizedCookieStore()
-    {
+    public SynchronizedCookieStore() {
         mCookieStore = new BasicCookieStore();
     }
-    
+
     /**
      * Construct a cookies store using an existing store. The argument
      * store will be used.
      */
-    public SynchronizedCookieStore(CookieStore store)
-    {
+    public SynchronizedCookieStore(CookieStore store) {
         mCookieStore = store;
     }
-    
+
     /**
      * Returns the internal, not thread safe cookie store.
      */
-    public synchronized CookieStore getCookieStore()
-    {
+    public synchronized CookieStore getCookieStore() {
         return mCookieStore;
     }
-    
+
     @Override
-    public synchronized void addCookie(Cookie cookie) 
-    {
+    public synchronized void addCookie(Cookie cookie) {
         mCookieStore.addCookie(cookie);
     }
-    
-    @Override 
-    public synchronized void clear()
-    {
+
+    @Override
+    public synchronized void clear() {
         mCookieStore.clear();
     }
-    
+
     @Override
-    public synchronized boolean clearExpired(Date date)
-    {
+    public synchronized boolean clearExpired(Date date) {
         return mCookieStore.clearExpired(date);
     }
-    
+
     @Override
-    public synchronized List<Cookie> getCookies()
-    {
-        return new ArrayList<Cookie>(mCookieStore.getCookies());
+    public synchronized List<Cookie> getCookies() {
+        return new ArrayList<>(mCookieStore.getCookies());
     }
-    
+
     @Override
-    public synchronized String toString()
-    {
+    public synchronized String toString() {
         return mCookieStore.toString();
     }
 }

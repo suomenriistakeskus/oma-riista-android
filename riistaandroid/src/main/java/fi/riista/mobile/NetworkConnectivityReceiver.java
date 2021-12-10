@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import fi.riista.mobile.database.GameDatabase;
-import fi.riista.mobile.database.GameDatabase.SyncMode;
-import fi.vincit.androidutilslib.context.WorkContext;
+import androidx.annotation.NonNull;
+
+import fi.riista.mobile.sync.AppSync;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Receiver for changed network status
@@ -16,22 +18,19 @@ import fi.vincit.androidutilslib.context.WorkContext;
  */
 public class NetworkConnectivityReceiver extends BroadcastReceiver {
 
-    private WorkContext mWorkContext = null;
+    private AppSync appSync;
 
-    public NetworkConnectivityReceiver(WorkContext context) {
-        mWorkContext = context;
+    public NetworkConnectivityReceiver(@NonNull final AppSync appSync) {
+        this.appSync = requireNonNull(appSync);
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-        GameDatabase database = GameDatabase.getInstance();
-        SyncMode syncMode = database.getSyncMode(context);
-        if (GameDatabase.getInstance().hasSentEventsForFirstTime() && syncMode == SyncMode.SYNC_AUTOMATIC) {
-            ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo netInfo = cm.getActiveNetworkInfo();
-            if (netInfo != null && netInfo.isConnected()) {
-                GameDatabase.getInstance().sendLocalEvents(mWorkContext, true);
-            }
+    public void onReceive(final Context context, final Intent intent) {
+        final ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo netInfo = cm.getActiveNetworkInfo();
+
+        if (netInfo != null && netInfo.isConnected()) {
+            appSync.syncImmediatelyIfAutomaticSyncEnabled();
         }
     }
 }

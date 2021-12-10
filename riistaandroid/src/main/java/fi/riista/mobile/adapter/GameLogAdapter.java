@@ -4,252 +4,331 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.PorterDuff.Mode;
-import android.support.annotation.NonNull;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.Group;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import fi.riista.mobile.R;
-import fi.riista.mobile.database.EventItem;
+import fi.riista.mobile.database.HarvestDatabase;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.models.GameHarvest;
-import fi.riista.mobile.models.LogEventBase;
+import fi.riista.mobile.models.GameLog;
 import fi.riista.mobile.models.Species;
+import fi.riista.mobile.models.observation.ObservationType;
 import fi.riista.mobile.models.srva.SrvaEvent;
+import fi.riista.mobile.observation.ObservationStrings;
+import fi.riista.mobile.ui.GameLogListItem;
+import fi.riista.mobile.utils.DiaryImageUtil;
 import fi.riista.mobile.utils.UiUtils;
-import fi.riista.mobile.utils.Utils;
-import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.view.WebImageView;
 
-public class GameLogAdapter extends ArrayAdapter<EventItem> {
+public class GameLogAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private enum ViewType {
+        HEADER,
+        ITEM,
+        STATS
+    }
 
     @SuppressLint("SimpleDateFormat")
-    private static final SimpleDateFormat sDateFormat = new SimpleDateFormat("dd.MM.yyyy  HH:mm");
-    private static final String HARVEST_AMOUNT_FORMAT = " (%d)";
+    private static final SimpleDateFormat sDateFormat = new SimpleDateFormat("dd.MM.yyyy   HH:mm");
+    private static final String AMOUNT_SUFFIX_FORMAT = " (%d)";
 
-    private List<EventItem> mItems;
-    private WorkContext mWorkContext;
-    private Context mContext;
+    private final Context mContext;
+    private final GameLogListItem.OnClickListItemListener mListener;
 
-    public GameLogAdapter(WorkContext context, List<EventItem> events) {
-        super(context.getContext(), R.layout.view_logitem, events);
+    private List<GameLogListItem> mItems;
+    private HarvestDatabase.SeasonStats mSeasonStats;
 
-        mWorkContext = context;
-        mContext = context.getContext();
-        mItems = events;
+    public GameLogAdapter(final Context context,
+                          final List<GameLogListItem> items,
+                          final GameLogListItem.OnClickListItemListener listener) {
+
+        this.mContext = context;
+        this.mItems = items;
+        this.mListener = listener;
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         return mItems.size();
     }
 
     @Override
-    public int getViewTypeCount() {
-        return 3;
-    }
+    public int getItemViewType(final int position) {
+        final GameLogListItem item = mItems.get(position);
 
-    @Override
-    public int getItemViewType(int position) {
-        EventItem item = mItems.get(position);
         if (item.isHeader) {
             return ViewType.HEADER.ordinal();
-        } else if (item.isSeparator) {
-            return ViewType.SEPARATOR.ordinal();
+        } else if (item.isStats) {
+            return ViewType.STATS.ordinal();
         }
-        return ViewType.ITEM.ordinal();
-    }
 
-    @Override
-    public boolean isEnabled(int position) {
-        return getItemViewType(position) == ViewType.ITEM.ordinal();
+        return ViewType.ITEM.ordinal();
     }
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-        LayoutInflater inflator = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = convertView;
-        ViewType type = ViewType.values()[getItemViewType(position)];
-        EventItem event = mItems.get(position);
-        if (type == ViewType.HEADER) {
-            if (view == null)
-                view = inflator.inflate(R.layout.view_logitem_header, parent, false);
-            TextView textView = (TextView) view.findViewById(R.id.itemMonth);
-            String timeString = "";
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
+        final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        final RecyclerView.ViewHolder viewHolder;
 
-            // If the year differs from previous type, add year prefix
-            if (position > 1) {
-                ViewType previousItemType = ViewType.values()[getItemViewType(position - 2)];
-                if (previousItemType == ViewType.ITEM) {
-                    int currentItemYear = mItems.get(position).year;
-                    int previousItemYear = mItems.get(position - 2).year;
-                    if (currentItemYear != previousItemYear) {
-                        timeString = String.valueOf(currentItemYear) + " ";
-                    }
-                }
-            }
-            String monthString = mContext.getResources().getStringArray(R.array.months)[event.month].toUpperCase();
-            timeString += monthString;
-            textView.setText(timeString);
-        } else if (type == ViewType.ITEM) {
-            view = inflator.inflate(R.layout.view_logitem, parent, false);
-
-            WebImageView speciesImageView = (WebImageView) view.findViewById(R.id.speciesimage);
-            speciesImageView.setPadding(0, 0, 0, 0);
-            if (event.mEvent.mImages != null && event.mEvent.mImages.size() > 0) {
-                // Use first image
-                int width = (int) mContext.getResources().getDimension(R.dimen.logimage_size);
-                int height = (int) mContext.getResources().getDimension(R.dimen.logimage_size);
-                Utils.setupImage(mWorkContext, speciesImageView, event.mEvent.mImages.get(0), width, height, false, null);
-            } else {
-                if (event.mEvent.mType.equals(LogEventBase.TYPE_SRVA) && event.mEvent.mSrvaEvent.otherSpeciesDescription != null) {
-                    int pad = UiUtils.dipToPixels(getContext(), 5);
-                    speciesImageView.setPadding(pad, pad, pad, pad);
-                }
-                speciesImageView.setImageDrawable(Utils.getSpeciesImage(mContext, event.mEvent.mSpeciesID));
-            }
-
-            TextView textView = (TextView) view.findViewById(R.id.itemText);
-            textView.setText(speciesTitle(event.mEvent));
-            TextView textView2 = (TextView) view.findViewById(R.id.itemDescription);
-
-            if (event.mEvent.mType.equals(LogEventBase.TYPE_SRVA) && event.mEvent.mSrvaEvent != null) {
-                setupSrvaState(view, event.mEvent.mSrvaEvent);
-            } else {
-                setupHarvestReportState(view, event.mEvent);
-            }
-
-            String date = sDateFormat.format(event.mEvent.mTime.getTime());
-            textView2.setText(date);
-
-            ImageView uploadedImageView = (ImageView) view.findViewById(R.id.logitemuploadedimage);
-            if (!event.mEvent.mSent) {
-                uploadedImageView.setVisibility(View.VISIBLE);
-                uploadedImageView.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_stat_upload));
-            } else {
-                uploadedImageView.setVisibility(View.INVISIBLE);
-            }
-
-            ImageView logTypeImageView = (ImageView) view.findViewById(R.id.logitemtypeimage);
-            switch (event.mEvent.mType) {
-                case LogEventBase.TYPE_HARVEST:
-                    logTypeImageView.setColorFilter(null);
-                    logTypeImageView.setImageResource(R.drawable.ic_kaato);
-                    break;
-                case LogEventBase.TYPE_OBSERVATION:
-                    logTypeImageView.setColorFilter(mContext.getResources().getColor(R.color.icon_colorize), Mode.MULTIPLY);
-                    logTypeImageView.setImageResource(R.drawable.ic_spot);
-                    break;
-                case LogEventBase.TYPE_SRVA:
-                    logTypeImageView.setColorFilter(mContext.getResources().getColor(R.color.icon_colorize), Mode.MULTIPLY);
-                    logTypeImageView.setImageResource(R.drawable.ic_srva_white);
-                    break;
-            }
-
-        } else if (type == ViewType.SEPARATOR) {
-            if (view == null)
-                view = inflator.inflate(R.layout.view_logitem_pipe, parent, false);
+        if (viewType == ViewType.HEADER.ordinal()) {
+            final View view = inflater.inflate(R.layout.view_log_item_section, parent, false);
+            viewHolder = new LogHeaderViewHolder(view);
+        } else if (viewType == ViewType.ITEM.ordinal()) {
+            final View view = inflater.inflate(R.layout.view_log_item, parent, false);
+            viewHolder = new LogItemViewHolder(view);
+        } else if (viewType == ViewType.STATS.ordinal()) {
+            final View view = inflater.inflate(R.layout.view_log_stats, parent, false);
+            viewHolder = new LogStatsViewHolder(view);
+        } else {
+            throw new RuntimeException("Unknown view type: " + viewType);
         }
-        return view;
+
+        return viewHolder;
     }
 
-    private String speciesTitle(GameHarvest event) {
-        String title;
+    @Override
+    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, final int position) {
+        final GameLogListItem item = mItems.get(position);
 
-        Species species = SpeciesInformation.getSpecies(event.mSpeciesID);
-        if (species != null) {
-            title = species.mName;
-        } else {
-            title = getContext().getString(R.string.srva_other);
+        if (ViewType.HEADER.ordinal() == holder.getItemViewType()) {
+            final String text = mContext.getResources().getStringArray(R.array.months)[item.month];
+
+            final LogHeaderViewHolder headerViewHolder = (LogHeaderViewHolder) holder;
+            headerViewHolder.textView.setText(text);
+            headerViewHolder.timeline.setVisibility(item.isTimelineTopVisible && item.isTimelineBottomVisible ? View.VISIBLE : View.GONE);
+
+        } else if (ViewType.ITEM.ordinal() == holder.getItemViewType()) {
+            final LogItemViewHolder itemViewHolder = (LogItemViewHolder) holder;
+            itemViewHolder.bind(item, mListener);
+
+            // Reset image to prevent wrong species flashing before loading finishes.
+            itemViewHolder.imageView.setImageDrawable(null);
+
+            if (item.images != null && item.images.size() > 0) {
+                itemViewHolder.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                final int edgeLen = (int) mContext.getResources().getDimension(R.dimen.log_image_size);
+                DiaryImageUtil.setupImage(
+                        mContext, itemViewHolder.imageView, item.images.get(0), edgeLen, edgeLen, false, null);
+            } else {
+                itemViewHolder.imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                if (GameLog.TYPE_SRVA.equals(item.type) && item.mSrva.otherSpeciesDescription != null) {
+                    final int padding = UiUtils.dipToPixels(mContext, 5);
+                    itemViewHolder.imageView.setPadding(padding, padding, padding, padding);
+                }
+                itemViewHolder.imageView.setImageDrawable(SpeciesInformation.getSpeciesImage(mContext, item.speciesCode));
+            }
+
+            itemViewHolder.dateTimeView.setText(sDateFormat.format(item.dateTime.getTime()));
+            itemViewHolder.speciesView.setText(speciesTitle(item));
+
+            if (GameLog.TYPE_HARVEST.equals(item.type)) {
+                itemViewHolder.descriptionView.setText(null);
+                itemViewHolder.descriptionView.setVisibility(View.GONE);
+                setupHarvestReportState(itemViewHolder.stateImageView, itemViewHolder.stateTextView, itemViewHolder.stateGroup, item.mHarvest);
+            } else if (GameLog.TYPE_OBSERVATION.equals(item.type)) {
+                itemViewHolder.descriptionView.setText(
+                        ObservationStrings.get(mContext, ObservationType.toString(item.mObservation.observationType)));
+                itemViewHolder.descriptionView.setVisibility(View.VISIBLE);
+                itemViewHolder.stateTextView.setText(null);
+                itemViewHolder.stateGroup.setVisibility(View.GONE);
+            } else if (GameLog.TYPE_SRVA.equals(item.type)) {
+                itemViewHolder.descriptionView.setText(ObservationStrings.get(mContext, item.mSrva.eventName));
+                itemViewHolder.descriptionView.setVisibility(View.VISIBLE);
+                setupSrvaState(itemViewHolder.stateImageView, itemViewHolder.stateTextView, itemViewHolder.stateGroup, item.mSrva);
+            }
+
+            itemViewHolder.uploadImageView.setVisibility(item.sent ? View.GONE : View.VISIBLE);
+            itemViewHolder.timelineTop.setVisibility(item.isTimelineTopVisible ? View.VISIBLE : View.GONE);
+            itemViewHolder.timelineBottom.setVisibility(item.isTimelineBottomVisible ? View.VISIBLE : View.GONE);
+
+        } else if (ViewType.STATS.ordinal() == holder.getItemViewType()) {
+            final LogStatsViewHolder itemViewHolder = (LogStatsViewHolder) holder;
+
+            if (mSeasonStats != null) {
+                final SparseIntArray categories = mSeasonStats.mCategoryData;
+                itemViewHolder.category1Amount.setText(String.valueOf(categories.get(1)));
+                itemViewHolder.category2Amount.setText(String.valueOf(categories.get(2)));
+                itemViewHolder.category3Amount.setText(String.valueOf(categories.get(3)));
+            } else {
+                itemViewHolder.category1Amount.setText("0");
+                itemViewHolder.category2Amount.setText("0");
+                itemViewHolder.category3Amount.setText("0");
+            }
+        }
+    }
+
+    public void setItems(final List<GameLogListItem> mItems) {
+        this.mItems = mItems;
+        notifyDataSetChanged();
+    }
+
+    public void setStats(final HarvestDatabase.SeasonStats stats) {
+        this.mSeasonStats = stats;
+    }
+
+    private String speciesTitle(final GameLogListItem item) {
+        final Species species = SpeciesInformation.getSpecies(item.speciesCode);
+        String title = species != null ? species.mName : mContext.getString(R.string.srva_other);
+
+        if (title != null && item.totalSpecimenAmount > 1) {
+            title += String.format(Locale.getDefault(), AMOUNT_SUFFIX_FORMAT, item.totalSpecimenAmount);
         }
 
-        if (title != null && event.mAmount > 1) {
-            title += String.format(HARVEST_AMOUNT_FORMAT, event.mAmount);
-        }
-
-        if (species == null && event.mSrvaEvent != null && event.mSrvaEvent.otherSpeciesDescription != null) {
-            title += " - " + event.mSrvaEvent.otherSpeciesDescription;
+        if (species == null && item.mSrva != null && item.mSrva.otherSpeciesDescription != null) {
+            title += " - " + item.mSrva.otherSpeciesDescription;
         }
 
         return title;
     }
 
-    private void setupSrvaState(View view, SrvaEvent event) {
-        ImageView indicator = ((ImageView) view.findViewById(R.id.harvestStateIndicator));
+    private void setupHarvestReportState(final ImageView stateImage,
+                                         final TextView stateText,
+                                         final Group stateGroup,
+                                         final GameHarvest event) {
 
+        final String permitState = event.mStateAcceptedToHarvestPermit;
         int trafficLightColor = Color.TRANSPARENT;
-        String state = event.state;
 
-        if (SrvaEvent.STATE_APPROVED.equals(state)) {
-            trafficLightColor = getContext().getResources().getColor(R.color.harvest_approved);
-        } else if (SrvaEvent.STATE_REJECTED.equals(state)) {
-            trafficLightColor = getContext().getResources().getColor(R.color.harvest_rejected);
-        }
-
-        if (trafficLightColor != Color.TRANSPARENT) {
-            indicator.setColorFilter(trafficLightColor, PorterDuff.Mode.SRC_ATOP);
-            indicator.setVisibility(View.VISIBLE);
-        } else {
-            indicator.setVisibility(View.GONE);
-        }
-    }
-
-    /**
-     * Set log entry state "traffic light" color.
-     * Set color according to "added to permit" state if it exist. If not set color according to "harvest report" state
-     *
-     * @param view  root view
-     * @param event log entry
-     */
-    private void setupHarvestReportState(View view, GameHarvest event) {
-        ImageView indicator = ((ImageView) view.findViewById(R.id.harvestStateIndicator));
-
-        int trafficLightColor = Color.TRANSPARENT;
-        String permitState = event.mStateAcceptedToHarvestPermit;
-
-        if (permitState != null && !permitState.isEmpty()) {
-            if (GameHarvest.PERMIT_PROPOSED.equals(permitState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.permit_proposed);
-            } else if (GameHarvest.PERMIT_ACCEPTED.equals(permitState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.permit_accepted);
-            } else if (GameHarvest.PERMIT_REJECTED.equals(permitState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.permit_rejected);
-            }
-        } else if (event.mHarvestReportDone) {
-            String reportState = event.mHarvestReportState;
+        if (event.mHarvestReportDone) {
+            final String reportState = event.mHarvestReportState;
 
             if (GameHarvest.HARVEST_PROPOSED.equals(reportState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.harvest_proposed);
+                trafficLightColor = mContext.getResources().getColor(R.color.harvest_proposed);
+                stateText.setText(R.string.harvest_proposed);
             } else if (GameHarvest.HARVEST_SENT_FOR_APPROVAL.equals(reportState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.harvest_sent_for_approval);
+                trafficLightColor = mContext.getResources().getColor(R.color.harvest_sent_for_approval);
+                stateText.setText(R.string.harvest_sent_for_approval);
             } else if (GameHarvest.HARVEST_APPROVED.equals(reportState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.harvest_approved);
+                trafficLightColor = mContext.getResources().getColor(R.color.harvest_approved);
+                stateText.setText(R.string.harvest_approved);
             } else if (GameHarvest.HARVEST_REJECTED.equals(reportState)) {
-                trafficLightColor = getContext().getResources().getColor(R.color.harvest_rejected);
+                trafficLightColor = mContext.getResources().getColor(R.color.harvest_rejected);
+                stateText.setText(R.string.harvest_rejected);
+            }
+        } else if (permitState != null && !permitState.isEmpty()) {
+            switch (permitState) {
+                case GameHarvest.PERMIT_PROPOSED:
+                    trafficLightColor = mContext.getResources().getColor(R.color.permit_proposed);
+                    stateText.setText(R.string.harvest_permit_proposed);
+                    break;
+                case GameHarvest.PERMIT_ACCEPTED:
+                    trafficLightColor = mContext.getResources().getColor(R.color.permit_accepted);
+                    stateText.setText(R.string.harvest_permit_accepted);
+                    break;
+                case GameHarvest.PERMIT_REJECTED:
+                    trafficLightColor = mContext.getResources().getColor(R.color.permit_rejected);
+                    stateText.setText(R.string.harvest_permit_rejected);
+                    break;
             }
         } else if (event.mHarvestReportRequired) {
-            trafficLightColor = getContext().getResources().getColor(R.color.harvest_create_report);
+            trafficLightColor = mContext.getResources().getColor(R.color.harvest_create_report);
+            stateText.setText(R.string.harvest_create_report);
         }
 
         if (trafficLightColor != Color.TRANSPARENT) {
-            indicator.setColorFilter(trafficLightColor, PorterDuff.Mode.SRC_ATOP);
-            indicator.setVisibility(View.VISIBLE);
+            stateImage.setColorFilter(trafficLightColor, PorterDuff.Mode.SRC_ATOP);
+            stateGroup.setVisibility(View.VISIBLE);
         } else {
-            indicator.setVisibility(View.GONE);
+            stateText.setText(null);
+            stateGroup.setVisibility(View.GONE);
         }
     }
 
-    private enum ViewType {
-        HEADER,
-        SEPARATOR,
-        ITEM
+    private void setupSrvaState(final ImageView stateImage,
+                                final TextView stateText,
+                                final Group stateGroup,
+                                final SrvaEvent event) {
+
+        int trafficLightColor = Color.TRANSPARENT;
+
+        if (SrvaEvent.STATE_APPROVED.equals(event.state)) {
+            trafficLightColor = mContext.getResources().getColor(R.color.harvest_approved);
+            stateText.setText(R.string.srva_approved);
+        } else if (SrvaEvent.STATE_REJECTED.equals(event.state)) {
+            trafficLightColor = mContext.getResources().getColor(R.color.harvest_rejected);
+            stateText.setText(R.string.srva_rejected);
+        }
+
+        if (trafficLightColor != Color.TRANSPARENT) {
+            stateImage.setColorFilter(trafficLightColor, PorterDuff.Mode.SRC_ATOP);
+            stateGroup.setVisibility(View.VISIBLE);
+        } else {
+            stateText.setText(null);
+            stateGroup.setVisibility(View.GONE);
+        }
+    }
+
+    public static class LogHeaderViewHolder extends RecyclerView.ViewHolder {
+        final TextView textView;
+        final View timeline;
+
+        LogHeaderViewHolder(@NonNull final View itemView) {
+            super(itemView);
+
+            textView = itemView.findViewById(R.id.log_section_header);
+            timeline = itemView.findViewById(R.id.log_section_timeline);
+        }
+    }
+
+    public static class LogItemViewHolder extends RecyclerView.ViewHolder {
+        final WebImageView imageView;
+        final TextView dateTimeView;
+        final TextView speciesView;
+        final TextView descriptionView;
+        final ImageView stateImageView;
+        final TextView stateTextView;
+        final Group stateGroup;
+        final ImageView uploadImageView;
+
+        final View timelineTop;
+        final View timelineBottom;
+
+        LogItemViewHolder(@NonNull final View itemView) {
+            super(itemView);
+
+            imageView = itemView.findViewById(R.id.log_item_species_image);
+            dateTimeView = itemView.findViewById(R.id.log_item_date);
+            speciesView = itemView.findViewById(R.id.log_item_species);
+            descriptionView = itemView.findViewById(R.id.log_item_description);
+            stateImageView = itemView.findViewById(R.id.log_item_state_image);
+            stateTextView = itemView.findViewById(R.id.log_item_state_text);
+            stateGroup = itemView.findViewById(R.id.log_item_state_group);
+            uploadImageView = itemView.findViewById(R.id.log_item_upload_image);
+
+            timelineTop = itemView.findViewById(R.id.log_item_timeline_top);
+            timelineBottom = itemView.findViewById(R.id.log_item_timeline_bottom);
+        }
+
+        void bind(final GameLogListItem item, final GameLogListItem.OnClickListItemListener listener) {
+            itemView.setOnClickListener(v -> listener.onItemClick(item));
+        }
+    }
+
+    public static class LogStatsViewHolder extends RecyclerView.ViewHolder {
+        final TextView category1Amount;
+        final TextView category2Amount;
+        final TextView category3Amount;
+
+        LogStatsViewHolder(@NonNull final View itemView) {
+            super(itemView);
+
+            category1Amount = itemView.findViewById(R.id.stats_category1_amount);
+            category2Amount = itemView.findViewById(R.id.stats_category2_amount);
+            category3Amount = itemView.findViewById(R.id.stats_category3_amount);
+        }
     }
 }

@@ -1,0 +1,23 @@
+CREATE TABLE DbPoiLocationGroup(
+    id INTEGER NOT NULL,
+    external_id TEXT NOT NULL,
+    rev INTEGER AS Int NOT NULL,
+    visible_id INTEGER AS Int NOT NULL,
+    club_id INTEGER,
+    description TEXT,
+    type TEXT NOT NULL,
+    last_modified_date TEXT,
+    last_modifier_name TEXT,
+    last_modifier_riistakeskus INTEGER AS Boolean NOT NULL,
+    CONSTRAINT constraint_DbPoiLocationGroup_pk PRIMARY KEY (id, external_id)
+);
+
+selectByExternalId:
+SELECT * FROM DbPoiLocationGroup WHERE external_id = ?;
+
+deleteByExternalId:
+DELETE FROM DbPoiLocationGroup WHERE external_id = ?;
+
+insert:
+INSERT INTO DbPoiLocationGroup (id, external_id, rev, visible_id, club_id, description, type, last_modified_date, last_modifier_name, last_modifier_riistakeskus)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);

@@ -3,17 +3,15 @@ package fi.riista.mobile.utils;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import androidx.annotation.NonNull;
 
-import fi.riista.mobile.RiistaApplication;
-import fi.riista.mobile.models.user.UserInfo;
 import fi.vincit.androidutilslib.database.AsyncCursor;
 import fi.vincit.androidutilslib.database.AsyncDatabase;
 import fi.vincit.androidutilslib.database.AsyncDatabase.AsyncWrite;
-import fi.vincit.androidutilslib.util.JsonSerializator;
 
-public class BaseDatabase<T> {
+import static java.util.Objects.requireNonNull;
+
+public class BaseDatabase {
 
     public interface SaveListener {
         void onSaved(long id);
@@ -27,20 +25,25 @@ public class BaseDatabase<T> {
         void onError();
     }
 
-    private static ObjectMapper sMapper = JsonSerializator.createDefaultMapper();
+    private final UserInfoStore mUserInfoStore;
 
-    protected void deleteEntry(AsyncDatabase db, final String table, final Long localId, final Long remoteId,
+    protected BaseDatabase(@NonNull final UserInfoStore userInfoStore) {
+        this.mUserInfoStore = requireNonNull(userInfoStore);
+    }
+
+    protected void deleteEntry(final AsyncDatabase db, final String table, final Long localId, final Long remoteId,
                                final boolean force, final DeleteListener listener) {
+
         db.write(new AsyncWrite() {
             @Override
-            protected void onAsyncWrite(SQLiteDatabase db) {
+            protected void onAsyncWrite(final SQLiteDatabase db) {
                 if (remoteId != null && localId != null && !force) {
-                    //Synced, mark as deleted
-                    ContentValues values = new ContentValues();
+                    // Synced, mark as deleted
+                    final ContentValues values = new ContentValues();
                     values.put("deleted", true);
                     db.update(table, values, "localId = ? ", new String[]{localId.toString()});
                 } else if (localId != null) {
-                    //Local observation, not synced yet.
+                    // Local observation, not synced yet.
                     db.delete(table, "localId = ?", new String[]{localId.toString()});
                 } else {
                     Utils.LogMessage("Can't delete entry, no ids set");
@@ -59,24 +62,11 @@ public class BaseDatabase<T> {
         });
     }
 
-    public static String getUsername() {
-        UserInfo info = AppPreferences.getUserInfo(RiistaApplication.getInstance());
-        if (info != null && info.getUsername() != null) {
-            return info.getUsername();
-        }
-        return "";
+    protected String getUsername() {
+        return mUserInfoStore.getUsernameOrEmpty();
     }
 
-    protected static AsyncCursor query(SQLiteDatabase db, String query, String... args) {
+    protected static AsyncCursor query(final SQLiteDatabase db, final String query, final String... args) {
         return (AsyncCursor) db.rawQuery(query, args);
-    }
-
-    protected static String objectToJson(Object obj) {
-        try {
-            return sMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }

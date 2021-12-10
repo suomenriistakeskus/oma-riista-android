@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/edit_bg">
-    
+    android:layout_height="match_parent">
+
     <ListView
         android:id="@+id/list_observation_species"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:divider="#00000000"
-        android:dividerHeight="10dp">
-    </ListView>
+        android:divider="@android:color/transparent"
+        android:dividerHeight="@dimen/item_spacing_normal"
+        tools:listitem="@layout/view_observation_specimen" />
 
-</LinearLayout>
+</FrameLayout>

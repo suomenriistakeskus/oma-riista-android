@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/datafield_horizontal_margin"
+    android:layout_marginEnd="@dimen/datafield_horizontal_margin">
+
+    <fi.riista.mobile.ui.Label
+        android:id="@+id/v_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        />
+
+    <TextView
+        android:id="@+id/tv_actor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/v_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        style="@style/Base.Widget.AppCompat.Spinner.Underlined"
+        android:backgroundTint="@color/text_input_color"
+        />
+
+    <fi.riista.mobile.ui.Label
+        android:id="@+id/v_label_hunter_number"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        app:layout_constraintTop_toBottomOf="@id/tv_actor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        android:text="@string/my_details_hunter_id"
+        />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/hunter_number_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/v_label_hunter_number"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:textAppearance="?attr/textAppearanceListItem"
+        android:digits="1234567890"
+        android:inputType="number"
+        android:maxLength="8"
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,114 +1,153 @@
 package fi.riista.mobile.pages;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.android.support.AndroidSupportInjection;
 import fi.riista.mobile.R;
-import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.HarvestActivity;
 import fi.riista.mobile.activity.MainActivity;
-import fi.riista.mobile.database.DiaryEntryUpdate;
-import fi.riista.mobile.database.GameDatabase;
-import fi.riista.mobile.database.GameDatabase.DatabaseUpdateListener;
+import fi.riista.mobile.database.HarvestDatabase;
 import fi.riista.mobile.database.SpeciesInformation;
+import fi.riista.mobile.database.SpeciesResolver;
+import fi.riista.mobile.gamelog.HarvestSpecVersionResolver;
 import fi.riista.mobile.models.GameHarvest;
-import fi.riista.mobile.models.GameObservation;
 import fi.riista.mobile.models.Species;
+import fi.riista.mobile.models.observation.GameObservation;
 import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.observation.ObservationDatabase;
-import fi.riista.mobile.observation.ObservationDatabase.ObservationsListener;
-import fi.riista.mobile.observation.ObservationStrings;
-import fi.riista.mobile.srva.SrvaDatabase;
-import fi.riista.mobile.srva.SrvaDatabase.SrvaEventListener;
+import fi.riista.mobile.sync.AppSync;
+import fi.riista.mobile.sync.AppSync.AppSyncListener;
+import fi.riista.mobile.sync.SyncConfig;
+import fi.riista.mobile.ui.HomeButtonView;
 import fi.riista.mobile.utils.UiUtils;
-import fi.vincit.androidutilslib.context.WorkContext;
+import fi.riista.mobile.utils.UserInfoStore;
 import fi.vincit.androidutilslib.task.WorkAsyncTask;
-import fi.vincit.androidutilslib.util.ViewAnnotations;
-import fi.vincit.androidutilslib.util.ViewAnnotations.ViewId;
-import fi.vincit.androidutilslib.util.ViewAnnotations.ViewOnClick;
 
-public class HomeViewFragment extends PageFragment implements DatabaseUpdateListener {
+import static java.util.Collections.emptyList;
+
+public class HomeViewFragment extends PageFragment implements AppSyncListener {
 
     // Button defaults if there aren't any previous entries
-    private final int QUICKBUTTON1_DEFAULT = 47503; // Hirvi
-    private final int QUICKBUTTON2_DEFAULT = 50106; // Metsajanis
+    private final int QUICK_BUTTON1_DEFAULT = SpeciesInformation.MOOSE_ID;
+    private final int QUICK_BUTTON2_DEFAULT = SpeciesInformation.MOUNTAIN_HARE_ID; // Metsäjänis
 
-    private final int SRVA_QUICKBUTTON1_DEFAULT = 47503; // Hirvi
-    private final int SRVA_QUICKBUTTON2_DEFAULT = 47629; // Valkohantapeura
+    @Inject
+    UserInfoStore mUserInfoStore;
 
-    private boolean mManualSyncInProgress = false;
-    private Menu mMenu = null;
+    @Inject
+    HarvestDatabase mHarvestDatabase;
 
-    @ViewId(R.id.loggame)
-    private Button mLogGameButton;
+    @Inject
+    ObservationDatabase mObservationDatabase;
 
-    @ViewId(R.id.layout_quick_srva)
-    private LinearLayout mSrvaLayout;
+    @Inject
+    SpeciesResolver mSpeciesResolver;
 
-    @ViewId(R.id.srvaquickbutton1)
-    private Button mSrvaButton1;
+    @Inject
+    HarvestSpecVersionResolver mSpecVersionResolver;
 
-    @ViewId(R.id.srvaquickbutton2)
-    private Button mSrvaButton2;
+    @Inject
+    AppSync mAppSync;
+
+    @Inject
+    SyncConfig mSyncConfig;
+
+    private MenuItem mRefreshItem;
+
+    private TextView mHarvestQuickButton1;
+    private TextView mHarvestQuickButton2;
+    private TextView mObservationQuickButton1;
+    private TextView mObservationQuickButton2;
+
+    private final ActivityResultLauncher<Intent> newEventActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    mAppSync.syncImmediatelyIfAutomaticSyncEnabled();
+                }
+            });
 
     public static HomeViewFragment newInstance() {
         return new HomeViewFragment();
     }
 
+    // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
-        View view = inflater.inflate(R.layout.fragment_home, container, false);
-        ViewAnnotations.apply(this, view);
+    public void onAttach(@NonNull final Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
+    }
 
-        mSrvaLayout.setVisibility(UiUtils.getSrvaVisibility(getActivity()));
+    @Override
+    public View onCreateView(@NonNull final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+        final View view = inflater.inflate(R.layout.fragment_home, container, false);
+        setupActionBar(R.layout.actionbar_home, true);
+
+        final HomeButtonView harvestView = view.findViewById(R.id.home_harvest_view);
+        harvestView.findViewById(R.id.home_view_main_item).setOnClickListener(v -> startHarvestEditActivity(null));
+        mHarvestQuickButton1 = harvestView.findViewById(R.id.home_view_subitem_1_button);
+        mHarvestQuickButton2 = harvestView.findViewById(R.id.home_view_subitem_2_button);
+
+        final HomeButtonView observationView = view.findViewById(R.id.home_observation_view);
+        observationView.findViewById(R.id.home_view_main_item).setOnClickListener(v -> startObservationEditActivity(null));
+        mObservationQuickButton1 = observationView.findViewById(R.id.home_view_subitem_1_button);
+        mObservationQuickButton2 = observationView.findViewById(R.id.home_view_subitem_2_button);
+
+        final HomeButtonView srvaView = view.findViewById(R.id.home_srva_view);
+        srvaView.findViewById(R.id.home_view_main_item).setOnClickListener(v -> startSrvaEditActivity());
+        srvaView.setVisibility(UiUtils.isSrvaVisible(mUserInfoStore.getUserInfo()) ? View.VISIBLE : View.GONE);
+
+        final HomeButtonView mapView = view.findViewById(R.id.home_map_view);
+        mapView.findViewById(R.id.home_view_main_item).setOnClickListener(v -> onMapClick());
+
+        final HomeButtonView myDetailsView = view.findViewById(R.id.home_my_details_view);
+        myDetailsView.findViewById(R.id.home_view_main_item).setOnClickListener(v -> onMyDetailsClick());
+        myDetailsView.findViewById(R.id.home_view_subitem_1_button).setOnClickListener(v -> onHuntingLicenseClick());
+        myDetailsView.findViewById(R.id.home_view_subitem_2_button).setOnClickListener(v -> onShootingTestsClick());
 
         return view;
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        mMenu = menu;
-        inflater.inflate(R.menu.mygame, menu);
+    public void onCreateOptionsMenu(@NonNull final Menu menu, @NonNull final MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_refresh, menu);
 
-        // Show/hide refresh button according to sync settings
-        MenuItem item = mMenu.findItem(R.id.refresh);
-        if (GameDatabase.getInstance().getSyncMode(getActivity()) == GameDatabase.SyncMode.SYNC_MANUAL) {
-            item.setVisible(true);
-            if (mManualSyncInProgress) {
-                item.setVisible(false);
-            }
-        } else {
-            item.setVisible(false);
-        }
+        // Show/hide refresh button according to sync settings.
+        mRefreshItem = menu.findItem(R.id.item_refresh);
+        mRefreshItem.setVisible(!mSyncConfig.isAutomatic() && !mAppSync.isSyncRunning());
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.refresh:
-                WorkContext context = ((MainActivity) getActivity()).getWorkContext();
+    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
+        if (item.getItemId() == R.id.item_refresh) {
+            if (mAppSync.syncImmediately()) {
                 item.setVisible(false);
-                mManualSyncInProgress = true;
-                GameDatabase.getInstance().manualSync(context);
-                return true;
+            }
+            return true;
         }
-        return false;
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -116,266 +155,162 @@ public class HomeViewFragment extends PageFragment implements DatabaseUpdateList
         super.onStart();
 
         setViewTitle(getString(R.string.title_front_page));
-        ((BaseActivity) getActivity()).onHasActionbarMenu((GameDatabase.getInstance().getSyncMode(getActivity()) == GameDatabase.SyncMode.SYNC_MANUAL));
 
         updateQuickButtons();
 
-        GameDatabase.getInstance().registerListener(this);
+        mAppSync.addSyncListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        GameDatabase.getInstance().unregisterListener(this);
-    }
-
-    @ViewOnClick(R.id.loggame)
-    protected void OnClickNewHarvestButton(View view) {
-        startHarvestEditActivity(null);
-    }
-
-    @ViewOnClick(R.id.logobservation)
-    protected void onClickNewObservationButton(View view) {
-        startObservationEditActivity(null);
-    }
-
-    @ViewOnClick(R.id.logsrva)
-    protected void onClickNewSrvaEventButton(View view) {
-        startSrvaEditActivity(null, null, 0);
+        mAppSync.removeSyncListener(this);
     }
 
     private void updateQuickButtons() {
         final View view = getView();
-        if (view == null) {
-            return;
+
+        if (view != null) {
+            updateHarvestQuickButtons();
+            updateObservationQuickButtons();
         }
-
-        updateHarvestQuickButtons(view);
-
-        updateObservationQuickButtons(view);
-
-        updateSrvaQuickButtons(view);
     }
 
-    private void updateHarvestQuickButtons(final View view) {
-        WorkAsyncTask task = new WorkAsyncTask(getWorkContext()) {
-            private List<Integer> mLatestGame = new ArrayList<>();
+    private void updateHarvestQuickButtons() {
+        setupHarvestQuickButton(mHarvestQuickButton1, mSpeciesResolver.findSpecies(QUICK_BUTTON1_DEFAULT));
+        setupHarvestQuickButton(mHarvestQuickButton2, mSpeciesResolver.findSpecies(QUICK_BUTTON2_DEFAULT));
+
+        final WorkAsyncTask task = new WorkAsyncTask(getWorkContext()) {
+            private List<Integer> mLatestGame = emptyList();
 
             @Override
-            protected void onAsyncRun() throws Exception {
-                mLatestGame = GameDatabase.getInstance().getLatestSpecies(2);
+            protected void onAsyncRun() {
+                mLatestGame = mHarvestDatabase.getSpeciesIdsOfMostRecentHarvests(2);
             }
 
             @Override
             protected void onEnd() {
                 if (HomeViewFragment.this.isAdded()) {
-                    setupQuickButtons(view.findViewById(R.id.layout_quick_game), mLatestGame, R.string.loggame_template, new OnQuickButtonInitListener() {
-                        @Override
-                        public void onInit(Button button, final Species species) {
-                            button.setOnClickListener(new OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    startHarvestEditActivity(species);
-                                }
-                            });
-                        }
-                    });
+                    if (mLatestGame.size() >= 2) {
+                        setupHarvestQuickButton(mHarvestQuickButton1, mSpeciesResolver.findSpecies(mLatestGame.get(0)));
+                        setupHarvestQuickButton(mHarvestQuickButton2, mSpeciesResolver.findSpecies(mLatestGame.get(1)));
+                    }
                 }
             }
         };
         task.start();
     }
 
-    private void updateObservationQuickButtons(final View view) {
-        ObservationDatabase.getInstance().loadLatestObservationSpecimens(2, new ObservationsListener() {
-            @Override
-            public void onObservations(List<GameObservation> observations) {
-                if (isAdded()) {
-                    List<Integer> latest = new ArrayList<>();
-                    for (GameObservation observation : observations) {
-                        latest.add(observation.gameSpeciesCode);
-                    }
-
-                    setupQuickButtons(view.findViewById(R.id.layout_quick_observation), latest, R.string.logobservation_template, new OnQuickButtonInitListener() {
-                        @Override
-                        public void onInit(Button button, final Species species) {
-                            button.setOnClickListener(new OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    startObservationEditActivity(species);
-                                }
-                            });
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    private void updateSrvaQuickButtons(final View view) {
-        SrvaDatabase.getInstance().loadLatestEvents(new SrvaEventListener() {
-            @Override
-            public void onEvents(List<SrvaEvent> events) {
-                setupSrvaDefaultButton(mSrvaButton1, "ACCIDENT", "TRAFFIC_ACCIDENT", SRVA_QUICKBUTTON1_DEFAULT);
-                setupSrvaDefaultButton(mSrvaButton2, "ACCIDENT", "TRAFFIC_ACCIDENT", SRVA_QUICKBUTTON2_DEFAULT);
-
-                if (events.size() > 0) {
-                    SrvaEvent first = events.remove(0);
-                    setupSrvaQuickButton(mSrvaButton1, first);
-
-                    for (SrvaEvent event : events) {
-                        if (!event.gameSpeciesCode.equals(first.gameSpeciesCode)) {
-                            setupSrvaQuickButton(mSrvaButton2, event);
-                            break;
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    private void setupSrvaDefaultButton(Button button, String eventName, String eventType, int gameSpeciesCode) {
-        SrvaEvent dummy = SrvaEvent.createNew();
-        dummy.eventName = eventName;
-        dummy.eventType = eventType;
-        dummy.gameSpeciesCode = gameSpeciesCode;
-        setupSrvaQuickButton(button, dummy);
-    }
-
-    private void setupSrvaQuickButton(Button button, final SrvaEvent event) {
-        Species species = SpeciesInformation.getSpecies(event.gameSpeciesCode);
-        if (isAdded() && species != null) {
-            String type = ObservationStrings.get(getActivity(), event.eventType);
-            button.setText(species.mName + " / " + type);
-            button.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startSrvaEditActivity(event.eventName, event.eventType, event.gameSpeciesCode);
-                }
-            });
+    private void setupHarvestQuickButton(final TextView buttonView, @NonNull final Species species) {
+        if (isAdded()) {
+            buttonView.setText(species.mName);
+            buttonView.setOnClickListener(v -> startHarvestEditActivity(species));
         }
     }
 
-    private void startHarvestEditActivity(Species species) {
-        GameHarvest harvest = GameHarvest.createNew();
+    private void updateObservationQuickButtons() {
+        mObservationDatabase.loadLatestObservationSpecimens(2, observations -> {
+            setupObservationQuickButton(mObservationQuickButton1, mSpeciesResolver.findSpecies(QUICK_BUTTON1_DEFAULT));
+            setupObservationQuickButton(mObservationQuickButton2, mSpeciesResolver.findSpecies(QUICK_BUTTON2_DEFAULT));
+
+            if (isAdded()) {
+                final List<Integer> latest = new ArrayList<>();
+
+                for (final GameObservation observation : observations) {
+                    latest.add(observation.gameSpeciesCode);
+                }
+
+                if (latest.size() >= 2) {
+                    // TODO: Check case size == 1 and which button is updated
+                    setupObservationQuickButton(mObservationQuickButton1, mSpeciesResolver.findSpecies(latest.get(0)));
+                    setupObservationQuickButton(mObservationQuickButton2, mSpeciesResolver.findSpecies(latest.get(1)));
+                }
+            }
+        });
+    }
+
+    private void setupObservationQuickButton(final TextView buttonView, @NonNull final Species species) {
+        if (isAdded()) {
+            buttonView.setText(species.mName);
+            buttonView.setOnClickListener(v -> startObservationEditActivity(species));
+        }
+    }
+
+    private void startHarvestEditActivity(final Species species) {
+        final GameHarvest harvest = GameHarvest.createNew(mSpecVersionResolver.resolveHarvestSpecVersion());
+
         if (species != null) {
             harvest.mSpeciesID = species.mId;
         }
 
-        Intent intent = new Intent(getActivity(), HarvestActivity.class);
+        final Intent intent = new Intent(getActivity(), HarvestActivity.class);
         intent.putExtra(HarvestActivity.EXTRA_HARVEST, harvest);
-        intent.putExtra(HarvestActivity.EXTRA_NEW, true);
-        startActivityForResult(intent, HarvestActivity.NEW_HARVEST_REQUEST_CODE);
+        newEventActivityResultLaunch.launch(intent);
     }
 
-    private void startObservationEditActivity(Species species) {
-        GameObservation observation = GameObservation.createNew();
+    private void startObservationEditActivity(final Species species) {
+        final GameObservation observation = GameObservation.createNew();
+
         if (species != null) {
             observation.gameSpeciesCode = species.mId;
         }
 
-        Intent intent = new Intent(getActivity(), EditActivity.class);
+        final Intent intent = new Intent(getActivity(), EditActivity.class);
         intent.putExtra(EditActivity.EXTRA_OBSERVATION, observation);
         intent.putExtra(EditActivity.EXTRA_NEW, true);
-        startActivityForResult(intent, EditActivity.NEW_OBSERVATION_REQUEST_CODE);
+        newEventActivityResultLaunch.launch(intent);
     }
 
-    private void startSrvaEditActivity(String eventName, String eventType, int gameSpeciesCode) {
-        SrvaEvent event = SrvaEvent.createNew();
-        event.eventName = eventName;
-        event.eventType = eventType;
-        event.gameSpeciesCode = gameSpeciesCode;
-
-        Intent intent = new Intent(getActivity(), EditActivity.class);
-        intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, event);
+    private void startSrvaEditActivity() {
+        final Intent intent = new Intent(getActivity(), EditActivity.class);
+        intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, SrvaEvent.createNew());
         intent.putExtra(EditActivity.EXTRA_NEW, true);
-        startActivityForResult(intent, EditActivity.NEW_SRVA_REQUEST_CODE);
+        newEventActivityResultLaunch.launch(intent);
     }
 
-    void setupQuickButtons(View container, List<Integer> latestSpecies, int textId, OnQuickButtonInitListener listener) {
-        List<Integer> defaultSpecies = new ArrayList<>();
-        defaultSpecies.add(QUICKBUTTON1_DEFAULT);
-        defaultSpecies.add(QUICKBUTTON2_DEFAULT);
-        Button quickItem1 = (Button) container.findViewById(R.id.quickbutton1);
-        setupQuickButton(quickItem1, latestSpecies, 0, defaultSpecies, textId, listener);
-        Button quickItem2 = (Button) container.findViewById(R.id.quickbutton2);
-        setupQuickButton(quickItem2, latestSpecies, 1, defaultSpecies, textId, listener);
-    }
+    private void onMyDetailsClick() {
+        final MainActivity activity = (MainActivity) getActivity();
 
-    void setupQuickButton(Button quickButton, List<Integer> latestSpecies,
-                          int ordinal, List<Integer> defaultSpecies, int textId, OnQuickButtonInitListener listener) {
-        String textFormat = "", text = "";
-        Species species = null;
-        textFormat = getResources().getString(textId);
-        if (latestSpecies.size() > ordinal) {
-            species = SpeciesInformation.getSpecies(latestSpecies.get(ordinal));
-            if (defaultSpecies.contains(latestSpecies.get(ordinal))) {
-                defaultSpecies.remove(latestSpecies.get(ordinal));
-            }
-        } else if (defaultSpecies.size() > 0) {
-            int speciesId = defaultSpecies.get(0);
-            species = SpeciesInformation.getSpecies(speciesId);
-            defaultSpecies.remove(0);
+        if (activity != null) {
+            activity.selectItem(R.id.menu_more);
+            activity.replacePageFragment(MyDetailsFragment.newInstance());
         }
-        if (species != null) {
-            text = String.format(textFormat, species.mName);
-            quickButton.setText(text);
-            listener.onInit(quickButton, species);
-        } else {
-            quickButton.setVisibility(View.GONE);
+    }
+
+    private void onHuntingLicenseClick() {
+        final MyDetailsLicenseFragment dialog = MyDetailsLicenseFragment.newInstance();
+        dialog.show(requireActivity().getSupportFragmentManager(), MyDetailsLicenseFragment.TAG);
+    }
+
+    private void onShootingTestsClick() {
+        final MyDetailsShootingTestsFragment dialog = MyDetailsShootingTestsFragment.newInstance();
+        dialog.show(requireActivity().getSupportFragmentManager(), MyDetailsShootingTestsFragment.TAG);
+    }
+
+    private void onMapClick() {
+        final MainActivity activity = (MainActivity) getActivity();
+
+        if (activity != null) {
+            activity.selectItem(R.id.menu_map);
+            activity.replacePageFragment(MapViewer.newInstance(true));
         }
     }
 
     @Override
-    public void eventsUpdated(List<DiaryEntryUpdate> updatedEvents) {
+    public void onSyncStarted() {
+        if (mRefreshItem != null) {
+            mRefreshItem.setVisible(false);
+        }
+    }
+
+    @Override
+    public void onSyncCompleted() {
         if (getActivity() != null && getView() != null) {
-            if (mManualSyncInProgress) {
-                MenuItem refreshItem = mMenu.findItem(R.id.refresh);
-                if (refreshItem != null) {
-                    refreshItem.setVisible(true);
-                }
-                mManualSyncInProgress = false;
+            if (mRefreshItem != null) {
+                mRefreshItem.setVisible(!mSyncConfig.isAutomatic());
             }
-            updateQuickButtons();
         }
-    }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == HarvestActivity.NEW_HARVEST_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                boolean didSave = data.getBooleanExtra(HarvestActivity.RESULT_DID_SAVE, false);
-
-                if (didSave) {
-                    // Move to game log and select harvest tab
-                }
-
-                GameDatabase db = GameDatabase.getInstance();
-                if (db.getSyncMode(getContext()) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
-                    db.doSyncAndResetTimer();
-                }
-            }
-        } else if (requestCode == EditActivity.NEW_OBSERVATION_REQUEST_CODE ||
-                requestCode == EditActivity.NEW_SRVA_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                boolean didSave = data.getBooleanExtra(EditActivity.RESULT_DID_SAVE, false);
-
-                if (didSave) {
-                    // Move to game log and select observation tab
-                }
-
-                GameDatabase db = GameDatabase.getInstance();
-                if (db.getSyncMode(getContext()) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
-                    db.doSyncAndResetTimer();
-                }
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    private interface OnQuickButtonInitListener {
-        void onInit(Button button, Species species);
+        updateQuickButtons();
     }
 }

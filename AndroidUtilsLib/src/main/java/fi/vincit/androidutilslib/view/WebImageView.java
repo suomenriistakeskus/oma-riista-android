@@ -29,7 +29,7 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.support.v4.util.LruCache;
+import androidx.collection.LruCache;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;

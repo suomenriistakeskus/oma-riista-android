@@ -18,20 +18,15 @@ package fi.vincit.androidutilslib.task;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
-import java.util.Random;
 
-import android.util.Log;
-
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.client.cache.HeaderConstants;
 import fi.vincit.androidutilslib.context.WorkContext;
-import fi.vincit.httpclientandroidlib.Header;
-import fi.vincit.httpclientandroidlib.HttpResponse;
-import fi.vincit.httpclientandroidlib.client.cache.HeaderConstants;
-import fi.vincit.httpclientandroidlib.message.BasicHeader;
 
 /**
  * Task for reliably downloading large files in pieces. To do this the server and the
@@ -52,8 +47,8 @@ import fi.vincit.httpclientandroidlib.message.BasicHeader;
  */
 public abstract class DownloadRangedTask extends NetworkTask {
 
-    private static final int BUFFER_SIZE = 1024 * 8; //In bytes
-    private static final int DEFAULT_RANGE_SIZE = 1024 * 256; //In bytes
+    private static final int BUFFER_SIZE = 1024 * 8; // In bytes
+    private static final int DEFAULT_RANGE_SIZE = 1024 * 256; // In bytes
     
     private File mOutFile;
     private BufferedOutputStream mOutStream;
@@ -133,7 +128,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
         super.cancel();
     }
     
-    private static String getResponseHeaderString(HttpResponse response, String name) 
+    private static String getResponseHeaderString(HttpResponse response, String name)
     {
         Header header = response.getFirstHeader(name);
         if (header != null) {
@@ -157,7 +152,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
     @Override
     protected final void onAsyncStream(InputStream stream) throws Exception 
     {
-        //We don't get a body in HEAD requests.
+        // We don't get a body in HEAD requests.
     }
     
     @Override
@@ -279,7 +274,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
         
         public int length()
         {
-            //Range end is inclusive
+            // Range end is inclusive
             return (end - start) + 1;
         }
         
@@ -306,7 +301,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
             handleCancel();
         }
         else if (range.length() < 1) {
-            //No more data to download.
+            // No more data to download.
             handleFinish();
         }
         else {
@@ -330,7 +325,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
     private class RangedDownloadTask extends NetworkTask 
     {
         private Range mRange;
-        private boolean mStop; //If we encounter serious issues don't retry.
+        private boolean mStop; // If we encounter serious issues don't retry.
         
         public RangedDownloadTask(WorkContext workContext, Range range) 
         {
@@ -366,7 +361,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
                 validateResponse(getHttpResponse());
             }
             catch (Exception e) {
-                //Ranged download is not going to work with the server response, give up.
+                // Ranged download is not going to work with the server response, give up.
                 mStop = true;
                 throw e;
             }
@@ -389,12 +384,12 @@ public abstract class DownloadRangedTask extends NetworkTask {
                 byteStream.writeTo(mOutStream);
             }
             catch (Exception e) {
-                //Writing to disk failed, give up.
+                // Writing to disk failed, give up.
                 mStop = true;
                 throw e;
             }
 
-            //Forward the progress to the parent task.
+            // Forward the progress to the parent task.
             int progress = progressToPercent(mBytesWritten, mContentLength);
             DownloadRangedTask.this.setInternalProgress(progress);
         }
@@ -409,7 +404,7 @@ public abstract class DownloadRangedTask extends NetworkTask {
         protected final void onError() 
         {
             if (mRetryCount <= mMaxRetries && !mStop) {
-                //Try this range again.
+                // Try this range again.
                 mRetryCount++;
                 startRangeDownload(mRange);
             }

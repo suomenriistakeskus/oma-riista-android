@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginLeft="@dimen/page_padding_horizontal"
+    android:layout_marginRight="@dimen/page_padding_horizontal"
+    android:paddingTop="@dimen/page_padding_top"
+    tools:context=".activity.OfflineMapSettingsActivity"
+    >
+
+    <TextView
+        android:id="@+id/tv_background_cache_title"
+        style="@style/HeaderText.Bold"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/offline_map_settings_background_map"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingBottom="@dimen/page_padding_vertical"
+        />
+
+    <TextView
+        android:id="@+id/tv_background_cache_label"
+        style="@style/PrimaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/offline_map_settings_cache_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_background_cache_title"
+        app:layout_constraintEnd_toStartOf="@id/tv_background_cache_usage"
+        />
+
+    <TextView
+        android:id="@+id/tv_background_cache_usage"
+        style="@style/PrimaryTextBody.Bold"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_background_cache_label"
+        app:layout_constraintWidth_percent="0.55"
+        android:gravity="end"
+        tools:text="28 Mt / 128 Mt"
+        />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/background_cache_barrier"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="tv_background_cache_label, tv_background_cache_usage"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clear_background_map_cache"
+        style="@style/SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/default_button_height"
+        android:layout_marginTop="@dimen/page_padding_horizontal"
+        android:text="@string/offline_map_settings_clear_background_map_cache"
+        app:layout_constraintTop_toBottomOf="@id/background_cache_barrier"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/tv_layer_cache_title"
+        style="@style/HeaderText.Bold"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/offline_map_settings_map_layers"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_clear_background_map_cache"
+        android:paddingBottom="@dimen/page_padding_vertical"
+        android:paddingTop="@dimen/page_padding_vertical"
+        />
+
+    <TextView
+        android:id="@+id/tv_layer_cache_label"
+        style="@style/PrimaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/offline_map_settings_cache_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_layer_cache_title"
+        app:layout_constraintEnd_toStartOf="@id/tv_layer_cache_usage"
+        />
+
+    <TextView
+        android:id="@+id/tv_layer_cache_usage"
+        style="@style/PrimaryTextBody.Bold"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_layer_cache_label"
+        app:layout_constraintWidth_percent="0.55"
+        android:gravity="end"
+        tools:text="28 Mt / 128 Mt"
+        />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/layer_cache_barrier"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="tv_layer_cache_label, tv_layer_cache_usage"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_clear_layer_cache"
+        style="@style/SecondaryButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/default_button_height"
+        android:layout_marginTop="@dimen/page_padding_horizontal"
+        android:text="@string/offline_map_settings_clear_map_layers"
+        app:layout_constraintTop_toBottomOf="@id/layer_cache_barrier"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

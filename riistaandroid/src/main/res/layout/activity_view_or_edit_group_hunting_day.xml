@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".feature.groupHunting.huntingDays.ViewOrEditGroupHuntingDayActivity"
+    >
+
+    <!-- The layout to be displayed when there are hunting days. Intended to contain
+         the fragment for viewing or editing the hunting day -->
+    <FrameLayout
+        android:id="@+id/layout_hunting_day_fragment_holder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible"
+        tools:visibility="gone"
+        />
+
+    <!-- The layout to be displayed when there are no hunting days -->
+    <LinearLayout
+        android:id="@+id/layout_no_hunting_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/page_padding_horizontal"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        >
+
+        <TextView
+            android:id="@+id/tv_no_hunting_day_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="@dimen/item_spacing_normal"
+            tools:text="Metsästyspäivän lataus epäonnistui."
+            />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_no_hunting_day_action"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            tools:text="Yritä uudelleen"
+            />
+    </LinearLayout>
+
+    <fi.riista.mobile.ui.BusyIndicatorView
+        android:id="@+id/view_busy_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        />
+</RelativeLayout>

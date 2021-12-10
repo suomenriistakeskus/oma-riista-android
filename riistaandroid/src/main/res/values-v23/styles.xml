@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="TextBase" parent="android:Widget.TextView">
+        <item name="android:textColor">@color/colorText</item>
+        <item name="android:fontFamily">@font/open_sans</item>
+        <item name="android:hyphenationFrequency">normal</item>
+    </style>
+
+</resources>

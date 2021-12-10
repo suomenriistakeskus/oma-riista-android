@@ -15,6 +15,8 @@
  */
 package fi.vincit.androidutilslib.network;
 
+import androidx.collection.LruCache;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -24,19 +26,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import android.support.v4.util.LruCache;
-import android.util.Log;
+import cz.msebera.android.httpclient.client.cache.HttpCacheEntry;
+import cz.msebera.android.httpclient.client.cache.HttpCacheStorage;
+import cz.msebera.android.httpclient.client.cache.HttpCacheUpdateCallback;
+import cz.msebera.android.httpclient.impl.client.cache.CacheConfig;
+import cz.msebera.android.httpclient.impl.client.cache.DefaultHttpCacheEntrySerializer;
 import fi.vincit.androidutilslib.android.lrucache.DiskLruCache;
 import fi.vincit.androidutilslib.android.lrucache.DiskLruCache.Editor;
 import fi.vincit.androidutilslib.android.lrucache.DiskLruCache.Snapshot;
 import fi.vincit.androidutilslib.config.AndroidUtilsLibConfig;
 import fi.vincit.androidutilslib.util.HashDigest;
-import fi.vincit.httpclientandroidlib.client.cache.HttpCacheEntry;
-import fi.vincit.httpclientandroidlib.client.cache.HttpCacheStorage;
-import fi.vincit.httpclientandroidlib.client.cache.HttpCacheUpdateCallback;
-import fi.vincit.httpclientandroidlib.client.cache.HttpCacheUpdateException;
-import fi.vincit.httpclientandroidlib.impl.client.cache.CacheConfig;
-import fi.vincit.httpclientandroidlib.impl.client.cache.DefaultHttpCacheEntrySerializer;
 
 /**
  * Disk (and optionally memory) based two-level LRU cache for caching network requests.
@@ -52,7 +51,7 @@ public class HttpLruCacheStorage implements HttpCacheStorage {
 
     public static CacheConfig createDefaultCacheConfig() {
         return CacheConfig.custom()
-                .setMaxCacheEntries(500) //Not used by this cache implementation.
+                .setMaxCacheEntries(500) // Not used by this cache implementation.
                 .setMaxObjectSize(AndroidUtilsLibConfig.Cache.DEFAULT_MAX_CACHED_OBJECT_SIZE)
                 .setHeuristicCachingEnabled(true)
                 .setHeuristicDefaultLifetime(AndroidUtilsLibConfig.Cache.DEFAULT_CACHE_LIFETIME_SECONDS)
@@ -103,7 +102,7 @@ public class HttpLruCacheStorage implements HttpCacheStorage {
      */
     public synchronized void createDiskCache(File directory, long maxSizeBytes) throws IOException {
         if (diskCacheAvailable()) {
-            //Already exists.
+            // Already exists.
             return;
         }
         
@@ -218,15 +217,15 @@ public class HttpLruCacheStorage implements HttpCacheStorage {
         }
         
         if (diskCacheAvailable() && result == null) {
-            //Not found from memory cache, try disk.
+            // Not found from memory cache, try disk.
             Snapshot value = mDiskCache.get(keyHash);
             if (value != null) {
                 result = streamToEntry(new BufferedInputStream(value.getInputStream(0), BUFFER_SIZE));
                 value.close();
                 
                 if (result != null) {
-                    //We got it from disk but it is not in memory, so
-                    //put it to the memory cache now.
+                    // We got it from disk but it is not in memory, so
+                    // put it to the memory cache now.
                     putMemoryEntry(keyHash, result);
                 }
             }
@@ -282,7 +281,7 @@ public class HttpLruCacheStorage implements HttpCacheStorage {
     }
 
     @Override
-    public synchronized void updateEntry(String key, HttpCacheUpdateCallback callback) throws IOException, HttpCacheUpdateException {
+    public synchronized void updateEntry(String key, HttpCacheUpdateCallback callback) throws IOException {
         if (memoryCacheAvailable() || diskCacheAvailable()) {
             HttpCacheEntry oldEntry = getEntry(key);
             HttpCacheEntry newEntry = callback.update(oldEntry);

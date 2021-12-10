@@ -1,0 +1,18 @@
+<resources>
+    <declare-styleable name="HomeButtonView">
+        <attr name="mainButtonText" format="string" />
+        <attr name="mainButtonSrc" format="reference" />
+        <attr name="subitem1Text" format="string" />
+        <attr name="subitem2Text" format="string" />
+        <attr name="subitem1Visibility" format="enum">
+            <enum name="visible" value="0" />
+            <enum name="invisible" value="4" />
+            <enum name="gone" value="8" />
+        </attr>
+        <attr name="subitem2Visibility" format="enum">
+            <enum name="visible" value="0" />
+            <enum name="invisible" value="4" />
+            <enum name="gone" value="8" />
+        </attr>
+    </declare-styleable>
+</resources>

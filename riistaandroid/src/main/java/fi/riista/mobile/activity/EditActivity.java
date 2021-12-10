@@ -7,142 +7,92 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Pair;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 
 import org.joda.time.DateTime;
 
-import java.util.List;
+import javax.inject.Inject;
 
-import fi.riista.mobile.DiaryImageManager;
-import fi.riista.mobile.DiaryImageManager.DiaryImageManagerInterface;
+import dagger.android.AndroidInjection;
 import fi.riista.mobile.EntryMapView;
 import fi.riista.mobile.LocationClient;
 import fi.riista.mobile.R;
 import fi.riista.mobile.message.EventUpdateMessage;
-import fi.riista.mobile.models.GameObservation;
-import fi.riista.mobile.models.LogEventBase;
-import fi.riista.mobile.models.LogImage;
+import fi.riista.mobile.models.GameLog;
+import fi.riista.mobile.models.observation.GameObservation;
 import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.observation.ObservationMetadataHelper;
 import fi.riista.mobile.pages.ObservationEditFragment;
 import fi.riista.mobile.pages.SrvaEditFragment;
 import fi.riista.mobile.srva.SrvaParametersHelper;
-import fi.riista.mobile.ui.EditToolsView;
-import fi.riista.mobile.ui.EditToolsView.OnDateTimeListener;
-import fi.riista.mobile.ui.EditToolsView.OnDeleteListener;
 import fi.riista.mobile.utils.AppPreferences;
 import fi.riista.mobile.utils.DateTimeUtils;
+import fi.riista.mobile.utils.EditUtils;
 import fi.riista.mobile.utils.MapUtils;
 import fi.vincit.androidutilslib.util.ViewAnnotations;
 import fi.vincit.androidutilslib.util.ViewAnnotations.ViewId;
 import fi.vincit.androidutilslib.util.ViewAnnotations.ViewOnClick;
 
-public class EditActivity extends BaseActivity implements OnMapReadyCallback, DiaryImageManagerInterface, LocationListener {
+public class EditActivity extends BaseActivity implements OnMapReadyCallback, LocationListener {
 
     public static final String RESULT_DID_SAVE = "result_entry_saved";
-
-    public static final int NEW_OBSERVATION_REQUEST_CODE = 301;
-    public static final int EDIT_OBSERVATION_REQUEST_CODE = 302;
-    public static final int NEW_SRVA_REQUEST_CODE = 401;
-    public static final int EDIT_SRVA_REQUEST_CODE = 402;
 
     public static final String EXTRA_OBSERVATION = "extra_observation";
     public static final String EXTRA_SRVA_EVENT = "extra_srva_event";
     public static final String EXTRA_NEW = "extra_new";
 
-    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+    private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
 
-    //Events passed to edit fragments (observation, SRVA etc.)
-    public interface EditListener {
-        void onEditStart();
-
-        void onEditCancel();
-
-        void onEditSave();
-
-        void onDelete();
-
-        void onDateChanged(DateTime date);
-
-        void onLocationChanged(Location location, String source);
-
-        void onDescriptionChanged(String description);
-
-        void onImagesChanged(List<LogImage> images);
-
-        void onViewImage(String uuid);
-    }
-
-    //Data queried from edit fragments
-    public interface EditBridge {
-        DateTime getDate();
-
-        Location getLocation();
-
-        String getLocationSource();
-
-        String getDescription();
-
-        boolean isEditable();
-
-        List<LogImage> getImages();
-    }
+    @Inject
+    ObservationMetadataHelper mObservationMetadataHelper;
 
     private LocationClient mLocationClient;
     private EditListener mEditListener;
     private EditBridge mEditBridge;
-    private DiaryImageManager mDiaryImageManager;
     private boolean mEditMode = false;
     private boolean mNew = false;
     private boolean mLocationSelectedManually = false;
-    private long mCurrentObservationId = -1;
-
-    @ViewId(R.id.view_edit_tools)
-    private EditToolsView mEditTools;
 
     @ViewId(R.id.mapView)
     private EntryMapView mMapView;
-
     @ViewId(R.id.txt_edit_location)
     private TextView mLocationText;
-
-    //Images
-
-    @ViewId(R.id.diaryimages)
-    private LinearLayout mImagesLayout;
 
     @ViewId(R.id.logDescription)
     private EditText mDescriptionEdit;
 
-    //Cancel and save
+    private MenuItem mEditItem;
+    private MenuItem mDeleteItem;
 
+    // Images
     @ViewId(R.id.layout_edit_state_buttons)
     private View mEditStateButtonsLayout;
-
     @ViewId(R.id.btn_edit_cancel)
     private Button mCancelEditButton;
 
+    // Cancel and save
     @ViewId(R.id.btn_edit_save)
     private Button mSaveEditButton;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(null); //Don't restore state, it is done manually
+    protected void onCreate(final Bundle savedInstanceState) {
+        AndroidInjection.inject(this);
 
-        if (!ObservationMetadataHelper.getInstance().hasMetadata() ||
-                !SrvaParametersHelper.getInstance().hasParameters()) {
-            //Can't do anything until the client downloads the metadata
+        super.onCreate(null); // Don't restore state, it is done manually
+
+        if (!mObservationMetadataHelper.hasMetadata() || !SrvaParametersHelper.getInstance().hasParameters()) {
+            // Can't do anything until the client downloads the metadata.
             finish();
             return;
         }
@@ -151,27 +101,26 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
 
         ViewAnnotations.apply(this);
 
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
 
         mNew = intent.getBooleanExtra(EXTRA_NEW, false);
         mEditMode = mNew;
 
-        GameObservation observation = (GameObservation) intent.getSerializableExtra(EXTRA_OBSERVATION);
-        SrvaEvent srvaEvent = (SrvaEvent) intent.getSerializableExtra(EXTRA_SRVA_EVENT);
+        final GameObservation observation = (GameObservation) intent.getSerializableExtra(EXTRA_OBSERVATION);
+        final SrvaEvent srvaEvent = (SrvaEvent) intent.getSerializableExtra(EXTRA_SRVA_EVENT);
 
         if (observation != null) {
-            if (observation.localId != null) {
-                mCurrentObservationId = observation.localId;
-            }
             setCustomTitle(getString(R.string.observation));
 
-            ObservationEditFragment fragment = ObservationEditFragment.newInstance(observation);
+            final ObservationEditFragment fragment = ObservationEditFragment.newInstance(observation);
             getSupportFragmentManager().beginTransaction().add(R.id.layout_edit_fragment_container, fragment).commit();
+
         } else if (srvaEvent != null) {
             setCustomTitle(getString(R.string.srva));
 
-            SrvaEditFragment fragment = SrvaEditFragment.newInstance(srvaEvent);
+            final SrvaEditFragment fragment = SrvaEditFragment.newInstance(srvaEvent);
             getSupportFragmentManager().beginTransaction().add(R.id.layout_edit_fragment_container, fragment).commit();
+
         } else {
             finish();
         }
@@ -179,22 +128,54 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
         initButtons();
         initMapView(savedInstanceState);
         initDescriptionTextWatcher();
-
-        mDiaryImageManager = new DiaryImageManager(getWorkContext(), this);
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        //Don't restore state
+    protected void onRestoreInstanceState(final Bundle savedInstanceState) {
+        // Don't restore state
     }
 
-    public void finishEdit(String type, DateTime time, long localId) {
-        int huntingYear = DateTimeUtils.getSeasonStartYearFromDate(time.toCalendar(null));
-        EventUpdateMessage message = new EventUpdateMessage(type, localId, huntingYear);
+    @Override
+    public boolean onCreateOptionsMenu(final Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_edit, menu);
+
+        mEditItem = menu.findItem(R.id.item_edit);
+        mEditItem.setVisible(mEditBridge.isEditable() && !mEditMode);
+
+        mDeleteItem = menu.findItem(R.id.item_delete);
+        mDeleteItem.setVisible(mEditBridge.isEditable() && !mNew);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(final MenuItem item) {
+        final int id = item.getItemId();
+
+        switch (id) {
+            case R.id.item_edit:
+                startEdit(true);
+                break;
+            case R.id.item_delete:
+                EditUtils.showDeleteDialog(this, () -> {
+                    if (mEditListener != null) {
+                        mEditListener.onDelete();
+                    } else {
+                        finish();
+                    }
+                });
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void finishEdit(final String type, final DateTime time, final long localId) {
+        final int huntingYear = DateTimeUtils.getHuntingYearForCalendar(time.toCalendar(null));
+        final EventUpdateMessage message = new EventUpdateMessage(type, localId, huntingYear);
 
         getWorkContext().sendGlobalMessage(message);
 
-        Intent result = new Intent();
+        final Intent result = new Intent();
         result.putExtra(EditActivity.RESULT_DID_SAVE, true);
         this.setResult(Activity.RESULT_OK, result);
         this.finish();
@@ -203,21 +184,21 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
     private void initDescriptionTextWatcher() {
         mDescriptionEdit.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
             }
 
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
+            public void afterTextChanged(final Editable s) {
                 mEditListener.onDescriptionChanged(s.toString());
             }
         });
     }
 
-    public void setEditValid(boolean valid) {
+    public void setEditValid(final boolean valid) {
         mSaveEditButton.setEnabled(valid);
     }
 
@@ -225,7 +206,7 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
         return mEditMode;
     }
 
-    public void connectEditFragment(EditListener listener, EditBridge bridge) {
+    public void connectEditFragment(final EditListener listener, final EditBridge bridge) {
         mEditListener = listener;
         mEditBridge = bridge;
 
@@ -235,61 +216,33 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
     }
 
     private void updateViews() {
-        updateTimeText();
         updateLocationText();
         updateDescriptionText();
-        updateImages();
-    }
-
-    @ViewOnClick(R.id.btn_edit_date)
-    protected void onEditDateButtonClicked(View view) {
-        showDateTimeDialog();
-    }
-
-    private void showDateTimeDialog() {
-        DateTime date = mEditBridge.getDate();
-        mEditTools.showDateTimeDialog(date, new OnDateTimeListener() {
-            @Override
-            public void onDateTime(DateTime dateTime) {
-                mEditListener.onDateChanged(dateTime);
-                updateTimeText();
-            }
-        });
-    }
-
-    private void updateTimeText() {
-        mEditTools.setDateTimeText(mEditBridge.getDate());
     }
 
     private void updateLocationText() {
-        Location loc = mEditBridge.getLocation();
-        if (loc != null) {
-            Pair<Long, Long> location = MapUtils.WGS84toETRSTM35FIN(loc.getLatitude(), loc.getLongitude());
+        final Location loc = mEditBridge.getLocation();
+        final String text;
 
-            String textFormat = getResources().getString(R.string.map_coordinates);
-            mLocationText.setText(String.format(textFormat, location.first.toString(), location.second.toString()));
+        if (loc != null) {
+            final Pair<Long, Long> location = MapUtils.WGS84toETRSTM35FIN(loc.getLatitude(), loc.getLongitude());
+            final String textFormat = getResources().getString(R.string.map_coordinates);
+
+            text = String.format(textFormat, location.first.toString(), location.second.toString());
         } else {
-            mLocationText.setText("");
+            text = "";
         }
+
+        mLocationText.setText(text);
     }
 
     public void updateDescriptionText() {
-        String description = mEditBridge.getDescription();
-        if (description != null) {
-            mDescriptionEdit.setText(description);
-        } else {
-            mDescriptionEdit.setText("");
-        }
-    }
-
-    private void updateImages() {
-        List<LogImage> images = mEditBridge.getImages();
-        mDiaryImageManager.setItems(images);
-        mDiaryImageManager.setup(mImagesLayout);
+        final String description = mEditBridge.getDescription();
+        mDescriptionEdit.setText(description != null ? description : "");
     }
 
     @ViewOnClick(R.id.btn_edit_cancel)
-    protected void onCancelEditButtonClicked(View view) {
+    protected void onCancelEditButtonClicked(final View view) {
         if (mNew) {
             finish();
         } else {
@@ -304,45 +257,30 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
     }
 
     @ViewOnClick(R.id.btn_edit_save)
-    protected void onSaveButtonClicked(View view) {
+    protected void onSaveButtonClicked(final View view) {
         mEditListener.onEditSave();
     }
 
-    @ViewOnClick(R.id.btn_edit_delete)
-    protected void onDeleteButtonClicked(View view) {
-        mEditTools.showDeleteDialog(new OnDeleteListener() {
-            @Override
-            public void onDelete() {
-                if (mEditListener != null) {
-                    mEditListener.onDelete();
-                } else {
-                    finish();
-                }
-            }
-        });
-    }
-
-    @ViewOnClick(R.id.btn_edit_start)
-    protected void onStartEditButtonClicked(View view) {
-        startEdit(true);
-    }
-
-    private void startEdit(boolean start) {
+    private void startEdit(final boolean start) {
         mEditMode = start && mEditBridge.isEditable();
-        mDiaryImageManager.setEditMode(mEditMode);
 
-        mEditTools.setButtonEnabled(mEditTools.getDateButton(), mEditMode);
-
-        mEditTools.getEditButton().setVisibility((mEditBridge.isEditable() && !mEditMode) ? View.VISIBLE : View.INVISIBLE);
-
-        mEditTools.getDeleteButton().setVisibility((mEditBridge.isEditable() && !mNew) ? View.VISIBLE : View.INVISIBLE);
+        if (mEditItem != null) {
+            mEditItem.setVisible(mEditBridge.isEditable() && !mEditMode);
+        }
+        if (mDeleteItem != null) {
+            mDeleteItem.setVisible(mEditBridge.isEditable() && !mNew);
+        }
 
         mEditStateButtonsLayout.setVisibility(mEditMode ? View.VISIBLE : View.GONE);
 
         mDescriptionEdit.setEnabled(mEditMode);
 
         if (mEditListener != null) {
-            mEditListener.onEditStart();
+            if (mEditMode) {
+                mEditListener.onEditStart();
+            } else {
+                mEditListener.onEditCancel();
+            }
         }
     }
 
@@ -350,24 +288,18 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
         mEditStateButtonsLayout.setVisibility(View.GONE);
     }
 
-    private void initMapView(Bundle savedInstanceState) {
-        AppPreferences.MapTileSource tileSource
-                = AppPreferences.getMapTileSource(this) == AppPreferences.MapTileSource.GOOGLE
-                ? AppPreferences.MapTileSource.GOOGLE
-                : AppPreferences.MapTileSource.MML_TOPOGRAPHIC;
-
-        Bundle mapViewBundle = null;
-        if (savedInstanceState != null) {
-            mapViewBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
-        }
+    private void initMapView(final Bundle savedInstanceState) {
+        final Bundle mapViewBundle = savedInstanceState != null
+                ? savedInstanceState.getBundle(MAP_VIEW_BUNDLE_KEY)
+                : null;
         mMapView.onCreate(mapViewBundle);
 
-        mMapView.setup(this, false, true, tileSource);
+        mMapView.setup(this, false, true);
         mMapView.getMapAsync(this);
     }
 
     @Override
-    public void onMapReady(GoogleMap map) {
+    public void onMapReady(final GoogleMap map) {
         mLocationClient = getLocationClient();
         mLocationClient.addListener(this);
 
@@ -378,28 +310,20 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
             mMapView.setShowAccuracy(true);
         }
 
-        map.setOnMapClickListener(new OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng loaction) {
-                viewMap();
-            }
-        });
-
-        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                viewMap();
-                return true;
-            }
+        map.setOnMapClickListener(location -> viewMap());
+        map.setOnMarkerClickListener(marker -> {
+            viewMap();
+            return true;
         });
     }
 
     private void viewMap() {
-        Intent intent = new Intent(EditActivity.this, MapViewerActivity.class);
+        final Intent intent = new Intent(this, MapViewerActivity.class);
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, mEditMode);
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, currentLocation());
         intent.putExtra(MapViewerActivity.EXTRA_NEW, mNew);
         intent.putExtra(MapViewerActivity.EXTRA_LOCATION_SOURCE, mEditBridge.getLocationSource());
+
         startActivityForResult(intent, MapViewerActivity.LOCATION_REQUEST_CODE);
     }
 
@@ -408,7 +332,8 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
     }
 
     private void updateMapPosition() {
-        Location location = currentLocation();
+        final Location location = currentLocation();
+
         if (location != null) {
             mMapView.moveCameraTo(location);
             mMapView.refreshLocationIndicators(location);
@@ -423,6 +348,7 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
 
         if (mMapView != null) {
             mMapView.onResume();
+            mMapView.setMapTileType(AppPreferences.getMapTileSource(this));
         }
     }
 
@@ -477,59 +403,75 @@ public class EditActivity extends BaseActivity implements OnMapReadyCallback, Di
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull final Bundle outState) {
         super.onSaveInstanceState(outState);
 
         if (mMapView != null) {
-            Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+            Bundle mapViewBundle = outState.getBundle(MAP_VIEW_BUNDLE_KEY);
             if (mapViewBundle == null) {
                 mapViewBundle = new Bundle();
-                outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
+                outState.putBundle(MAP_VIEW_BUNDLE_KEY, mapViewBundle);
             }
             mMapView.onSaveInstanceState(mapViewBundle);
         }
     }
 
     @Override
-    public void viewImage(String uuid) {
-        if (mEditListener != null) {
-            mEditListener.onViewImage(uuid);
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == MapViewerActivity.LOCATION_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
                 mLocationSelectedManually = true;
 
-                Location location = data.getParcelableExtra(MapViewerActivity.RESULT_LOCATION);
-                String source = data.getStringExtra(MapViewerActivity.RESULT_LOCATION_SOURCE);
+                final Location location = data.getParcelableExtra(MapViewerActivity.RESULT_LOCATION);
+                final String source = data.getStringExtra(MapViewerActivity.RESULT_LOCATION_SOURCE);
+
                 setLocation(location, source);
             }
-        } else if (requestCode == DiaryImageManager.REQUEST_IMAGE_CAPTURE ||
-                requestCode == DiaryImageManager.REQUEST_SELECT_PHOTO) {
-            mDiaryImageManager.handleImageResult(requestCode, resultCode, data);
-            mEditListener.onImagesChanged(mDiaryImageManager.getLogImages());
         } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-    private void setLocation(Location location, String source) {
+    private void setLocation(final Location location, final String source) {
         mEditListener.onLocationChanged(location, source);
         updateMapPosition();
     }
 
     @Override
-    public void onLocationChanged(Location location) {
-        if (mLocationSelectedManually) {
-            return;
-        }
+    public void onLocationChanged(final Location location) {
+        if (!mLocationSelectedManually) {
+            if (mNew && (mEditBridge.getLocation() == null
+                    || GameLog.LOCATION_SOURCE_GPS.equals(mEditBridge.getLocationSource()))) {
 
-        if (mNew && (mEditBridge.getLocation() == null || LogEventBase.LOCATION_SOURCE_GPS.equals(mEditBridge.getLocationSource()))) {
-            setLocation(location, LogEventBase.LOCATION_SOURCE_GPS);
+                setLocation(location, GameLog.LOCATION_SOURCE_GPS);
+            }
+            updateMapPosition();
         }
-        updateMapPosition();
+    }
+
+    // Events passed to edit fragments (observation, SRVA etc.)
+    public interface EditListener {
+        void onEditStart();
+
+        void onEditCancel();
+
+        void onEditSave();
+
+        void onDelete();
+
+        void onLocationChanged(Location location, String source);
+
+        void onDescriptionChanged(String description);
+    }
+
+    // Data queried from edit fragments
+    public interface EditBridge {
+        Location getLocation();
+
+        String getLocationSource();
+
+        String getDescription();
+
+        boolean isEditable();
     }
 }

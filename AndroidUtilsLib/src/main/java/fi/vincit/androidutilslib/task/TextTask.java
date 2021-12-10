@@ -18,13 +18,9 @@ package fi.vincit.androidutilslib.task;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.commons.io.IOUtils;
-
-import fi.vincit.httpclientandroidlib.Header;
-import fi.vincit.httpclientandroidlib.HttpEntity;
-import fi.vincit.httpclientandroidlib.HttpResponse;
-import fi.vincit.httpclientandroidlib.entity.ContentType;
-
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.entity.ContentType;
 import fi.vincit.androidutilslib.context.WorkContext;
 
 /**
@@ -72,14 +68,14 @@ public abstract class TextTask extends NetworkTask
         if (encoding == null) {
             encoding = mHeaderEncoding;
             if (encoding == null) {
-                //Use the default encoding. This is not very optimal, but there is not
-                //much that can be done about it.
+                // Use the default encoding. This is not very optimal, but there its not
+                // much that can be done about it.
                 encoding = DEFAULT_ENCODING;    
             }
         }
         
-        //Try to preallocate the string builder. It is ok if this is huge, we will
-        //probably get an out of memory exception and fail gracefully.
+        // Try to preallocate the string builder. It is ok if this is huge, we will
+        // probably get an out of memory exception and fail gracefully.
         int sizeHint = (int)mContentLength;
         if (sizeHint < 0) {
             sizeHint = 1024;

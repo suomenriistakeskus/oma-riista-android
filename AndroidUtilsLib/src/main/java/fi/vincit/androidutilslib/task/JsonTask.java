@@ -22,7 +22,7 @@ import fi.vincit.androidutilslib.util.JsonSerializator;
 
 public abstract class JsonTask extends NetworkTask {
 
-    private ObjectMapper mObjectMapper = JsonSerializator.createDefaultMapper();
+    private ObjectMapper mObjectMapper = JsonSerializator.getDefaultMapper();
     
     public JsonTask(WorkContext workContext) 
     {

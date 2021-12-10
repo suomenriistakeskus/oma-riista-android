@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+         These settings take effect on moving from 480x800 display size to 720x1280.
+         There are used in order not to have cut texts on specimen buttons.
+    -->
+    <dimen name="specimen_button_icon_padding">4dp</dimen>
+    <dimen name="specimen_button_text_padding">4dp</dimen>
+    <dimen name="harvest_specimen_age_button_padding">36dp</dimen>
+</resources>

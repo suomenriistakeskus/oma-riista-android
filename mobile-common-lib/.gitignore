@@ -1,0 +1,4 @@
+build
+.gradle
+output-framework
+local.properties

@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="Label">
+        <attr name="text" format="string"/>
+        <attr name="required" format="boolean" />
+    </declare-styleable>
+</resources>

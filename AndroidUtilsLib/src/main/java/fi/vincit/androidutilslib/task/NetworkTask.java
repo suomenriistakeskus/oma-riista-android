@@ -15,6 +15,12 @@
  */
 package fi.vincit.androidutilslib.task;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.os.Environment;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,42 +31,40 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import fi.vincit.httpclientandroidlib.Header;
-import fi.vincit.httpclientandroidlib.HttpEntity;
-import fi.vincit.httpclientandroidlib.HttpResponse;
-import fi.vincit.httpclientandroidlib.NameValuePair;
-import fi.vincit.httpclientandroidlib.auth.AuthScope;
-import fi.vincit.httpclientandroidlib.auth.AuthenticationException;
-import fi.vincit.httpclientandroidlib.auth.UsernamePasswordCredentials;
-import fi.vincit.httpclientandroidlib.client.CredentialsProvider;
-import fi.vincit.httpclientandroidlib.client.HttpClient;
-import fi.vincit.httpclientandroidlib.client.cache.CacheResponseStatus;
-import fi.vincit.httpclientandroidlib.client.cache.HttpCacheContext;
-import fi.vincit.httpclientandroidlib.client.config.RequestConfig;
-import fi.vincit.httpclientandroidlib.client.entity.UrlEncodedFormEntity;
-import fi.vincit.httpclientandroidlib.client.methods.HttpDelete;
-import fi.vincit.httpclientandroidlib.client.methods.HttpEntityEnclosingRequestBase;
-import fi.vincit.httpclientandroidlib.client.methods.HttpGet;
-import fi.vincit.httpclientandroidlib.client.methods.HttpHead;
-import fi.vincit.httpclientandroidlib.client.methods.HttpPost;
-import fi.vincit.httpclientandroidlib.client.methods.HttpPut;
-import fi.vincit.httpclientandroidlib.client.methods.HttpRequestBase;
-import fi.vincit.httpclientandroidlib.client.utils.URLEncodedUtils;
-import fi.vincit.httpclientandroidlib.config.ConnectionConfig;
-import fi.vincit.httpclientandroidlib.config.SocketConfig;
-import fi.vincit.httpclientandroidlib.entity.StringEntity;
-import fi.vincit.httpclientandroidlib.impl.auth.BasicScheme;
-import fi.vincit.httpclientandroidlib.impl.client.BasicCredentialsProvider;
-import fi.vincit.httpclientandroidlib.impl.client.HttpClientBuilder;
-import fi.vincit.httpclientandroidlib.impl.client.LaxRedirectStrategy;
-import fi.vincit.httpclientandroidlib.impl.client.cache.CachingHttpClients;
-import fi.vincit.httpclientandroidlib.impl.conn.PoolingHttpClientConnectionManager;
-import fi.vincit.httpclientandroidlib.message.BasicNameValuePair;
-import fi.vincit.httpclientandroidlib.protocol.BasicHttpContext;
-import fi.vincit.httpclientandroidlib.util.EntityUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.NameValuePair;
+import cz.msebera.android.httpclient.auth.AuthScope;
+import cz.msebera.android.httpclient.auth.AuthenticationException;
+import cz.msebera.android.httpclient.auth.UsernamePasswordCredentials;
+import cz.msebera.android.httpclient.client.CredentialsProvider;
+import cz.msebera.android.httpclient.client.HttpClient;
+import cz.msebera.android.httpclient.client.cache.CacheResponseStatus;
+import cz.msebera.android.httpclient.client.cache.HttpCacheContext;
+import cz.msebera.android.httpclient.client.config.RequestConfig;
+import cz.msebera.android.httpclient.client.entity.UrlEncodedFormEntity;
+import cz.msebera.android.httpclient.client.methods.HttpDelete;
+import cz.msebera.android.httpclient.client.methods.HttpEntityEnclosingRequestBase;
+import cz.msebera.android.httpclient.client.methods.HttpGet;
+import cz.msebera.android.httpclient.client.methods.HttpHead;
+import cz.msebera.android.httpclient.client.methods.HttpPost;
+import cz.msebera.android.httpclient.client.methods.HttpPut;
+import cz.msebera.android.httpclient.client.methods.HttpRequestBase;
+import cz.msebera.android.httpclient.client.utils.URLEncodedUtils;
+import cz.msebera.android.httpclient.config.ConnectionConfig;
+import cz.msebera.android.httpclient.config.SocketConfig;
+import cz.msebera.android.httpclient.entity.StringEntity;
+import cz.msebera.android.httpclient.impl.auth.BasicScheme;
+import cz.msebera.android.httpclient.impl.client.BasicCredentialsProvider;
+import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
+import cz.msebera.android.httpclient.impl.client.LaxRedirectStrategy;
+import cz.msebera.android.httpclient.impl.client.cache.CachingHttpClients;
+import cz.msebera.android.httpclient.impl.conn.PoolingHttpClientConnectionManager;
+import cz.msebera.android.httpclient.message.BasicNameValuePair;
+import cz.msebera.android.httpclient.protocol.BasicHttpContext;
+import cz.msebera.android.httpclient.util.EntityUtils;
 import fi.vincit.androidutilslib.config.AndroidUtilsLibConfig;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.factory.HttpClientFactory;
@@ -71,10 +75,6 @@ import fi.vincit.androidutilslib.network.SynchronizedCookieStore;
 import fi.vincit.androidutilslib.stream.ProgressInputStream;
 import fi.vincit.androidutilslib.stream.ProgressStreamListener;
 import fi.vincit.androidutilslib.util.JsonSerializator;
-
-import android.content.Context;
-import android.content.res.Resources;
-import android.os.Environment;
 
 /**
  * Base implementation for all network related tasks. This class
@@ -90,9 +90,9 @@ import android.os.Environment;
  */
 public abstract class NetworkTask extends WorkAsyncTask
 {
-    public static final int DEFAULT_TIMEOUT_MS = 1000 * 8;
+    public static final int DEFAULT_TIMEOUT_MS = 10 * 1000; // ten seconds
     
-    public static enum HttpMethod {
+    public enum HttpMethod {
         GET,
         POST,
         PUT,
@@ -100,7 +100,7 @@ public abstract class NetworkTask extends WorkAsyncTask
         HEAD
     }
     
-    public static enum PreAuth {
+    public enum PreAuth {
         None,
         Basic
     }
@@ -114,17 +114,17 @@ public abstract class NetworkTask extends WorkAsyncTask
     private static final String DEFAULT_ENCODING = "UTF-8";
     private static final int BUFFER_SIZE = 1024 * 8;
     
-    //Connection manager shared by all tasks.
+    // Connection manager shared by all tasks.
     private static PoolingHttpClientConnectionManager sConnectionManager = null;
     
     static {
         sConnectionManager = new PoolingHttpClientConnectionManager();
-        //Make the defaults explicit.
+        // Make the defaults explicit.
         sConnectionManager.setDefaultMaxPerRoute(2);
         sConnectionManager.setMaxTotal(20);
     }
     
-    //Cache shared by all tasks, initialized on first use.
+    // Cache shared by all tasks, initialized on first use.
     private static HttpLruCacheStorage sDefaultCacheStorage;
     
     private String mUrl = null;
@@ -133,8 +133,8 @@ public abstract class NetworkTask extends WorkAsyncTask
     private boolean mCacheEnabled = false;
     private long mCacheLifetimeMs = 0;
     private int mTimeout = DEFAULT_TIMEOUT_MS;
-    private ArrayList<NameValuePair> mParameters = new ArrayList<NameValuePair>();
-    private HashMap<String, String> mHeaders = new HashMap<String, String>();
+    private ArrayList<NameValuePair> mParameters = new ArrayList<>();
+    private HashMap<String, String> mHeaders = new HashMap<>();
     private HttpEntity mHttpEntity = null;
     private CredentialsProvider mCredentialsProvider = null;
     private String mContentEncoding = DEFAULT_ENCODING;
@@ -192,12 +192,12 @@ public abstract class NetworkTask extends WorkAsyncTask
     public void cancel() {
         HttpRequestBase request = mHttpRequest;
         if (request != null) {
-            //This is asynchronous, but abort() is synchronized.
+            // This is asynchronous, but abort() is synchronized.
             try {
                 request.abort();
             }
             catch (Exception e) {
-                //No need to do anything.
+                // No need to do anything.
             }
         }
         super.cancel();
@@ -278,7 +278,7 @@ public abstract class NetworkTask extends WorkAsyncTask
      */
     public void setJsonEntity(Object obj)
     {
-        ObjectMapper mapper = JsonSerializator.createDefaultMapper();
+        ObjectMapper mapper = JsonSerializator.getDefaultMapper();
         try {
             String json = mapper.writeValueAsString(obj);
             StringEntity entity = new StringEntity(json, mContentEncoding);
@@ -286,7 +286,7 @@ public abstract class NetworkTask extends WorkAsyncTask
             setHttpEntity(entity);
         } 
         catch (Exception e) {
-            //Can fail later.
+            // Can fail later.
         }
     }
     
@@ -503,8 +503,7 @@ public abstract class NetworkTask extends WorkAsyncTask
     public void setHttpAuth(String userName, String password, PreAuth preAuth) 
     {
         mCredentialsProvider = new BasicCredentialsProvider();
-        mCredentialsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials(userName, password));
+        mCredentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, password));
         mPreAuth = preAuth;
     }
     
@@ -523,7 +522,7 @@ public abstract class NetworkTask extends WorkAsyncTask
         }
         builder = mHttpClientFactory.newClient(this, builder);
         
-        //Required for example with Vincit demo server which uses proxying.
+        // Required for example with Vincit demo server which uses proxying.
         builder.setRedirectStrategy(new LaxRedirectStrategy());
         
         builder.setConnectionManager(sConnectionManager);
@@ -599,7 +598,7 @@ public abstract class NetworkTask extends WorkAsyncTask
         
         request.setHeader("User-Agent", AndroidUtilsLibConfig.Task.DEFAULT_USER_AGENT);
 
-        //Set user given headers
+        // Set user given headers
         for (Map.Entry<String, String> entry : mHeaders.entrySet()) {
             request.setHeader(entry.getKey(), entry.getValue());
         }
@@ -675,8 +674,9 @@ public abstract class NetworkTask extends WorkAsyncTask
         mHttpRequest = null;
         mHttpResponse = null;
         mHttpStatusCode = -1;
-        
-        InputStream localFile = tryLocalFiles();
+
+        final InputStream localFile = tryLocalFiles();
+
         if (localFile != null) {
             try {
                 onAsyncStream(localFile);
@@ -686,41 +686,43 @@ public abstract class NetworkTask extends WorkAsyncTask
             }
             return;
         }
+
         final String fullUrl = getFullUrl();
-        
-        HttpClient client = createHttpClient();
-        BasicHttpContext httpContext = new BasicHttpContext();
+        final HttpClient client = createHttpClient();
+        final BasicHttpContext httpContext = new BasicHttpContext();
+
         mHttpRequest = createHttpRequest(fullUrl);
-        
+
         handlePreAuth(mHttpRequest, httpContext);
-        
-        //Last chance to modify the request.
-        onAsyncRequest(mHttpRequest);
-        
+
         HttpResponse response = null;
+
         try {
+            // Last chance to modify the request.
+            onAsyncRequest(mHttpRequest);
+
             response = client.execute(mHttpRequest, httpContext);
             if (response == null) {
                 throw new RuntimeException("No HTTP response from: " + fullUrl);
             }
             logResponseStatus(httpContext, fullUrl);
-            
+
             mHttpResponse = response;
-            
+
             if (response.getStatusLine() == null) {
                 throw new RuntimeException("No HTTP status line from: " + fullUrl);
             }
             mHttpStatusCode = response.getStatusLine().getStatusCode();
-            
-            //First chance to mess with the response.
+
+            // First chance to mess with the response.
             onAsyncResponse(response);
-        
-            //Process the stream
+
+            // Process the stream
             handleAsyncResponse(response, fullUrl);
         }
-        catch (Exception e) {
+        catch (final Exception e) {
             mHttpRequest.abort();
-            
+
             throw e;
         }
         finally {
@@ -730,7 +732,7 @@ public abstract class NetworkTask extends WorkAsyncTask
             mHttpRequest.releaseConnection();
         }
     }
-    
+
     private void handleAsyncResponse(HttpResponse response, String fullUrl) throws Exception
     {
         boolean errorStream = false;
@@ -741,8 +743,8 @@ public abstract class NetworkTask extends WorkAsyncTask
         
         HttpEntity entity = response.getEntity();
         if (entity == null) {
-            if (mHttpMethod == HttpMethod.HEAD && !errorStream) {
-                //OK for a HEAD to have no response entity body.
+            if ((mHttpMethod == HttpMethod.HEAD || mHttpMethod == HttpMethod.POST || mHttpMethod == HttpMethod.PUT || mHttpMethod == HttpMethod.DELETE)  && !errorStream) {
+                // OK for a these responses to have no response entity body.
                 return;
             }
             else {
@@ -767,7 +769,7 @@ public abstract class NetworkTask extends WorkAsyncTask
         }
     }
     
-    private void logResponseStatus(BasicHttpContext httpContext, String fullUrl) 
+    private void logResponseStatus(BasicHttpContext httpContext, String fullUrl)
     {
         CacheResponseStatus cacheStatus = (CacheResponseStatus)httpContext.getAttribute(HttpCacheContext.CACHE_RESPONSE_STATUS);
         if (cacheStatus != null) {

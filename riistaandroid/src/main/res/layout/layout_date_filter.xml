@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/tv_label_startdate"
+        style="@style/HeaderText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/date_filter_label_padding_horizontal"
+        android:layout_marginTop="8dp"
+        android:text="@string/group_hunting_entries_on_map_start_date"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_filter_start_date"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/default_button_height"
+        android:layout_marginStart="@dimen/date_filter_btn_padding_horizontal"
+        android:letterSpacing="0.05"
+        android:textSize="@dimen/date_time_text_size"
+        app:icon="@drawable/ic_calendar"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/item_spacing_semismall"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tv_label_startdate"
+        tools:text="12.8.2018" />
+
+    <TextView
+        android:id="@+id/tv_label_enddate"
+        style="@style/HeaderText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/date_filter_label_padding_horizontal"
+        android:layout_marginTop="8dp"
+        android:text="@string/group_hunting_entries_on_map_end_date"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_filter_end_date"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/default_button_height"
+        android:layout_marginStart="@dimen/date_filter_btn_padding_horizontal"
+        android:letterSpacing="0.05"
+        android:textSize="@dimen/date_time_text_size"
+        app:icon="@drawable/ic_calendar"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/item_spacing_semismall"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toBottomOf="@+id/tv_label_enddate"
+        tools:text="12.8.2018" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

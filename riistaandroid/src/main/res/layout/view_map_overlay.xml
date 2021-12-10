@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/container_show_map_controls"
+        style="@style/CardView.Default"
+        android:layout_width="50dp"
+        android:layout_height="@dimen/square_image_button_dimen"
+        android:layout_above="@id/container_map_controls"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="-4dp"
+        android:layout_marginRight="-4dp"
+        android:layout_marginBottom="-4dp"
+        app:shapeAppearance="@style/RoundedBottomLeftCutShapeAppearance">
+
+        <ImageButton
+            android:id="@+id/btn_show_map_controls"
+            style="@style/MapOverlayButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            app:srcCompat="@drawable/ic_menu_hide" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/container_map_controls"
+        style="@style/CardView.Default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="-4dp"
+        android:layout_marginRight="-4dp"
+        tools:ignore="RtlHardcoded">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical">
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginRight="9dp" />
+
+            <ImageButton
+                android:id="@+id/btn_overlay_center"
+                style="@style/MapOverlayButton"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:contentDescription="@null"
+                app:srcCompat="@drawable/ic_go_to_gps" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginRight="9dp" />
+
+            <ImageButton
+                android:id="@+id/btn_zoom_in"
+                style="@style/MapOverlayButton"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:contentDescription="@null"
+                app:srcCompat="@drawable/ic_magnify" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginRight="9dp" />
+
+            <ImageButton
+                android:id="@+id/btn_zoom_out"
+                style="@style/MapOverlayButton"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:contentDescription="@null"
+                app:srcCompat="@drawable/ic_minify" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginRight="9dp" />
+
+            <ImageButton
+                android:id="@+id/btn_measure"
+                style="@style/MapOverlayButton"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:contentDescription="@null"
+                app:srcCompat="@drawable/ic_map_measure" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginRight="9dp" />
+
+            <ImageButton
+                android:id="@+id/btn_full_screen"
+                style="@style/MapOverlayButton"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:contentDescription="@null"
+                app:srcCompat="@drawable/ic_expand" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:id="@+id/map_scale"
+        android:layout_width="100dp"
+        android:layout_height="5dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="7dp"
+        android:background="#000000" />
+
+    <TextView
+        android:id="@+id/map_scale_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/map_scale"
+        android:layout_alignRight="@+id/map_scale"
+        android:layout_alignBottom="@+id/map_scale"
+        android:layout_marginBottom="8dp"
+        android:background="#aaffffff"
+        android:paddingLeft="2dp"
+        android:paddingRight="2dp"
+        android:textColor="@color/colorText"
+        android:textSize="15sp" />
+
+    <View
+        android:id="@+id/map_center"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_centerInParent="true" />
+
+    <RelativeLayout
+        android:id="@+id/container_map_measure"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_below="@id/map_center"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/map_measure_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:background="@drawable/bg_map_button"
+            android:padding="5dp"
+            android:textColor="@color/colorText"
+            android:textSize="15sp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="7dp">
+
+            <ImageButton
+                android:id="@+id/btn_measure_remove"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/bg_map_button"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_remove" />
+
+            <ImageButton
+                android:id="@+id/btn_measure_add"
+                android:layout_width="@dimen/square_image_button_dimen"
+                android:layout_height="@dimen/square_image_button_dimen"
+                android:background="@drawable/bg_map_button"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_add" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="18dp"
+    >
+
+    <TextView
+        android:id="@+id/tv_official_code"
+        style="@style/HuntingClubItem.CustomerNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Asiakasnumero: 1234567"
+        />
+
+    <TextView
+        android:id="@+id/tv_hunting_club"
+        style="@style/HuntingClubItem.ClubName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="Nokian metsästysseura"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_accept"
+        style="@style/PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_small"
+        android:layout_marginBottom="@dimen/padding_small"
+        android:text="@string/my_details_accept_invitation"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_reject"
+        style="@style/SecondaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/my_details_reject_invitation"
+        />
+</LinearLayout>

@@ -7,8 +7,9 @@ import org.json.JSONArray;
 import java.util.List;
 
 import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.database.DiaryEntryUpdate;
-import fi.riista.mobile.database.GameDatabase;
+import fi.riista.mobile.database.HarvestDatabase;
+import fi.riista.mobile.event.HarvestChangeEvent;
+import fi.riista.mobile.utils.CookieStoreSingleton;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.task.TextTask;
 
@@ -17,47 +18,55 @@ import fi.vincit.androidutilslib.task.TextTask;
  */
 public class FetchHarvestsTask extends TextTask {
 
-    private int mStartYear = 0;
+    private final HarvestDatabase mHarvestDatabase;
+    private final int mHuntingYear;
 
-    protected FetchHarvestsTask(WorkContext context, int startYear) {
+    // TODO Remove `harvestSpecVersion` parameter when deer pilot 2020 is over.
+    protected FetchHarvestsTask(final WorkContext context,
+                                final HarvestDatabase harvestDatabase,
+                                final int huntingYear,
+                                final int harvestSpecVersion) {
         super(context);
-        mStartYear = startYear;
-        setCookieStore(GameDatabase.getInstance().getCookieStore());
-        setBaseUrl(AppConfig.BASE_URL + "/gamediary/harvests/" + startYear);
-        addParameter("harvestSpecVersion", "" + AppConfig.HARVEST_SPEC_VERSION);
+
+        mHarvestDatabase = harvestDatabase;
+        mHuntingYear = huntingYear;
+
+        setCookieStore(CookieStoreSingleton.INSTANCE.getCookieStore());
+        setBaseUrl(AppConfig.getBaseUrl() + "/gamediary/harvests/" + huntingYear);
+
+        addParameter("harvestSpecVersion", String.valueOf(harvestSpecVersion));
     }
 
     @Override
-    protected void onFinishText(String text) {
-        ParseTask task = new ParseTask(text) {
+    protected void onFinishText(final String text) {
+        final ParseTask task = new ParseTask(text) {
             @Override
-            public void onPostExecute(Void result) {
-                onLoad(mUpdates);
+            public void onPostExecute(final Void result) {
+                onLoad(mChangeEvents);
             }
         };
         task.execute();
     }
 
-    protected void onLoad(List<DiaryEntryUpdate> updatedEntries) {
+    protected void onLoad(final List<HarvestChangeEvent> harvestChanges) {
         // Override this method
     }
 
     private class ParseTask extends AsyncTask<Void, Void, Void> {
-        List<DiaryEntryUpdate> mUpdates;
-        private String mText;
 
-        ParseTask(String text) {
+        private String mText;
+        List<HarvestChangeEvent> mChangeEvents;
+
+        ParseTask(final String text) {
             mText = text;
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
-            JSONArray jArray;
+        protected Void doInBackground(final Void... params) {
             try {
-                jArray = new JSONArray(mText);
-                mUpdates = GameDatabase.getInstance().handleReceivedEntries(mStartYear, jArray);
-            } catch (Exception e) {
-                // Can get at least IllegalStateException
+                mChangeEvents = mHarvestDatabase.handleReceivedHarvestUpdates(mHuntingYear, new JSONArray(mText));
+            } catch (final Exception e) {
+                // Can get at least IllegalStateException.
                 e.printStackTrace();
             }
             return null;

@@ -95,7 +95,7 @@
     "id" : 48251,
     "categoryId" : 2,
     "name" : {
-      "fi" : "Euroopanmajava",
+      "fi" : "Euroopan\u00ADmajava",
       "sv" : "Bäver",
       "en" : "European beaver"
     },
@@ -105,7 +105,7 @@
     "id" : 48250,
     "categoryId" : 2,
     "name" : {
-      "fi" : "Kanadanmajava",
+      "fi" : "Kanadan\u00ADmajava",
       "sv" : "Amerikansk bäver",
       "en" : "Canadian beaver"
     },
@@ -235,8 +235,8 @@
     "id" : 200555,
     "categoryId" : 2,
     "name" : {
-      "fi" : "Itämerennorppa",
-      "sv" : "Östersjövikare",
+      "fi" : "Itämeren\u00ADnorppa",
+      "sv" : "Östersjö\u00ADvikare",
       "en" : "Ringed seal"
     },
     "multipleSpecimenAllowedOnHarvests" : false,
@@ -295,7 +295,7 @@
     "id" : 47479,
     "categoryId" : 2,
     "name" : {
-      "fi" : "Japaninhirvi ",
+      "fi" : "Japanin\u00ADpeura",
       "sv" : "Sikahjort",
       "en" : "Sika deer"
     },
@@ -305,7 +305,7 @@
     "id" : 47629,
     "categoryId" : 2,
     "name" : {
-      "fi" : "Valkohäntäpeura",
+      "fi" : "Valko\u00ADhäntä\u00ADpeura",
       "sv" : "Vitsvanshjort",
       "en" : "White-tailed deer"
     },
@@ -355,7 +355,7 @@
     "id" : 26298,
     "categoryId" : 1,
     "name" : {
-      "fi" : "Kanadanhanhi",
+      "fi" : "Kanadan\u00ADhanhi",
       "sv" : "Kanadagås",
       "en" : "Canada goose"
     },
@@ -662,6 +662,16 @@
     "multipleSpecimenAllowedOnHarvests" : true,
     "imageUrl" : null
   }, {
+    "id" : 37142,
+    "categoryId" : 3,
+    "name" : {
+      "fi" : "Naakka",
+      "sv" : "Kaja",
+      "en" : "Eurasian Jackdaw"
+    },
+    "multipleSpecimenAllowedOnHarvests" : true,
+    "imageUrl" : null
+  }, {
     "id" : 27750,
     "categoryId" : 3,
     "name" : {
@@ -695,7 +705,7 @@
     "id" : 33117,
     "categoryId" : 3,
     "name" : {
-      "fi" : "Räkättirastas",
+      "fi" : "Räkätti\u00ADrastas",
       "sv" : "Björktrast",
       "en" : "Field fare"
     },

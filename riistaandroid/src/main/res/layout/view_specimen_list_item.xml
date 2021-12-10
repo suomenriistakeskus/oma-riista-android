@@ -1,50 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:baselineAligned="false"
-    tools:background="@android:color/white"
-    >
+    android:paddingLeft="@dimen/page_padding_horizontal"
+    android:paddingRight="@dimen/page_padding_horizontal">
 
-    <RelativeLayout
+    <TextView
+        android:id="@+id/specimen_list_item_title"
+        style="@style/HeaderText.Bold"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginTop="@dimen/item_spacing_small"
-        android:orientation="vertical"
-        >
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        app:layout_constraintEnd_toStartOf="@id/specimen_list_item_remove"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Fasaani 1" />
 
-        <TextView
-            android:id="@+id/specimen_list_item_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            tools:text="Fasaani 1"
-            />
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/specimen_list_item_remove"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:foregroundGravity="bottom"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/specimen_list_item_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@drawable/ic_delete_item"
+        tools:visibility="visible" />
 
-        <fi.riista.mobile.ui.HarvestSpecimenView
-            android:id="@+id/specimen_list_item"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/specimen_list_item_title"
-            android:layout_toLeftOf="@+id/specimen_list_item_remove"
-            />
+    <fi.riista.mobile.ui.HarvestSpecimenView
+        android:id="@+id/specimen_list_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/specimen_list_item_title"
+        tools:layout_editor_absoluteX="8dp" />
 
-        <ImageButton
-            android:id="@+id/specimen_list_item_remove"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignTop="@id/specimen_list_item"
-            android:layout_marginLeft="2dp"
-            android:src="@drawable/ic_remove"
-            android:background="@drawable/remove_item_button_background"
-            />
-
-    </RelativeLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

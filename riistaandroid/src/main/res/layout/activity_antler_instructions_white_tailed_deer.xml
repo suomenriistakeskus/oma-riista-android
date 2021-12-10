@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/page_padding_horizontal"
+    android:paddingTop="@dimen/antler_instructions_vertical_padding"
+    android:paddingRight="@dimen/page_padding_horizontal"
+    android:paddingBottom="@dimen/antler_instructions_vertical_padding">
+
+    <ImageView
+        android:id="@+id/image_antlers_girth"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/instructions_title_antlers_girth"
+        android:scaleType="centerInside"
+        android:src="@drawable/white_tailed_deer_antlers_girth" />
+
+    <TextView
+        android:id="@+id/title_antlers_girth"
+        style="@style/AntlerInstructionsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/instructions_title_antlers_girth" />
+
+    <TextView
+        android:id="@+id/text_antlers_girth"
+        style="@style/AntlerInstructionsDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/antler_instructions_section_padding"
+        android:text="@string/instructions_antlers_girth" />
+
+    <ImageView
+        android:id="@+id/image_antlers_length"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/instructions_title_antlers_length"
+        android:scaleType="centerInside"
+        android:src="@drawable/white_tailed_deer_antlers_length" />
+
+    <TextView
+        android:id="@+id/title_antlers_length"
+        style="@style/AntlerInstructionsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/instructions_title_antlers_length" />
+
+    <TextView
+        android:id="@+id/text_antlers_length"
+        style="@style/AntlerInstructionsDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/antler_instructions_section_padding"
+        android:text="@string/instructions_antlers_length" />
+
+    <ImageView
+        android:id="@+id/image_antlers_inner_width"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/instructions_title_antlers_inner_width"
+        android:scaleType="centerInside"
+        android:src="@drawable/white_tailed_deer_antlers_inner_width" />
+
+    <TextView
+        android:id="@+id/title_antlers_inner_width"
+        style="@style/AntlerInstructionsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/instructions_title_antlers_inner_width" />
+
+    <TextView
+        android:id="@+id/text_antlers_inner_width"
+        style="@style/AntlerInstructionsDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/instructions_antlers_inner_width" />
+</LinearLayout>

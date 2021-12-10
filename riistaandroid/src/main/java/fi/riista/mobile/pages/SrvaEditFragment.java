@@ -1,40 +1,55 @@
 package fi.riista.mobile.pages;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+
 import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import fi.riista.mobile.AppConfig;
+import fi.riista.mobile.DiaryImageManager;
 import fi.riista.mobile.R;
 import fi.riista.mobile.activity.ChooseSpeciesActivity;
 import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.EditActivity.EditBridge;
 import fi.riista.mobile.activity.EditActivity.EditListener;
-import fi.riista.mobile.activity.ImageViewerActivity;
 import fi.riista.mobile.activity.SrvaSpecimenActivity;
 import fi.riista.mobile.database.SpeciesInformation;
+import fi.riista.mobile.models.GameLogImage;
 import fi.riista.mobile.models.GeoLocation;
-import fi.riista.mobile.models.LogImage;
 import fi.riista.mobile.models.Species;
 import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.models.srva.SrvaEventParameters;
@@ -43,57 +58,145 @@ import fi.riista.mobile.models.srva.SrvaParameters;
 import fi.riista.mobile.models.srva.SrvaSpecies;
 import fi.riista.mobile.models.srva.SrvaSpecimen;
 import fi.riista.mobile.srva.SrvaDatabase;
-import fi.riista.mobile.srva.SrvaDatabase.SrvaEventListener;
 import fi.riista.mobile.srva.SrvaParametersHelper;
 import fi.riista.mobile.srva.SrvaValidator;
 import fi.riista.mobile.ui.ChoiceView;
-import fi.riista.mobile.ui.ChoiceView.OnCheckListener;
-import fi.riista.mobile.ui.ChoiceView.OnChoiceListener;
-import fi.riista.mobile.ui.ChoiceView.OnTextListener;
-import fi.riista.mobile.ui.HeaderTextView;
-import fi.riista.mobile.ui.SelectSpeciesButton;
+import fi.riista.mobile.ui.FullScreenImageDialog;
 import fi.riista.mobile.utils.BaseDatabase.DeleteListener;
 import fi.riista.mobile.utils.BaseDatabase.SaveListener;
+import fi.riista.mobile.utils.EditUtils;
 import fi.riista.mobile.utils.UiUtils;
 import fi.riista.mobile.utils.Utils;
-import fi.vincit.androidutilslib.util.ViewAnnotations;
-import fi.vincit.androidutilslib.util.ViewAnnotations.ViewId;
 
-public class SrvaEditFragment extends Fragment implements EditListener, EditBridge {
+public class SrvaEditFragment extends Fragment
+        implements EditListener, EditBridge, DiaryImageManager.ImageManagerActivityAPI {
 
-    private static final int SPECIMEN_REQUEST_CODE = 150;
+    private DiaryImageManager mImageManager;
 
-    public static SrvaEditFragment newInstance(SrvaEvent event) {
-        SrvaEditFragment fragment = new SrvaEditFragment();
+    private LinearLayout mViewContainer;
+    private SrvaEvent mSrvaEvent;
+    private Button mDateButton;
+    private Button mTimeButton;
+    private MaterialButton mSpeciesButton;
+    private TextInputEditText mAmountInput;
 
-        Bundle bundle = new Bundle();
+    private final ActivityResultLauncher<Intent> chooseSpeciesActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> onActivitySpeciesResult(result.getResultCode(), result.getData())
+    );
+
+    private final ActivityResultLauncher<Intent> chooseSpecimenActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> onActivitySpecimenResult(result.getResultCode(), result.getData())
+    );
+
+    private final ActivityResultLauncher<Intent> selectPhotoActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                mImageManager.handleSelectPhotoResult(result.getResultCode(), result.getData());
+                onImagesChanged(mImageManager.getImages());
+            }
+    );
+
+    private final ActivityResultLauncher<Intent> captureImageActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                mImageManager.handleCaptureImageResult(result.getResultCode(), result.getData());
+                onImagesChanged(mImageManager.getImages());
+            }
+    );
+
+    public static SrvaEditFragment newInstance(final SrvaEvent event) {
+        final Bundle bundle = new Bundle();
         bundle.putSerializable("srva_event", event);
-        fragment.setArguments(bundle);
 
+        final SrvaEditFragment fragment = new SrvaEditFragment();
+        fragment.setArguments(bundle);
         return fragment;
     }
 
-    @ViewId(R.id.layout_srva_container)
-    private LinearLayout mViewContainer;
-
-    private SrvaEvent mSrvaEvent;
-
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mImageManager = new DiaryImageManager(requireActivity(), this);
 
         resetSrvaEvent();
     }
 
     private void resetSrvaEvent() {
-        SrvaEvent event = (SrvaEvent) getArguments().getSerializable("srva_event");
+        final Bundle bundle = requireArguments();
+        final SrvaEvent event = (SrvaEvent) bundle.getSerializable("srva_event");
         mSrvaEvent = (SrvaEvent) Utils.cloneObject(event);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_srva_edit, container, false);
-        ViewAnnotations.apply(this, view);
+    public View onCreateView(@NonNull final LayoutInflater inflater,
+                             final ViewGroup container,
+                             final Bundle savedInstanceState) {
+
+        final View view = inflater.inflate(R.layout.fragment_srva_edit, container, false);
+
+        mViewContainer = view.findViewById(R.id.layout_srva_container);
+
+        mDateButton = view.findViewById(R.id.btn_edit_date);
+        mTimeButton = view.findViewById(R.id.btn_edit_time);
+        mSpeciesButton = view.findViewById(R.id.btn_select_species);
+        mAmountInput = view.findViewById(R.id.srva_amount_input);
+        LinearLayout mImagesLayout = view.findViewById(R.id.edit_image_view);
+
+        mDateButton.setOnClickListener(v -> {
+            final Context context = getContext();
+            if (context != null) {
+                EditUtils.showDateDialog(getContext(), mSrvaEvent.toDateTime(), this::onDateTimeChanged);
+            }
+        });
+        mTimeButton.setOnClickListener(v -> {
+            final Context context = getContext();
+            if (context != null) {
+                EditUtils.showTimeDialog(getContext(), mSrvaEvent.toDateTime(), this::onDateTimeChanged);
+            }
+        });
+
+        mDateButton.setText(mSrvaEvent.toDateTime().toString(EditUtils.DATE_FORMAT));
+        mTimeButton.setText(mSrvaEvent.toDateTime().toString(EditUtils.TIME_FORMAT));
+
+        mSpeciesButton.setOnClickListener(v -> {
+            final ArrayList<Species> speciesList = new ArrayList<>();
+            for (final SrvaSpecies species : getParameters().species) {
+                speciesList.add(SpeciesInformation.getSpecies(species.code));
+            }
+
+            EditUtils.startSpeciesActivity(
+                    this,
+                    2,
+                    speciesList,
+                    true,
+                    chooseSpeciesActivityResultLaunch
+            );
+        });
+
+        mAmountInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
+                final Integer amount = Utils.parseInt(s.toString());
+                if (amount != null) {
+                    changeSpecimenAmount(amount);
+                }
+            }
+
+            @Override
+            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
+            }
+
+            @Override
+            public void afterTextChanged(final Editable s) {
+            }
+        });
+
+        mImageManager.setItems(mSrvaEvent.getImages());
+        mImageManager.setup(mImagesLayout, captureImageActivityResultLaunch, selectPhotoActivityResultLaunch);
+
         return view;
     }
 
@@ -101,42 +204,42 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
     public void onStart() {
         super.onStart();
 
-        EditActivity editActivity = (EditActivity) getActivity();
+        final EditActivity editActivity = (EditActivity) requireActivity();
         editActivity.connectEditFragment(this, this);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == ChooseSpeciesActivity.SPECIES_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                Species species = (Species) data.getSerializableExtra(ChooseSpeciesActivity.RESULT_SPECIES);
-                if (species.mId != -1) {
-                    mSrvaEvent.gameSpeciesCode = species.mId;
-                    mSrvaEvent.otherSpeciesDescription = null;
-                } else {
-                    //Other
-                    mSrvaEvent.gameSpeciesCode = null;
-                    mSrvaEvent.otherSpeciesDescription = "";
-                }
-
-                updateUi();
-            }
-        } else if (requestCode == SPECIMEN_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                List<SrvaSpecimen> specimens = (List<SrvaSpecimen>) data.getSerializableExtra(SrvaSpecimenActivity.RESULT_SRVA_SPECIMEN);
-                mSrvaEvent.specimens.clear();
-                mSrvaEvent.specimens.addAll(specimens);
+    private void onActivitySpeciesResult(int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            final Species species = (Species) data.getSerializableExtra(ChooseSpeciesActivity.RESULT_SPECIES);
+            if (species.mId != -1) {
+                mSrvaEvent.gameSpeciesCode = species.mId;
+                mSrvaEvent.otherSpeciesDescription = null;
+            } else {
+                // Other
+                mSrvaEvent.gameSpeciesCode = null;
+                mSrvaEvent.otherSpeciesDescription = "";
             }
             updateUi();
         }
+    }
+
+    private void onActivitySpecimenResult(int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            final List<SrvaSpecimen> specimens =
+                    (List<SrvaSpecimen>) data.getSerializableExtra(SrvaSpecimenActivity.RESULT_SRVA_SPECIMEN);
+            mSrvaEvent.specimens.clear();
+            mSrvaEvent.specimens.addAll(specimens);
+            changeSpecimenAmount(specimens.size());
+        }
+        updateUi();
     }
 
     private SrvaParameters getParameters() {
         return SrvaParametersHelper.getInstance().getParameters();
     }
 
-    private SrvaEventParameters getEventParametersByName(String name) {
-        for (SrvaEventParameters event : getParameters().events) {
+    private SrvaEventParameters getEventParametersByName(final String name) {
+        for (final SrvaEventParameters event : getParameters().events) {
             if (event.name.equals(mSrvaEvent.eventName)) {
                 return event;
             }
@@ -144,10 +247,19 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         return null;
     }
 
-    private void updateUi() {
-        mViewContainer.removeAllViews();
+    private void onDateTimeChanged(final DateTime dateTime) {
+        mSrvaEvent.setPointOfTime(dateTime);
+        mDateButton.setText(dateTime.toString(EditUtils.DATE_FORMAT));
+        mTimeButton.setText(dateTime.toString(EditUtils.TIME_FORMAT));
 
-        addHeaderView(getString(R.string.species));
+        validate();
+    }
+
+    private void updateUi() {
+        mDateButton.setEnabled(isEditModeOn());
+        mTimeButton.setEnabled(isEditModeOn());
+
+        mViewContainer.removeAllViews();
 
         createSelectSpeciesButton();
         if (mSrvaEvent.otherSpeciesDescription != null) {
@@ -156,8 +268,6 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         createApproverInfo();
 
         createSpecimenDetailsButton();
-
-        addHeaderView(getString(R.string.srva_event));
 
         createEventNameChoice();
 
@@ -170,8 +280,6 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         } else {
             mSrvaEvent.otherTypeDescription = null;
         }
-
-        addHeaderView(getString(R.string.srva_result));
 
         createResultChoice();
         createMethodChoice();
@@ -187,69 +295,37 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
     }
 
     private void createSelectSpeciesButton() {
-        int padding = UiUtils.dipToPixels(getActivity(), 5);
-        SelectSpeciesButton speciesButton = new SelectSpeciesButton(getActivity());
-        speciesButton.setBackgroundColor(getResources().getColor(R.color.edit_choice_bg));
-        speciesButton.setPadding(padding, padding, padding, padding);
-        speciesButton.getSpeciesButton().setEnabled(isEditModeOn());
-
-        //Make sure specimen are initialized
+        // Make sure specimen are initialized.
         changeSpecimenAmount(Math.max(mSrvaEvent.totalSpecimenAmount, 1));
 
-        speciesButton.getAmountInput().setEnabled(isEditModeOn());
-        speciesButton.getAmountInput().setText("" + mSrvaEvent.totalSpecimenAmount);
-        speciesButton.getAmountInput().addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                Integer amount = Utils.parseInt(s.toString());
-                if (amount != null) {
-                    changeSpecimenAmount(amount);
-                }
-            }
+        final Species species = SpeciesInformation.getSpecies(mSrvaEvent.gameSpeciesCode);
 
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
-        Species species = SpeciesInformation.getSpecies(mSrvaEvent.gameSpeciesCode);
         if (species != null) {
             mSrvaEvent.otherSpeciesDescription = null;
-            speciesButton.setSpecies(species);
+            mSpeciesButton.setText(species.mName);
+            mSpeciesButton.setIcon(SpeciesInformation.getSpeciesImage(getContext(), species.mId));
+            mSpeciesButton.setIconTint(null);
         } else if (mSrvaEvent.otherSpeciesDescription != null) {
-            speciesButton.setSpeciesText(getString(R.string.srva_other));
+            mSpeciesButton.setText(getString(R.string.srva_other));
+            mSpeciesButton.setIconResource(R.drawable.ic_question_mark);
+            mSpeciesButton.setIconTintResource(R.color.edit_mode_button_icon_tint);
         }
 
-        speciesButton.getSpeciesButton().setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ArrayList<Species> speciesList = new ArrayList<>();
-                for (SrvaSpecies species : getParameters().species) {
-                    speciesList.add(SpeciesInformation.getSpecies(species.code));
-                }
+        mSpeciesButton.setEnabled(isEditModeOn());
 
-                UiUtils.startChooseSpeciesActivity(getActivity(), SrvaEditFragment.this, 2, speciesList, true);
-            }
-        });
-
-        mViewContainer.addView(speciesButton);
+        mAmountInput.setEnabled(isEditModeOn());
+        mAmountInput.setText(String.format(Locale.getDefault(), "%d", mSrvaEvent.totalSpecimenAmount));
     }
 
     private void createOtherSpeciesDescriptionChoice() {
-        ChoiceView choice = new ChoiceView(getActivity(), getString(R.string.srva_other_species_description));
-        choice.setEditTextChoice(mSrvaEvent.otherSpeciesDescription, new OnTextListener() {
-            @Override
-            public void onText(String text) {
-                mSrvaEvent.otherSpeciesDescription = text;
-                validate();
-            }
+        final ChoiceView<String> choice = new ChoiceView<>(getActivity(), getString(R.string.srva_other_species_description));
+        choice.setEditTextChoice(mSrvaEvent.otherSpeciesDescription, text -> {
+            mSrvaEvent.otherSpeciesDescription = text;
+            validate();
         });
         choice.setEditTextMode(EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES, 1);
+        choice.setEditTextMaxLength(255);
+
         addChoiceView(choice, true);
     }
 
@@ -257,18 +333,22 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         if (!SrvaEvent.STATE_APPROVED.equals(mSrvaEvent.state) && !SrvaEvent.STATE_REJECTED.equals(mSrvaEvent.state)) {
             return;
         }
-        LinearLayout root = (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.view_approver, mViewContainer, false);
 
-        ImageView image = (ImageView) root.findViewById(R.id.img_approver_state);
-        TextView nameText = (TextView) root.findViewById(R.id.txt_approver_name);
+        final LinearLayout root =
+                (LinearLayout) LayoutInflater.from(getActivity()).inflate(R.layout.view_approver, mViewContainer, false);
 
-        int trafficLightColor;
+        final ImageView image = root.findViewById(R.id.img_approver_state);
+        final TextView nameText = root.findViewById(R.id.txt_approver_name);
+
+        final Activity activity = requireActivity();
+
+        final int trafficLightColor;
         String state;
         if (SrvaEvent.STATE_APPROVED.equals(mSrvaEvent.state)) {
-            trafficLightColor = getActivity().getResources().getColor(R.color.harvest_approved);
+            trafficLightColor = activity.getResources().getColor(R.color.harvest_approved);
             state = getString(R.string.srva_approver);
         } else {
-            trafficLightColor = getActivity().getResources().getColor(R.color.harvest_rejected);
+            trafficLightColor = activity.getResources().getColor(R.color.harvest_rejected);
             state = getString(R.string.srva_rejecter);
         }
         image.setColorFilter(trafficLightColor, PorterDuff.Mode.SRC_ATOP);
@@ -290,17 +370,17 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         mViewContainer.addView(root);
     }
 
-    private void changeSpecimenAmount(int amount) {
+    private void changeSpecimenAmount(final int amount) {
         if (mSrvaEvent.specimens == null) {
             mSrvaEvent.specimens = new ArrayList<>();
         }
 
-        //Add missing
+        // Add missing
         for (int i = mSrvaEvent.specimens.size(); i < amount; ++i) {
             mSrvaEvent.specimens.add(new SrvaSpecimen());
         }
 
-        //Remove extras
+        // Remove extras
         while (mSrvaEvent.specimens.size() > amount) {
             mSrvaEvent.specimens.remove(mSrvaEvent.specimens.size() - 1);
         }
@@ -310,29 +390,36 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
     }
 
     private void createSpecimenDetailsButton() {
-        int margin = UiUtils.dipToPixels(getActivity(), 10);
+        final Activity activity = requireActivity();
+        final int margin = UiUtils.dipToPixels(activity, 0);
 
-        Button button = new Button(getActivity());
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        params.setMargins(margin, margin, margin, margin);
+        float width = getResources().getDimension(R.dimen.specimen_button_width);
+        float height = UiUtils.dipToPixels(activity, 60);
+
+        final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams((int) width, (int) height);
+        params.setMargins(UiUtils.dipToPixels(activity, 12), margin, margin, margin);
+
+        final MaterialButton button =
+                new MaterialButton(new ContextThemeWrapper(getActivity(), R.style.PrimaryButton), null, 0);
         button.setLayoutParams(params);
-        button.setBackgroundResource(R.drawable.button);
+        button.setGravity(Gravity.CENTER_VERTICAL);
         button.setText(R.string.specimen_details);
+        button.setTextColor(getResources().getColor(R.color.onPrimary));
+        button.setIconResource(R.drawable.ic_list);
+        button.setIconTintResource(R.color.onPrimary);
+
         mViewContainer.addView(button);
 
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), SrvaSpecimenActivity.class);
-                intent.putExtra(SrvaSpecimenActivity.EXTRA_SRVA_EVENT, mSrvaEvent);
-                intent.putExtra(SrvaSpecimenActivity.EXTRA_EDIT_MODE, isEditModeOn());
-                startActivityForResult(intent, SPECIMEN_REQUEST_CODE);
-            }
+        button.setOnClickListener(v -> {
+            final Intent intent = new Intent(getActivity(), SrvaSpecimenActivity.class);
+            intent.putExtra(SrvaSpecimenActivity.EXTRA_SRVA_EVENT, mSrvaEvent);
+            intent.putExtra(SrvaSpecimenActivity.EXTRA_EDIT_MODE, isEditModeOn());
+            chooseSpecimenActivityResultLaunch.launch(intent);
         });
     }
 
     private boolean isMethodOtherChecked() {
-        for (SrvaMethod method : mSrvaEvent.methods) {
+        for (final SrvaMethod method : mSrvaEvent.methods) {
             if ("OTHER".equals(method.name)) {
                 return method.isChecked;
             }
@@ -341,175 +428,164 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
     }
 
     private void createEventNameChoice() {
-        List<String> names = new ArrayList<>();
-        for (SrvaEventParameters event : getParameters().events) {
+        final List<String> names = new ArrayList<>();
+        for (final SrvaEventParameters event : getParameters().events) {
             names.add(event.name);
         }
 
-        ChoiceView eventNameChoice = new ChoiceView(getActivity(), getString(R.string.srva_event));
+        final ChoiceView<String> eventNameChoice = new ChoiceView<>(getActivity(), getString(R.string.srva_event));
         eventNameChoice.setLocalizationAlias("INJURED_ANIMAL", R.string.srva_sick_animal);
-        eventNameChoice.setChoices(names, mSrvaEvent.eventName, true, new OnChoiceListener() {
-            @Override
-            public void onChoice(int position, String value) {
-                //Dont reset these values
-                String pointOfTime = mSrvaEvent.pointOfTime;
-                GeoLocation location = mSrvaEvent.geoLocation;
-                Integer gameSpeciesCode = mSrvaEvent.gameSpeciesCode;
-                String otherSpeciesDescription = mSrvaEvent.otherSpeciesDescription;
-                int totalSpecimenAmount = mSrvaEvent.totalSpecimenAmount;
-                List<SrvaSpecimen> specimens = mSrvaEvent.specimens;
+        eventNameChoice.setChoices(names, mSrvaEvent.eventName, true, (position, value) -> {
+            // Don't reset these values
+            final String pointOfTime = mSrvaEvent.pointOfTime;
+            final GeoLocation location = mSrvaEvent.geoLocation;
+            final Integer gameSpeciesCode = mSrvaEvent.gameSpeciesCode;
+            final String otherSpeciesDescription = mSrvaEvent.otherSpeciesDescription;
+            final int totalSpecimenAmount = mSrvaEvent.totalSpecimenAmount;
+            final List<SrvaSpecimen> specimens = mSrvaEvent.specimens;
 
-                resetSrvaEvent();
+            resetSrvaEvent();
+            mSrvaEvent.eventType = null;
+            mSrvaEvent.eventResult = null;
+            mSrvaEvent.methods.clear();
 
-                mSrvaEvent.eventName = value;
-                mSrvaEvent.pointOfTime = pointOfTime;
-                mSrvaEvent.geoLocation = location;
-                mSrvaEvent.gameSpeciesCode = gameSpeciesCode;
-                mSrvaEvent.otherSpeciesDescription = otherSpeciesDescription;
-                mSrvaEvent.totalSpecimenAmount = totalSpecimenAmount;
-                mSrvaEvent.specimens = specimens;
+            mSrvaEvent.eventName = value;
+            mSrvaEvent.pointOfTime = pointOfTime;
+            mSrvaEvent.geoLocation = location;
+            mSrvaEvent.gameSpeciesCode = gameSpeciesCode;
+            mSrvaEvent.otherSpeciesDescription = otherSpeciesDescription;
+            mSrvaEvent.totalSpecimenAmount = totalSpecimenAmount;
+            mSrvaEvent.specimens = specimens;
 
-                updateUi();
-            }
+            updateUi();
         });
         addChoiceView(eventNameChoice, false);
     }
 
     private void createEventTypeChoice() {
-        List<String> types = new ArrayList<>();
-        SrvaEventParameters params = getEventParametersByName(mSrvaEvent.eventName);
+        final List<String> types = new ArrayList<>();
+        final SrvaEventParameters params = getEventParametersByName(mSrvaEvent.eventName);
+
         if (params != null) {
             types.addAll(params.types);
         }
 
-        ChoiceView eventTypeChoice = new ChoiceView(getActivity(), getString(R.string.srva_type));
-        eventTypeChoice.setChoices(types, mSrvaEvent.eventType, true, new OnChoiceListener() {
-            @Override
-            public void onChoice(int position, String value) {
-                mSrvaEvent.eventType = value;
-                updateUi();
-            }
+        final ChoiceView<String> eventTypeChoice = new ChoiceView<>(getActivity(), getString(R.string.srva_type));
+        eventTypeChoice.setChoices(types, mSrvaEvent.eventType, true, (position, value) -> {
+            mSrvaEvent.eventType = value;
+            updateUi();
         });
+
         addChoiceView(eventTypeChoice, true);
     }
 
     private void createEventOtherInput() {
-        ChoiceView otherChoice = new ChoiceView(getActivity(), getString(R.string.srva_type_description));
-        otherChoice.setEditTextChoice(mSrvaEvent.otherTypeDescription, new OnTextListener() {
-            @Override
-            public void onText(String text) {
-                mSrvaEvent.otherTypeDescription = text;
-                validate();
-            }
+        final ChoiceView<String> otherChoice = new ChoiceView<>(getActivity(), getString(R.string.srva_type_description));
+        otherChoice.setEditTextChoice(mSrvaEvent.otherTypeDescription, text -> {
+            mSrvaEvent.otherTypeDescription = text;
+            validate();
         });
         otherChoice.setEditTextMode(EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES, 1);
+
         addChoiceView(otherChoice, true);
     }
 
     private void createResultChoice() {
-        List<String> results = new ArrayList<>();
-        SrvaEventParameters params = getEventParametersByName(mSrvaEvent.eventName);
+        final List<String> results = new ArrayList<>();
+        final SrvaEventParameters params = getEventParametersByName(mSrvaEvent.eventName);
+
         if (params != null) {
             results.addAll(params.results);
         }
 
-        ChoiceView resultChoice = new ChoiceView(getActivity(), getString(R.string.srva_result));
-        resultChoice.setChoices(results, mSrvaEvent.eventResult, true, new OnChoiceListener() {
-            @Override
-            public void onChoice(int position, String value) {
-                mSrvaEvent.eventResult = value;
-                validate();
-            }
+        final ChoiceView<String> resultChoice = new ChoiceView<>(getActivity(), getString(R.string.srva_result));
+        resultChoice.setChoices(results, mSrvaEvent.eventResult, true, (position, value) -> {
+            mSrvaEvent.eventResult = value;
+            validate();
         });
+
         addChoiceView(resultChoice, false);
     }
 
-    private SrvaMethod getModelMethod(String name) {
+    private SrvaMethod getModelMethod(final String name) {
         if (mSrvaEvent.methods == null) {
             mSrvaEvent.methods = new ArrayList<>();
         }
 
-        for (SrvaMethod method : mSrvaEvent.methods) {
+        for (final SrvaMethod method : mSrvaEvent.methods) {
             if (name.equals(method.name)) {
                 return method;
             }
         }
 
-        //No such method in event, add it
-        SrvaMethod m = new SrvaMethod();
+        // No such method in event, add it
+        final SrvaMethod m = new SrvaMethod();
         m.name = name;
         m.isChecked = false;
+
         mSrvaEvent.methods.add(m);
 
         return m;
     }
 
     private void createMethodChoice() {
-        ChoiceView choice = new ChoiceView(getActivity(), getString(R.string.srva_method));
+        final ChoiceView<String> choice = new ChoiceView<>(getActivity(), getString(R.string.srva_method));
         choice.startMultipleChoices();
 
-        SrvaEventParameters params = getEventParametersByName(mSrvaEvent.eventName);
+        final SrvaEventParameters params = getEventParametersByName(mSrvaEvent.eventName);
         if (params != null) {
-            for (SrvaMethod method : params.methods) {
+            for (final SrvaMethod method : params.methods) {
                 final SrvaMethod modelMethod = getModelMethod(method.name);
-                choice.addMultipleChoice(modelMethod.name, modelMethod.isChecked, new OnCheckListener() {
-                    @Override
-                    public void onCheck(boolean check) {
-                        modelMethod.isChecked = check;
-                        updateUi();
-                    }
+                choice.addMultipleChoice(modelMethod.name, modelMethod.isChecked, check -> {
+                    modelMethod.isChecked = check;
+                    updateUi();
                 });
             }
         }
+
         addChoiceView(choice, true);
     }
 
     private void createMethodOtherChoice() {
-        ChoiceView choice = new ChoiceView(getActivity(), getString(R.string.srva_method_description));
-        choice.setEditTextChoice(mSrvaEvent.otherMethodDescription, new OnTextListener() {
-            @Override
-            public void onText(String text) {
-                mSrvaEvent.otherMethodDescription = text;
-                validate();
-            }
+        final ChoiceView<String> choice = new ChoiceView<>(getActivity(), getString(R.string.srva_method_description));
+        choice.setEditTextChoice(mSrvaEvent.otherMethodDescription, text -> {
+            mSrvaEvent.otherMethodDescription = text;
+            validate();
         });
         choice.setEditTextMode(EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES, 1);
+
         addChoiceView(choice, true);
     }
 
     private void createPersonCountChoice() {
-        ChoiceView choice = new ChoiceView(getActivity(), getString(R.string.srva_person_count));
-        choice.setEditTextChoice("" + mSrvaEvent.personCount, new OnTextListener() {
-            @Override
-            public void onText(String text) {
-                Integer count = Utils.parseInt(text);
-                if (count != null) {
-                    mSrvaEvent.personCount = count;
-                }
-                validate();
+        final ChoiceView<String> choice = new ChoiceView<>(getActivity(), getString(R.string.srva_person_count));
+        choice.setEditTextChoice("" + mSrvaEvent.personCount, text -> {
+            final Integer count = Utils.parseInt(text);
+            if (count != null) {
+                mSrvaEvent.personCount = count;
             }
+            validate();
         });
         choice.setEditTextMaxValue(100.0f);
+
         addChoiceView(choice, true);
     }
 
     private void createTimeSpentChoice() {
-        ChoiceView choice = new ChoiceView(getActivity(), getString(R.string.srva_time_spent));
-        choice.setEditTextChoice("" + mSrvaEvent.timeSpent, new OnTextListener() {
-            @Override
-            public void onText(String text) {
-                Integer time = Utils.parseInt(text);
-                if (time != null) {
-                    mSrvaEvent.timeSpent = time;
-                }
-                validate();
+        final ChoiceView<String> choice = new ChoiceView<>(getActivity(), getString(R.string.srva_time_spent));
+        choice.setEditTextChoice("" + mSrvaEvent.timeSpent, text -> {
+            final Integer time = Utils.parseInt(text);
+            if (time != null) {
+                mSrvaEvent.timeSpent = time;
             }
+            validate();
         });
         choice.setEditTextMaxValue(999.0f);
+
         addChoiceView(choice, true);
     }
 
-    private void addChoiceView(ChoiceView choiceView, boolean topMargin) {
+    private void addChoiceView(final ChoiceView<String> choiceView, final boolean topMargin) {
         mViewContainer.addView(choiceView);
 
         if (topMargin) {
@@ -518,27 +594,22 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         choiceView.setChoiceEnabled(isEditModeOn());
     }
 
-    private void addHeaderView(String text) {
-        HeaderTextView header = new HeaderTextView(getActivity());
-        header.setText(text);
-        mViewContainer.addView(header);
-    }
-
     private boolean validate() {
-        boolean valid = SrvaValidator.validate(mSrvaEvent);
+        final boolean valid = SrvaValidator.validate(mSrvaEvent);
 
-        ((EditActivity) getActivity()).setEditValid(valid);
+        final EditActivity activity = (EditActivity) requireActivity();
+        activity.setEditValid(valid);
 
         return valid;
     }
 
     private boolean isEditModeOn() {
-        return isEditable() && ((EditActivity) getActivity()).isEditModeOn();
+        final EditActivity activity = (EditActivity) requireActivity();
+        return isEditable() && activity.isEditModeOn();
     }
 
-    @Override
-    public DateTime getDate() {
-        return mSrvaEvent.toDateTime();
+    private void onImagesChanged(final List<GameLogImage> images) {
+        mSrvaEvent.setLocalImages(images);
     }
 
     @Override
@@ -548,10 +619,7 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
 
     @Override
     public String getLocationSource() {
-        if (mSrvaEvent.geoLocation != null) {
-            return mSrvaEvent.geoLocation.source;
-        }
-        return null;
+        return mSrvaEvent.geoLocation != null ? mSrvaEvent.geoLocation.source : null;
     }
 
     @Override
@@ -565,20 +633,27 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
     }
 
     @Override
-    public List<LogImage> getImages() {
-        return mSrvaEvent.getAllImages();
-    }
-
-    @Override
     public void onEditStart() {
+        mDateButton.setEnabled(isEditable());
+        mTimeButton.setEnabled(isEditable());
+
+        mImageManager.setEditMode(isEditModeOn());
+
         updateUi();
     }
 
     @Override
     public void onEditCancel() {
+        mDateButton.setEnabled(false);
+        mTimeButton.setEnabled(false);
+
+        mImageManager.setEditMode(false);
+
         resetSrvaEvent();
 
         updateUi();
+
+        mImageManager.updateItems(mSrvaEvent.getImages());
     }
 
     @Override
@@ -589,12 +664,14 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
 
             SrvaDatabase.getInstance().saveEvent(mSrvaEvent, new SaveListener() {
                 @Override
-                public void onSaved(long localId) {
-                    ((EditActivity) getActivity()).finishEdit(mSrvaEvent.type, mSrvaEvent.toDateTime(), localId);
+                public void onSaved(final long localId) {
+                    final EditActivity activity = (EditActivity) requireActivity();
+                    activity.finishEdit(mSrvaEvent.type, mSrvaEvent.toDateTime(), localId);
                 }
 
                 @Override
                 public void onError() {
+                    // TODO Report error
                 }
             });
         }
@@ -605,53 +682,57 @@ public class SrvaEditFragment extends Fragment implements EditListener, EditBrid
         SrvaDatabase.getInstance().deleteEvent(mSrvaEvent, false, new DeleteListener() {
             @Override
             public void onDelete() {
-                ((EditActivity) getActivity()).finishEdit(mSrvaEvent.type, mSrvaEvent.toDateTime(), -1);
+                final EditActivity activity = (EditActivity) requireActivity();
+                activity.finishEdit(mSrvaEvent.type, mSrvaEvent.toDateTime(), -1);
             }
 
             @Override
             public void onError() {
+                // TODO
             }
         });
     }
 
     @Override
-    public void onDateChanged(DateTime date) {
-        mSrvaEvent.setPointOfTime(date);
-        validate();
-    }
-
-    @Override
-    public void onLocationChanged(Location location, String source) {
+    public void onLocationChanged(final Location location, final String source) {
         mSrvaEvent.geoLocation = GeoLocation.fromLocation(location);
         mSrvaEvent.geoLocation.source = source;
         validate();
     }
 
     @Override
-    public void onDescriptionChanged(String description) {
+    public void onDescriptionChanged(final String description) {
         mSrvaEvent.description = description;
         validate();
     }
 
     @Override
-    public void onImagesChanged(List<LogImage> images) {
-        mSrvaEvent.setLocalImages(images);
+    public void viewImage(final GameLogImage image) {
+        final FragmentActivity activity = getActivity();
+
+        if (activity != null) {
+            final FragmentTransaction fragmentTransaction =
+                    getActivity().getSupportFragmentManager().beginTransaction();
+
+            final FullScreenImageDialog dialog = FullScreenImageDialog.newInstance(image);
+            dialog.show(fragmentTransaction, FullScreenImageDialog.TAG);
+        }
     }
 
     @Override
-    public void onViewImage(final String uuid) {
-        SrvaDatabase.getInstance().loadEventsWithAnyImages(new SrvaEventListener() {
-            @Override
-            public void onEvents(List<SrvaEvent> events) {
-                ArrayList<LogImage> images = new ArrayList<>();
-                for (SrvaEvent event : events) {
-                    images.addAll(event.getAllImages());
-                }
+    public boolean hasPhotoPermissions() {
+        final Context context = requireContext();
 
-                Intent intent = ImageViewerActivity.createIntent(getActivity(), images, uuid);
-                startActivity(intent);
-            }
-        });
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     }
 
+    @Override
+    public void requestPhotoPermissions() {
+        if (!hasPhotoPermissions()) {
+            // Ignore result, user has to tap item again to use granted permission or request it again
+            final Activity activity = requireActivity();
+            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 111);
+        }
+    }
 }

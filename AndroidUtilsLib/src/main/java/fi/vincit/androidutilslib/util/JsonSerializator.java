@@ -22,66 +22,80 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * Helper class for serializing objects into JSON and back.
  */
-public class JsonSerializator 
+public class JsonSerializator
 {
+    /**
+     * Default ObjectMapper instance needs to be initialized by application module!
+     */
+    private static ObjectMapper sMapper;
+
+    /**
+     * Returns the ObjectMapper that will be used for serialization. This
+     * can be modified.
+     */
+    public static ObjectMapper getDefaultMapper()
+    {
+        if (sMapper == null) {
+            throw new IllegalStateException("Default ObjectMapper instance is not initialized");
+        }
+
+        return sMapper;
+    }
+
+    public static void setDefaultMapper(final ObjectMapper mapper)
+    {
+        sMapper = mapper;
+    }
+
     /**
      * Create a Jackson object mapper with reasonable default configuration.
      */
     public static ObjectMapper createDefaultMapper()
     {
-        ObjectMapper mapper = new ObjectMapper();
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.configure(MapperFeature.AUTO_DETECT_GETTERS, false);
         mapper.configure(MapperFeature.AUTO_DETECT_IS_GETTERS, false);
         mapper.configure(MapperFeature.AUTO_DETECT_SETTERS, false);
         return mapper;
     }
-    
-    private ObjectMapper mMapper = createDefaultMapper();
-    
-    /**
-     * Returns the ObjectMapper that will be used for serialization. This
-     * can be modified.
-     */
-    public ObjectMapper getMapper()
-    {
-        return mMapper;
-    }
-    
-    public void setMapper(ObjectMapper mapper)
+
+    private final ObjectMapper mMapper;
+
+    public JsonSerializator(final ObjectMapper mapper)
     {
         mMapper = mapper;
     }
-    
+
     /**
      * Attempts to serialize an object into a string. Returns null on failure. If the
      * argument is null a string "null" is returned.
      */
-    public String toJson(Object object)
+    public String toJson(final Object object)
     {
         try {
             return mMapper.writeValueAsString(object);
-        } 
-        catch (Exception e) {
+        }
+        catch (final Exception e) {
             return null;
         }
     }
-    
+
     /**
      * Attempts to serialize an object from a string. Returns null on failure or
      * if the argument string is "null".
      */
-    public <T> T fromJson(String data, Class<T> klass) 
+    public <T> T fromJson(final String data, final Class<T> klass)
     {
         if (data == null) {
             return null;
         }
-        
+
         try {
             return mMapper.readValue(data, klass);
-        } 
-        catch (Exception e) {
+        }
+        catch (final Exception e) {
             return null;
-        } 
+        }
     }
 }

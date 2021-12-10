@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".feature.groupHunting.huntingDays.list.ListGroupHuntingDaysActivity"
+    >
+
+    <ProgressBar
+        android:id="@+id/progress_horizontal"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:indeterminate="true"
+        android:scaleY="3"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible"
+        />
+
+    <!-- The layout to be displayed when there are hunting days -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_hunting_days_exist"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:visibility="visible"
+        >
+
+        <include
+            android:id="@+id/layout_date_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            layout="@layout/layout_date_filter"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_huntingDays"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/page_padding_horizontal"
+            android:layout_marginEnd="@dimen/page_padding_horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/layout_date_filter"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:listitem="@layout/item_hunting_day"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- The layout to be displayed when there are no hunting days -->
+    <LinearLayout
+        android:id="@+id/layout_no_hunting_days"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="@dimen/page_padding_horizontal"
+        android:layout_centerInParent="true"
+        tools:visibility="gone"
+        >
+
+        <TextView
+            android:id="@+id/tv_no_hunting_days_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="@dimen/item_spacing_normal"
+            tools:text="Ryhmälle ei ole vielä määritetty metsästyspäiviä. Luo metsästyspäivä jatkaaksesi."
+            />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_no_hunting_days_action"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            tools:text="Luo metsästyspäivä"
+            />
+    </LinearLayout>
+</RelativeLayout>

@@ -1,12 +1,11 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion '25.0.0'
+    compileSdkVersion 30
 
     defaultConfig {
-        minSdkVersion 10
-        targetSdkVersion 10
+        minSdkVersion 21
+        targetSdkVersion 30
     }
 
     buildTypes {
@@ -20,21 +19,25 @@ android {
         exclude 'META-INF/DEPENDENCIES.txt'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE.md'
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/LICENSE.md'
     }
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:19.1.0'
-    compile 'com.android.support:appcompat-v7:19.1.0'
-    compile files('libs/aalto-xml-android-0.9.8.jar')
-    compile files('libs/apachehttplib-4.3.2.jar')
-    compile files('libs/commons-io-2.4.jar')
-    compile files('libs/jackson-annotations-2.1.4.jar')
-    compile files('libs/jackson-core-2.1.4.jar')
-    compile files('libs/jackson-databind-2.1.4.jar')
-    compile files('libs/jackson-dataformat-xml-android-2.1.4.jar')
-    compile files('libs/stax-api-android-1.0-2.jar')
-    compile files('libs/stax2-api-android-3.1.1.jar')
+    api 'commons-io:commons-io:2.6'
+    api 'cz.msebera.android:httpclient:4.5.8'
+
+    api "com.fasterxml.jackson.core:jackson-annotations:$jackson_version"
+    api "com.fasterxml.jackson.core:jackson-core:$jackson_version"
+    api "com.fasterxml.jackson.core:jackson-databind:$jackson_version"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:$jackson_version", {
+        exclude group: 'com.fasterxml.woodstox', module: 'woodstox-core'
+    }
+    implementation 'javax.xml.stream:stax-api:1.0'
+    implementation 'com.fasterxml:aalto-xml:1.2.2'
+
+    implementation "androidx.appcompat:appcompat:$appcompat_version"
 }

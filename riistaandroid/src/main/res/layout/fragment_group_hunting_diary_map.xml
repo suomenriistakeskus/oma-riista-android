@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fi.riista.mobile.EntryMapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:cameraTargetLat="62.900000"
+        app:cameraTargetLng="25.750000"
+        app:cameraZoom="8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <fi.riista.mobile.ui.MapOverlayView
+        android:id="@+id/map_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/mapView"
+        app:layout_constraintTop_toTopOf="@id/mapView" />
+
+    <LinearLayout
+        android:id="@+id/diaryFilterButton"
+        style="@style/FilterDialog.OpenButton"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/item_spacing_semilarge"
+        android:layout_marginEnd="@dimen/item_spacing_semilarge"
+        android:layout_marginBottom="@dimen/item_spacing_normal"
+        app:layout_constraintBottom_toBottomOf="@id/mapView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" >
+
+        <TextView
+            android:id="@+id/diaryFilterButtonText"
+            style="@style/FilterDialog.OpenButtonContent"
+            android:gravity="center_vertical"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content" />
+
+        <ImageView
+            android:gravity="center_vertical"
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:clickable="false"
+            android:src="@drawable/ic_arrow_drop_down"
+            app:tint="@color/colorPrimary" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/map_crosshair"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:clickable="false"
+        android:contentDescription="@null"
+        android:src="@drawable/crosshair"
+        app:layout_constraintBottom_toBottomOf="@id/mapView"
+        app:layout_constraintEnd_toEndOf="@id/mapView"
+        app:layout_constraintStart_toStartOf="@id/mapView"
+        app:layout_constraintTop_toTopOf="@id/mapView" />
+
+    <Button
+        android:id="@+id/goToGpsPosButton"
+        style="@style/SetLocationToGpsPositionButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/moveMarkerButton"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:layout_marginBottom="@dimen/item_spacing_normal"
+        android:enabled="false"
+        android:text="@string/go_to_current_location"
+        app:layout_constraintBottom_toTopOf="@id/moveMarkerButton" />
+
+    <Button
+        android:id="@+id/moveMarkerButton"
+        style="@style/PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:layout_marginBottom="@dimen/item_spacing_normal"
+        android:text="@string/set_location"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

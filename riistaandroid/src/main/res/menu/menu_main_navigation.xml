@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="AlwaysShowAction">
+
+    <item
+        android:id="@+id/menu_home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/menu_front_page"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_game_log"
+        android:icon="@drawable/ic_log"
+        android:title="@string/menu_game_log"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_map"
+        android:icon="@drawable/ic_map"
+        android:title="@string/map_title"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_announcements"
+        android:icon="@drawable/ic_announcements"
+        android:title="@string/menu_announcements"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_more"
+        android:icon="@drawable/ic_menu"
+        android:title="@string/menu_more"
+        app:showAsAction="always" />
+
+</menu>

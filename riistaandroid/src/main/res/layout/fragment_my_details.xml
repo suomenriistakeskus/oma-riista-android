@@ -1,326 +1,156 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:fillViewport="true"
+    android:scrollbars="vertical">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="@dimen/page_padding_vertical"
-        android:alpha="0.4"
-        android:src="@drawable/half_horn"
-        />
-
-    <ScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        >
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingLeft="@dimen/page_padding_horizontal"
+        android:paddingTop="@dimen/page_padding_top"
+        android:paddingRight="@dimen/page_padding_horizontal"
+        android:paddingBottom="@dimen/page_padding_top">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/my_details_person_title"
+            style="@style/HeaderText.Bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:divider="@drawable/horizontal_divider"
-            android:showDividers="middle|end"
-            android:orientation="vertical"
-            >
+            android:text="@string/my_details_title_person"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <fi.riista.mobile.ui.HeaderTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/page_padding_vertical"
-                android:text="@string/my_details_title_person"
-                style="@style/my_details_section_title"
-                />
+        <TextView
+            android:id="@+id/my_details_name_title"
+            style="@style/PrimaryTextBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/my_details_name"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_details_person_title" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
+        <TextView
+            android:id="@+id/my_details_name_value"
+            style="@style/PrimaryTextBody.Bold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/my_details_name_title"
+            app:layout_constraintWidth_percent="0.60"
+            tools:text="Pentti Mujunen" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_name"
-                    style="@style/my_details_item_key"
-                    />
+        <TextView
+            android:id="@+id/my_details_date_of_birth_title"
+            style="@style/PrimaryTextBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/my_details_date_of_birth"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_details_name_value" />
 
-                <TextView
-                    android:id="@+id/my_details_name_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="Pentti Mujunen"
-                    style="@style/my_details_item_value_emphasize"
-                    />
+        <TextView
+            android:id="@+id/my_details_date_of_birth_value"
+            style="@style/PrimaryTextBody.Bold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/my_details_date_of_birth_title"
+            app:layout_constraintWidth_percent="0.60"
+            tools:text="01.01.1950" />
 
-            </LinearLayout>
+        <TextView
+            android:id="@+id/my_details_home_municipality_title"
+            style="@style/PrimaryTextBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/my_details_home_municipality"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_details_date_of_birth_value" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
+        <TextView
+            android:id="@+id/my_details_home_municipality_value"
+            style="@style/PrimaryTextBody.Bold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/my_details_home_municipality_title"
+            app:layout_constraintWidth_percent="0.60"
+            tools:text="Kotikunta" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_date_of_birth"
-                    style="@style/my_details_item_key"
-                    />
+        <TextView
+            android:id="@+id/my_details_address_title"
+            style="@style/PrimaryTextBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/my_details_address"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/my_details_home_municipality_value" />
 
-                <TextView
-                    android:id="@+id/my_details_date_of_birth_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="01.01.1950"
-                    style="@style/my_details_item_value"
-                    />
+        <TextView
+            android:id="@+id/my_details_address_value"
+            style="@style/PrimaryTextBody.Bold"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/my_details_address_title"
+            app:layout_constraintWidth_percent="0.60"
+            tools:text="Mujunenkatu\n00004 Mujunenkaupunki\nMujunenmaa" />
 
-            </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_details_license_button"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:text="@string/my_details_title_hunting_license"
+            android:textAllCaps="true"
+            app:layout_constraintTop_toBottomOf="@+id/my_details_address_value" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_details_shooting_tests_button"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:text="@string/my_details_shooting_tests_title"
+            android:textAllCaps="true"
+            app:layout_constraintTop_toBottomOf="@+id/my_details_license_button" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_home_municipality"
-                    style="@style/my_details_item_key"
-                    />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_details_mh_permits_button"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:text="@string/my_details_mh_permits_title"
+            android:textAllCaps="true"
+            app:layout_constraintTop_toBottomOf="@+id/my_details_shooting_tests_button" />
 
-                <TextView
-                    android:id="@+id/my_details_home_municipality_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="Kotikunta"
-                    style="@style/my_details_item_value"
-                    />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_details_occupations_button"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:text="@string/my_details_assignments_title"
+            android:textAllCaps="true"
+            app:layout_constraintTop_toBottomOf="@+id/my_details_mh_permits_button" />
 
-            </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/my_details_hunting_group_memberships_button"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:text="@string/my_details_hunting_group_memberships_title"
+            android:textAllCaps="true"
+            android:drawablePadding="@dimen/padding_small"
+            app:layout_constraintTop_toBottomOf="@+id/my_details_occupations_button" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_address"
-                    style="@style/my_details_item_key"
-                    />
-
-                <TextView
-                    android:id="@+id/my_details_address_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="Mujunenkatu\n00004 Mujunenkaupunki\nMujunenmaa"
-                    style="@style/my_details_item_value"
-                    />
-
-            </LinearLayout>
-
-            <fi.riista.mobile.ui.HeaderTextView
-                android:id="@+id/my_details_occupations_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_section_spacing"
-                android:text="@string/my_details_assignments_title"
-                android:visibility="gone"
-                tools:visibility="visible"
-                style="@style/my_details_section_title"
-                />
-
-            <LinearLayout
-                android:id="@+id/my_details_occupations_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible"
-                style="@style/my_details_item"
-                />
-
-            <fi.riista.mobile.ui.HeaderTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_section_spacing"
-                android:text="@string/my_details_title_hunting_license"
-                style="@style/my_details_section_title"
-                />
-
-            <TextView
-                android:id="@+id/my_details_no_valid_license"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:gravity="right"
-                android:text="@string/my_details_no_valid_license"
-                android:textColor="@android:color/black"
-                android:visibility="gone"
-                tools:visibility="visible"
-                style="@style/my_details_item"
-                />
-
-            <LinearLayout
-                android:id="@+id/my_details_hunting_ban_item"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                android:visibility="gone"
-                tools:visibility="visible"
-                style="@style/my_details_item"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_hunting_ban"
-                    style="@style/my_details_item_key"
-                    />
-
-                <TextView
-                    android:id="@+id/my_details_hunting_ban_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="1.1.2001 - 31.12.2014"
-                    style="@style/my_details_item_value"
-                    />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/my_details_hunter_id_item"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_hunter_id"
-                    style="@style/my_details_item_key"
-                    />
-
-                <TextView
-                    android:id="@+id/my_details_hunter_id_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="00000000"
-                    style="@style/my_details_item_value_emphasize"
-                    />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/my_details_payment_item"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_payment"
-                    style="@style/my_details_item_key"
-                    />
-
-                <TextView
-                    android:id="@+id/my_details_payment_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="Maksettu\n1.1.2001 - 31.12.2014"
-                    style="@style/my_details_item_value"
-                    />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/my_details_membership_item"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/my_details_item_spacing"
-                android:orientation="horizontal"
-                style="@style/my_details_item"
-                >
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/my_details_membership"
-                    style="@style/my_details_item_key"
-                    />
-
-                <TextView
-                    android:id="@+id/my_details_membership_value"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="right"
-                    tools:text="Esimerkkiseura (000)"
-                    style="@style/my_details_item_value"
-                    />
-
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/my_details_insurance_policy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/my_details_insurance_policy_text"
-                android:gravity="center"
-                android:textSize="14sp"
-                android:textColor="@android:color/black"
-                android:visibility="gone"
-                tools:visibility="visible"
-                style="@style/my_details_item"
-                />
-
-        </LinearLayout>
-
-
-    </ScrollView>
-
-</RelativeLayout>
+</ScrollView>

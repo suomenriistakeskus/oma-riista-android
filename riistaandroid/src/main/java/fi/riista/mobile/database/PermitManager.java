@@ -5,8 +5,10 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import org.joda.time.LocalDate;
 
@@ -17,31 +19,43 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import fi.riista.mobile.models.GameHarvest;
+import fi.riista.mobile.models.HarvestSpecimen;
 import fi.riista.mobile.models.Permit;
 import fi.riista.mobile.models.PermitSpeciesAmount;
-import fi.riista.mobile.models.Specimen;
 import fi.riista.mobile.network.PreloadPermitsTask;
-import fi.riista.mobile.utils.DateTimeUtils;
-import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.context.WorkContext;
-import fi.vincit.androidutilslib.util.JsonSerializator;
+
+import static fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME;
+import static fi.riista.mobile.utils.DateTimeUtils.isDateInRange;
+import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Singleton permit manager
  * Manages permit information associated with the user.
  */
+@Singleton
 public class PermitManager {
+
+    private static final String TAG = "PermitManager";
 
     private static final String PRELOAD_PERMIT_FILE_PATH = "preloadPermits.json";
     private static final String MANUAL_PERMIT_FILE_PATH = "manualPermits.json";
 
-    private static PermitManager sInstance;
+    private final WorkContext mWorkContext;
+    private final Context mContext;
+
+    private final ObjectMapper mObjectMapper;
 
     // Permit list fetched from backend
     private Map<String, Permit> mPreloadPermits = new HashMap<>();
@@ -49,22 +63,14 @@ public class PermitManager {
     // List of permits user has requested separately
     private Map<String, Permit> mManualPermits = new HashMap<>();
 
-    private Context mContext;
+    @Inject
+    public PermitManager(@NonNull @Named(APPLICATION_WORK_CONTEXT_NAME) final WorkContext workContext,
+                         @NonNull final ObjectMapper objectMapper) {
 
-    private static ObjectMapper sMapper = JsonSerializator.createDefaultMapper();
+        mWorkContext = requireNonNull(workContext);
+        mContext = mWorkContext.getContext();
 
-    public static PermitManager getInstance(Context context) {
-        if (sInstance == null) {
-            sInstance = new PermitManager(context.getApplicationContext());
-        }
-
-        return sInstance;
-    }
-
-    private PermitManager(Context context) {
-        mContext = context;
-
-        sMapper.registerModule(new JodaModule());
+        mObjectMapper = requireNonNull(objectMapper);
     }
 
     /**
@@ -74,15 +80,13 @@ public class PermitManager {
      * @return All known permits
      */
     private List<Permit> getAllPermits() {
-        List<Permit> results = new ArrayList<>();
-
         reloadPermits();
 
         // Preloaded permits override manual ones
-        Map<String, Permit> combinedPermits = new HashMap<>(mManualPermits);
+        final Map<String, Permit> combinedPermits = new HashMap<>(mManualPermits);
         combinedPermits.putAll(mPreloadPermits);
 
-        results.addAll(combinedPermits.values());
+        final List<Permit> results = new ArrayList<>(combinedPermits.values());
         sortPermitList(results);
 
         return results;
@@ -98,37 +102,21 @@ public class PermitManager {
         }
     }
 
-    private Map<String, Permit> readPermitFile(String filePath) {
-        List<Permit> results = new ArrayList<>();
+    private Map<String, Permit> readPermitFile(final String filePath) {
+        final File permitFile = new File(mContext.getFilesDir(), filePath);
+        final Map<String, Permit> results = new HashMap<>();
 
-        File permitFile = new File(mContext.getFilesDir(), filePath);
         if (permitFile.exists()) {
             try {
-                results = sMapper.readValue(new File(mContext.getFilesDir(), filePath), sMapper.getTypeFactory().constructCollectionType(List.class, Permit.class));
-            } catch (IOException e) {
+                final List<Permit> permits = mObjectMapper.readValue(
+                        permitFile, mObjectMapper.getTypeFactory().constructCollectionType(List.class, Permit.class));
+
+                for (final Permit permit : permits) {
+                    results.put(permit.getPermitNumber(), permit);
+                }
+
+            } catch (final IOException e) {
                 e.printStackTrace();
-            }
-        }
-
-        Map<String, Permit> retVal = new HashMap<>();
-        for (Permit item : results) {
-            retVal.put(item.getPermitNumber(), item);
-        }
-
-        return retVal;
-    }
-
-    /**
-     * Get list of all available permits
-     *
-     * @return Permits matching criteria
-     */
-    public List<Permit> getAvailablePermits() {
-        List<Permit> results = new ArrayList<>();
-
-        for (Permit item : getAllPermits()) {
-            if (!item.getUnavailable()) {
-                results.add(item);
             }
         }
 
@@ -136,18 +124,30 @@ public class PermitManager {
     }
 
     /**
+     * Get list of all available permits.
+     *
+     * @return Permits matching criteria
+     */
+    public List<Permit> getAvailablePermits() {
+        final List<Permit> allPermits = getAllPermits();
+        final List<Permit> availablePermits = new ArrayList<>(allPermits.size());
+
+        for (final Permit permit : allPermits) {
+            if (!permit.getUnavailable()) {
+                availablePermits.add(permit);
+            }
+        }
+
+        return availablePermits;
+    }
+
+    /**
      * Sort list alphapetically based on permit number
      *
      * @param permitList List to sort
      */
-    private void sortPermitList(List<Permit> permitList) {
-        Comparator<Permit> comparator = new Comparator<Permit>() {
-            @Override
-            public int compare(Permit permit1, Permit permit2) {
-                return permit1.getPermitNumber().compareTo(permit2.getPermitNumber());
-            }
-        };
-        Collections.sort(permitList, comparator);
+    private void sortPermitList(final List<Permit> permitList) {
+        Collections.sort(permitList, (p1, p2) -> p1.getPermitNumber().compareTo(p2.getPermitNumber()));
     }
 
     /**
@@ -156,7 +156,7 @@ public class PermitManager {
      * @param permitNumber Permit number to search with
      * @return Permit or null
      */
-    public Permit getPermit(String permitNumber) {
+    public Permit getPermit(final String permitNumber) {
         reloadPermits();
 
         if (mPreloadPermits.containsKey(permitNumber)) {
@@ -176,13 +176,13 @@ public class PermitManager {
      *
      * @param permit      Permit containing specimen amount details
      * @param speciesCode Selected species
-     * @return Specimen amount details matching parameters or null if no match
+     * @return Species amount details matching parameters or null if no match
      */
-    public PermitSpeciesAmount getSpeciesAmountFromPermit(Permit permit, int speciesCode) {
+    public PermitSpeciesAmount getSpeciesAmountFromPermit(@Nullable final Permit permit, final int speciesCode) {
         if (permit != null) {
-            for (PermitSpeciesAmount speciesAmount : permit.getSpeciesAmounts()) {
+            for (final PermitSpeciesAmount speciesAmount : permit.getSpeciesAmounts()) {
                 // Same animal may be included multiple times in list. Select first one where date matches.
-                if (speciesAmount.getGameSpeciesCode() == speciesCode) {
+                if (Objects.equals(speciesAmount.getGameSpeciesCode(), speciesCode)) {
                     return speciesAmount;
                 }
             }
@@ -199,55 +199,56 @@ public class PermitManager {
         mManualPermits.clear();
 
         File file = new File(mContext.getFilesDir(), PRELOAD_PERMIT_FILE_PATH);
+
         if (file.exists()) {
             if (!file.delete()) {
-                Log.d(Utils.LOG_TAG, "PermitManager: Failed to delete " + file.getAbsolutePath());
+                Log.d(TAG, "Failed to delete " + file.getAbsolutePath());
             }
         }
 
         file = new File(mContext.getFilesDir(), MANUAL_PERMIT_FILE_PATH);
+
         if (file.exists()) {
             if (!file.delete()) {
-                Log.d(Utils.LOG_TAG, "PermitManager: Failed to delete " + file.getAbsolutePath());
+                Log.d(TAG, "Failed to delete " + file.getAbsolutePath());
             }
         }
     }
 
     /**
      * Save new permit details locally.
-     * If permit with same number exist do nothing
+     * If permit with same number exist do nothing.
      *
      * @param permit New permit to add
      */
-    public void addManualPermit(Permit permit) {
+    public void addManualPermit(@NonNull final Permit permit) {
         reloadPermits();
 
-        if (mPreloadPermits.containsKey(permit.getPermitNumber())) {
-            return;
-        }
+        if (!mPreloadPermits.containsKey(permit.getPermitNumber())) {
+            // Overwrite if exists
+            mManualPermits.put(permit.getPermitNumber(), permit);
 
-        // Overwrite if exists
-        mManualPermits.put(permit.getPermitNumber(), permit);
-
-        // Persist to file
-        try {
-            sMapper.writeValue(new File(mContext.getFilesDir(), MANUAL_PERMIT_FILE_PATH), mManualPermits.values());
-        } catch (IOException e) {
-            e.printStackTrace();
+            // Persist to file
+            try {
+                mObjectMapper.writeValue(
+                        new File(mContext.getFilesDir(), MANUAL_PERMIT_FILE_PATH), mManualPermits.values());
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    void preloadPermits(final WorkContext context) {
-        PreloadPermitsTask task = new PreloadPermitsTask(context) {
+    public void preloadPermits() {
+        final PreloadPermitsTask task = new PreloadPermitsTask(mWorkContext) {
 
             @Override
-            protected void onFinishText(String text) {
-                try {
-                    FileOutputStream file = mContext.openFileOutput(PRELOAD_PERMIT_FILE_PATH, Context.MODE_PRIVATE);
-                    OutputStreamWriter outputWriter = new OutputStreamWriter(file);
+            protected void onFinishText(final String text) {
+                try (final FileOutputStream file = mContext.openFileOutput(PRELOAD_PERMIT_FILE_PATH, Context.MODE_PRIVATE);
+                     final OutputStreamWriter outputWriter = new OutputStreamWriter(file)) {
+
                     outputWriter.write(text);
-                    outputWriter.close();
-                } catch (IOException e) {
+
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
 
@@ -257,41 +258,40 @@ public class PermitManager {
 
             @Override
             protected void onError() {
-                Log.e(Utils.LOG_TAG, String.format("Failed to preload permits [%d]", getHttpStatusCode()));
+                Log.e(TAG, format("Failed to preload permits [%d]", getHttpStatusCode()));
             }
         };
         task.start();
     }
 
     /**
-     * Validate that entry information matches permit.
+     * Validate that harvest information matches permit.
      * Checks:
      * * Permit allows harvest of selected species.
      * * Permit allows harvest of species at selected time.
      *
-     * @param entry  Entry to check
-     * @param permit Permit to check against
-     * @return True if entry information is set according to permit
+     * @param harvest Harvest to check
+     * @param permit  Permit to check against
+     * @return True if harvest information is set according to permit
      */
     @SuppressLint("SimpleDateFormat")
-    private boolean validateEntryWithPermit(GameHarvest entry, Permit permit) {
-        boolean speciesOk = false;
-        boolean dateOk = false;
-        boolean specimenOk;
-
-        if (entry == null || permit == null) {
+    private boolean validateHarvestWithPermit(final GameHarvest harvest, final Permit permit) {
+        if (harvest == null || permit == null) {
             return false;
         }
 
-        // Validate species and date
-        PermitSpeciesAmount speciesAmountMatch = null;
-        for (PermitSpeciesAmount speciesAmount : permit.getSpeciesAmounts()) {
-            if (speciesAmount.getGameSpeciesCode() != null && speciesAmount.getGameSpeciesCode().equals(entry.mSpeciesID)) {
-                speciesOk = true;
+        // Validate species and date.
 
-                if (DateTimeUtils.isDateInRange(LocalDate.fromCalendarFields(entry.mTime), speciesAmount.getBeginDate(), speciesAmount.getEndDate())
-                        || DateTimeUtils.isDateInRange(LocalDate.fromCalendarFields(entry.mTime), speciesAmount.getBeginDate2(), speciesAmount.getEndDate2())) {
-                    dateOk = true;
+        PermitSpeciesAmount speciesAmountMatch = null;
+
+        for (final PermitSpeciesAmount speciesAmount : permit.getSpeciesAmounts()) {
+            final Integer speciesCode = speciesAmount.getGameSpeciesCode();
+
+            if (speciesCode != null && speciesCode.equals(harvest.mSpeciesID)) {
+                final LocalDate harvestDate = LocalDate.fromCalendarFields(harvest.mTime);
+
+                if (isDateInRange(harvestDate, speciesAmount.getBeginDate(), speciesAmount.getEndDate())
+                        || isDateInRange(harvestDate, speciesAmount.getBeginDate2(), speciesAmount.getEndDate2())) {
 
                     speciesAmountMatch = speciesAmount;
                     break;
@@ -300,61 +300,59 @@ public class PermitManager {
         }
 
         if (speciesAmountMatch == null) {
-            Log.d(Utils.LOG_TAG, String.format("Date %S is not valid for [%d]", new SimpleDateFormat("dd-MM-yyy").format(entry.mTime.getTime()), entry.mSpeciesID));
+            Log.d(TAG, format("Date %S is not valid for [%d]", new SimpleDateFormat("dd-MM-yyy").format(harvest.mTime.getTime()), harvest.mSpeciesID));
             return false;
         }
 
-        specimenOk = validateEntrySpecimenForPermit(entry, speciesAmountMatch);
-
-        return speciesOk && dateOk && specimenOk;
+        return validateHarvestSpecimenForPermit(harvest, speciesAmountMatch);
     }
 
-    private boolean validateEntrySpecimenForPermit(GameHarvest entry, PermitSpeciesAmount speciesAmount) {
+    private boolean validateHarvestSpecimenForPermit(final GameHarvest harvest,
+                                                     final PermitSpeciesAmount speciesAmount) {
+
         if (speciesAmount.getGenderRequired() || speciesAmount.getAgeRequired() || speciesAmount.getWeightRequired()) {
-            if (entry.mAmount != entry.mSpecimen.size()) {
-                Log.d(Utils.LOG_TAG, "validateEntrySpecimenForPermit: Specimen count does not match");
+            if (harvest.mAmount != harvest.mSpecimen.size()) {
+                Log.d(TAG, "validateHarvestSpecimenForPermit: Specimen count does not match");
                 return false;
             }
 
-            boolean isOk = true;
-
-            for (Specimen specimen : entry.mSpecimen) {
+            for (final HarvestSpecimen specimen : harvest.mSpecimen) {
                 if (speciesAmount.getGenderRequired() && TextUtils.isEmpty(specimen.getGender())) {
-                    Log.d(Utils.LOG_TAG, "validateEntrySpecimenForPermit: Gender required");
-                    isOk = false;
+                    Log.d(TAG, "validateHarvestSpecimenForPermit: Gender required");
+                    return false;
                 }
 
                 if (speciesAmount.getAgeRequired() && TextUtils.isEmpty(specimen.getAge())) {
-                    Log.d(Utils.LOG_TAG, "validateEntrySpecimenForPermit: Age required");
-                    isOk = false;
+                    Log.d(TAG, "validateHarvestSpecimenForPermit: Age required");
+                    return false;
                 }
 
                 if (speciesAmount.getWeightRequired() && specimen.getWeight() == null) {
-                    Log.d(Utils.LOG_TAG, "validateEntrySpecimenForPermit: Weight required");
-                    isOk = false;
+                    Log.d(TAG, "validateHarvestSpecimenForPermit: Weight required");
+                    return false;
                 }
             }
-
-            return isOk;
         }
+
         return true;
     }
 
     /**
-     * Validate entry details against permit requirements.
+     * Validate harvest details against permit requirements.
      *
-     * @param entry Entry to check.
-     * @return True if no permit number set or entry contains all required information.
+     * @param harvest Harvest to check.
+     * @return True if no permit number set or harvest contains all required information.
      */
-    public boolean validateEntryPermitInformation(GameHarvest entry) {
-        if (entry == null) {
+    public boolean validateHarvestPermitInformation(final GameHarvest harvest) {
+        if (harvest == null) {
             return false;
-        } else if (TextUtils.isEmpty(entry.mPermitNumber)) {
+        }
+        if (TextUtils.isEmpty(harvest.mPermitNumber)) {
             return true;
         }
 
-        Permit permit = getPermit(entry.mPermitNumber);
-        return permit != null && validateEntryWithPermit(entry, permit);
+        final Permit permit = getPermit(harvest.mPermitNumber);
+        return permit != null && validateHarvestWithPermit(harvest, permit);
     }
 
     /**
@@ -364,11 +362,13 @@ public class PermitManager {
      * @param daysTolerance Days before and after season where permit is visible
      * @return Is it current season
      */
-    public boolean isSpeciesSeasonActive(PermitSpeciesAmount speciesItem, int daysTolerance) {
-        if (DateTimeUtils.isDateInRange(LocalDate.now(), speciesItem.getBeginDate().minusDays(daysTolerance), speciesItem.getEndDate().plusDays(daysTolerance))) {
+    public boolean isSpeciesSeasonActive(final PermitSpeciesAmount speciesItem, final int daysTolerance) {
+        final LocalDate today = LocalDate.now();
+
+        if (isDateInRange(today, speciesItem.getBeginDate().minusDays(daysTolerance), speciesItem.getEndDate().plusDays(daysTolerance))) {
             return true;
         } else if (speciesItem.getBeginDate2() != null && speciesItem.getEndDate2() != null) {
-            return DateTimeUtils.isDateInRange(LocalDate.now(), speciesItem.getBeginDate2().minusDays(daysTolerance), speciesItem.getEndDate2().plusDays(daysTolerance));
+            return isDateInRange(today, speciesItem.getBeginDate2().minusDays(daysTolerance), speciesItem.getEndDate2().plusDays(daysTolerance));
         }
 
         return false;

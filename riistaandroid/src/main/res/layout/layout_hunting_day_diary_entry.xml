@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/default_button_height"
+    android:layout_marginTop="@dimen/item_spacing_small"
+    >
+
+    <TextView
+        android:id="@+id/tv_species_name"
+        style="@style/GroupHuntingText14.Bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:textAllCaps="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Hirvi" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/item_spacing_huge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:src="@drawable/ic_harvest"
+        tools:tint="@color/colorPrimary"
+        tools:ignore="RtlSymmetry" />
+
+    <TextView
+        android:id="@+id/tv_time"
+        style="@style/GroupHuntingText14.Bold"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textAllCaps="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/iv_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="12:00" />
+
+    <TextView
+        android:id="@+id/tv_species_amount"
+        style="@style/GroupHuntingText14.Bold"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/item_spacing_huge"
+        android:gravity="end"
+        android:textAllCaps="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tv_time"
+        app:layout_constraintStart_toEndOf="@id/tv_species_name"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="1 KPL" />
+</androidx.constraintlayout.widget.ConstraintLayout>

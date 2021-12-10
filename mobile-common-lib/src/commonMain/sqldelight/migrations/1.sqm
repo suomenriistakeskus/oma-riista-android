@@ -1,0 +1,52 @@
+PRAGMA foreign_keys=off;
+
+ALTER TABLE DbPoiLocationGroup RENAME TO old_DbPoiLocationGroup;
+
+CREATE TABLE DbPoiLocationGroup(
+    id INTEGER NOT NULL,
+    external_id TEXT NOT NULL,
+    rev INTEGER AS Int NOT NULL,
+    visible_id INTEGER AS Int NOT NULL,
+    club_id INTEGER,
+    description TEXT,
+    type TEXT NOT NULL,
+    last_modified_date TEXT,
+    last_modifier_name TEXT,
+    last_modifier_riistakeskus INTEGER AS Boolean NOT NULL,
+    CONSTRAINT constraint_DbPoiLocationGroup_pk PRIMARY KEY (id, external_id)
+);
+
+INSERT INTO DbPoiLocationGroup SELECT * FROM old_DbPoiLocationGroup;
+
+
+ALTER TABLE DbPoiLocation RENAME TO old_DbPoiLocation;
+
+CREATE TABLE DbPoiLocation(
+    id INTEGER NOT NULL,
+    poi_id INTEGER NOT NULL,
+    external_id TEXT NOT NULL,
+    description TEXT,
+    visible_id INTEGER AS Int NOT NULL,
+    -- GeoLocation
+    latitude INTEGER AS Int NOT NULL,
+    longitude INTEGER AS Int NOT NULL,
+    source TEXT NOT NULL,
+    accuracy REAL,
+    altitude REAL,
+    altitudeAccuracy REAL,
+
+    CONSTRAINT constraint_DbPoiLocation_pk PRIMARY KEY (id, poi_id, external_id),
+    CONSTRAINT fk_poi_location_group
+      FOREIGN KEY (poi_id, external_id)
+      REFERENCES DbPoiLocationGroup (id, external_id)
+      ON DELETE CASCADE
+);
+
+INSERT INTO DbPoiLocation (id, poi_id, external_id, description, visible_id, latitude, longitude, source, accuracy, altitude, altitudeAccuracy)
+    SELECT pl.id, pl.poi_id, plg.external_id, pl.description, pl.visible_id, pl.latitude, pl.longitude, pl.source, pl.accuracy, pl.altitude, pl.altitudeAccuracy
+        FROM old_DbPoiLocation pl, DbPoiLocationGroup plg WHERE pl.poi_id = plg.id;
+
+DROP TABLE old_DbPoiLocation;
+DROP TABLE old_DbPoiLocationGroup;
+
+PRAGMA foreign_keys=on;

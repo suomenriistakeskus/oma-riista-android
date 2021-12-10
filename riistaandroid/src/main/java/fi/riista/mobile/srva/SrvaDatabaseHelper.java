@@ -3,6 +3,8 @@ package fi.riista.mobile.srva;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import androidx.annotation.NonNull;
+
 import fi.vincit.androidutilslib.database.AsyncDatabase;
 
 class SrvaDatabaseHelper extends AsyncDatabase {
@@ -54,7 +56,7 @@ class SrvaDatabaseHelper extends AsyncDatabase {
 
     private static SrvaDatabaseHelper sInstance;
 
-    public static void init(Context context) {
+    public static void init(@NonNull final Context context) {
         if (sInstance == null) {
             sInstance = new SrvaDatabaseHelper(context);
         }
@@ -64,18 +66,18 @@ class SrvaDatabaseHelper extends AsyncDatabase {
         return sInstance;
     }
 
-    private SrvaDatabaseHelper(Context context) {
+    private SrvaDatabaseHelper(@NonNull final Context context) {
         super(context, DATABASE_NAME, DATABASE_VERSION);
     }
 
     @Override
-    protected void onAsyncCreate(SQLiteDatabase db) {
+    protected void onAsyncCreate(final SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_EVENT);
     }
 
     @Override
-    protected void onAsyncUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        //We can drop everything until we make the first public release
+    protected void onAsyncUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+        // We can drop everything until we make the first public release
         db.execSQL("DROP TABLE IF EXISTS event");
 
         onAsyncCreate(db);

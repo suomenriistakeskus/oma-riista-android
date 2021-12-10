@@ -1,7 +1,10 @@
 package fi.riista.mobile.models.user;
 
+import androidx.annotation.NonNull;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -15,42 +18,112 @@ public class UserInfo {
 
     @JsonProperty("username")
     private String username;
+
     @JsonProperty("firstName")
     private String firstName;
+
     @JsonProperty("lastName")
     private String lastName;
+
     @JsonProperty("birthDate")
     private Date birthDate;
+
     @JsonProperty("address")
     private Address address;
+
     @JsonProperty("homeMunicipality")
     private Map<String, String> homeMunicipality;
+
     @JsonProperty("gameDiaryYears")
     private List<Integer> gameDiaryYears = new ArrayList<>();
+
     @JsonProperty("hunterNumber")
     private String hunterNumber;
+
     @JsonProperty("rhy")
     private Rhy rhy;
+
     @JsonProperty("hunterExamDate")
     private Date hunterExamDate;
+
     @JsonProperty("huntingCardStart")
     private Date huntingCardStart;
+
     @JsonProperty("huntingCardEnd")
     private Date huntingCardEnd;
+
     @JsonProperty("huntingBanStart")
     private Date huntingBanStart;
+
     @JsonProperty("huntingBanEnd")
     private Date huntingBanEnd;
+
     @JsonProperty("huntingCardValidNow")
     private Boolean huntingCardValidNow;
+
     @JsonProperty("timestamp")
     private String timestamp;
+
     @JsonProperty("enableSrva")
     private boolean enableSrva;
+
+    @JsonProperty("enableShootingTests")
+    private boolean enableShootingTests;
+
+    // Using wrapper type here since deer pilot status will be removed in future releases (in post-pilot era).
+    @JsonProperty("deerPilotUser")
+    private Boolean deerPilotUser;
+
+    @JsonProperty("qrCode")
+    private String qrCode;
+
+    @JsonProperty("shootingTests")
+    private List<ShootingTest> shootingTests;
+
     @JsonProperty("occupations")
     private List<Occupation> occupations = new ArrayList<>();
+
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<>();
+
+    // Helper methods -->
+
+    // TODO: Improve to handle current date and duration of occupation
+    public boolean isCarnivoreAuthority() {
+        for (final Occupation occupation : this.getOccupations()) {
+            // Active occupation from any RHY will do
+            if ("PETOYHDYSHENKILO".equals(occupation.getOccupationType())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isDeerPilotUser() {
+        return deerPilotUser != null && deerPilotUser;
+    }
+
+    public boolean hasOccupations() {
+        return occupations != null && !occupations.isEmpty();
+    }
+
+    public Occupation findOccupationOfTypeForRhy(@NonNull final String occupationType, @NonNull final Integer rhyId) {
+        for (final Occupation occupation : getOccupations()) {
+            if (occupation.isOccupationOfTypeForRhy(occupationType, rhyId)) {
+                return occupation;
+            }
+        }
+
+        return null;
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+        this.additionalProperties.put(name, value);
+    }
+
+    // Accessors -->
 
     @JsonProperty("username")
     public String getUsername() {
@@ -88,6 +161,7 @@ public class UserInfo {
     }
 
     @JsonProperty("birthDate")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "EET")
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
     }
@@ -222,6 +296,41 @@ public class UserInfo {
         this.enableSrva = enableSrva;
     }
 
+    @JsonProperty("enableShootingTests")
+    public boolean getEnableShootingTests() {
+        return enableShootingTests;
+    }
+
+    @JsonProperty("enableShootingTests")
+    public void setEnableShootingTests(boolean enableShootingTests) {
+        this.enableShootingTests = enableShootingTests;
+    }
+
+    @JsonProperty("deerPilotUser")
+    public void setDeerPilotUser(Boolean deerPilotUser) {
+        this.deerPilotUser = deerPilotUser;
+    }
+
+    @JsonProperty("qrCode")
+    public String getQrCode() {
+        return qrCode;
+    }
+
+    @JsonProperty("qrCode")
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
+    }
+
+    @JsonProperty("shootingTests")
+    public List<ShootingTest> getShootingTests() {
+        return shootingTests;
+    }
+
+    @JsonProperty("shootingTests")
+    public void setShootingTests(List<ShootingTest> shootingTests) {
+        this.shootingTests = shootingTests;
+    }
+
     @JsonProperty("occupations")
     public List<Occupation> getOccupations() {
         return occupations;
@@ -234,11 +343,6 @@ public class UserInfo {
 
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    @JsonAnySetter
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
+        return additionalProperties;
     }
 }

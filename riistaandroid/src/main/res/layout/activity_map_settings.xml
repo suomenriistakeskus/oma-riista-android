@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/page_padding_top">
+
+        <TextView
+            style="@style/HeaderText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/map_type_select" />
+
+        <RadioGroup
+            android:id="@+id/map_type_select"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:layout_marginBottom="@dimen/item_spacing_normal"
+            android:orientation="horizontal">
+
+            <fi.riista.mobile.ui.RadioButtonCenter
+                android:id="@+id/map_type_mml_topographic"
+                style="@style/segmented_button.map_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/map_type_mml_topographic"
+                android:maxWidth="72dp"
+                android:text="@string/map_type_topographic" />
+
+            <fi.riista.mobile.ui.RadioButtonCenter
+                android:id="@+id/map_type_mml_background"
+                style="@style/segmented_button.map_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/map_type_mml_background"
+                android:maxWidth="72dp"
+                android:text="@string/map_type_background" />
+
+            <fi.riista.mobile.ui.RadioButtonCenter
+                android:id="@+id/map_type_mml_aerial"
+                style="@style/segmented_button.map_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/map_type_mml_aerial"
+                android:maxWidth="72dp"
+                android:text="@string/map_type_aerial" />
+
+            <fi.riista.mobile.ui.RadioButtonCenter
+                android:id="@+id/map_type_google"
+                style="@style/segmented_button.map_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/map_type_google"
+                android:maxWidth="72dp"
+                android:text="@string/settings_map_type_google" />
+
+        </RadioGroup>
+
+        <TextView
+            style="@style/HeaderText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:text="@string/map_settings_general_title" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/check_show_location"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_show_location"
+                tools:checked="true" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/check_invert_map_colors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_invert_colors" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_valtionmaat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_valtionmaat" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_rhy_borders"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_rhy_rajat" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_game_triangles"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_game_triangles" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_offline_map_settings"
+                style="@style/OutlineButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:text="@string/map_settings_offline_map_settings" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+        </LinearLayout>
+
+        <TextView
+            style="@style/HeaderText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:text="@string/map_club_areas_title" />
+
+        <View
+            style="@style/HorizontalSeparator"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:layout_marginRight="0dp" />
+
+        <LinearLayout
+            android:id="@+id/container_map_areas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
+        <TextView
+            style="@style/HeaderText.Bold"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:text="@string/map_add_area" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:layout_marginBottom="@dimen/item_spacing_normal"
+            android:orientation="vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_area_map_club"
+                style="@style/OutlineButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:text="@string/map_settings_add_oma_riista_area" />
+
+            <androidx.legacy.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_area_map_pienriista"
+                style="@style/OutlineButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:text="@string/map_settings_add_pienriista" />
+
+            <androidx.legacy.widget.Space
+                android:layout_width="match_parent"
+                android:layout_height="5dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_add_area_map_moose"
+                style="@style/OutlineButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:text="@string/map_settings_add_hirvialue" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

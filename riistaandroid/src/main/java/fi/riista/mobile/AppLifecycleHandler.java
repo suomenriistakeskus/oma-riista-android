@@ -4,23 +4,19 @@ import android.app.Activity;
 import android.app.Application;
 import android.os.Bundle;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class AppLifecycleHandler implements Application.ActivityLifecycleCallbacks {
+
     private int resumed;
     private int paused;
     private int started;
     private int stopped;
 
-    private static AppLifecycleHandler sInstance;
-
-    public static AppLifecycleHandler getInstance() {
-        if (sInstance == null) {
-            sInstance = new AppLifecycleHandler();
-        }
-
-        return sInstance;
-    }
-
-    private AppLifecycleHandler() {
+    @Inject
+    AppLifecycleHandler() {
     }
 
     @Override

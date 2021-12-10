@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/ToolbarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back_white"
+        app:title="@string/species_prompt" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/filter_clear_selections"
+        style="@style/PrimaryButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/default_button_height"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginTop="@dimen/page_padding_top"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:text="@string/filter_clear_selections"
+        app:layout_constraintEnd_toStartOf="@id/filter_select_all"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/filter_select_all"
+        style="@style/PrimaryButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/default_button_height"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:text="@string/filter_select_all"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/filter_clear_selections"
+        app:layout_constraintTop_toTopOf="@id/filter_clear_selections" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/filter_species_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:layout_marginBottom="@dimen/item_spacing_normal"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@id/filter_confirm_button"
+        app:layout_constraintTop_toBottomOf="@id/filter_clear_selections"
+        tools:listitem="@layout/view_filter_species_item">
+
+    </androidx.recyclerview.widget.RecyclerView>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/filter_confirm_button"
+        style="@style/PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/default_button_height"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:layout_marginBottom="@dimen/item_spacing_normal"
+        android:text="@string/ok"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

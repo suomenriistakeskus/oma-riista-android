@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:fillViewport="true"
+    tools:context=".feature.groupHunting.huntingDays.ViewGroupHuntingDayFragment"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/padding_medium"
+        android:paddingStart="@dimen/datafield_horizontal_margin"
+        android:paddingEnd="@dimen/datafield_horizontal_margin"
+        android:paddingBottom="@dimen/padding_medium_large"
+        >
+
+        <TextView
+            android:id="@+id/tv_label_startdate"
+            style="@style/HeaderText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_entries_on_map_start_date"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <include
+            android:id="@+id/layout_start_datetime"
+            layout="@layout/layout_date_and_time_read_only"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_small"
+            app:layout_constraintStart_toStartOf="@id/tv_label_startdate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_label_startdate"
+            />
+
+        <TextView
+            android:id="@+id/tv_label_enddate"
+            style="@style/HeaderText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/datafield_padding_large"
+            android:text="@string/group_hunting_entries_on_map_end_date"
+            app:layout_constraintStart_toStartOf="@id/layout_start_datetime"
+            app:layout_constraintTop_toBottomOf="@id/layout_start_datetime"
+            />
+
+        <include
+            android:id="@+id/layout_end_datetime"
+            layout="@layout/layout_date_and_time_read_only"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_small"
+            app:layout_constraintStart_toStartOf="@id/tv_label_enddate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_label_enddate"
+            />
+
+        <include
+            android:id="@+id/layout_number_of_hunters"
+            layout="@layout/layout_single_line_label_and_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_huge"
+            app:layout_constraintStart_toStartOf="@id/tv_label_enddate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_end_datetime"
+            />
+
+        <include
+            android:id="@+id/layout_hunting_method"
+            layout="@layout/layout_single_line_label_and_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            app:layout_constraintStart_toStartOf="@id/layout_number_of_hunters"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_number_of_hunters"
+            />
+
+        <include
+            android:id="@+id/layout_number_of_hounds"
+            layout="@layout/layout_single_line_label_and_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            app:layout_constraintStart_toStartOf="@id/layout_hunting_method"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_hunting_method"
+            />
+
+        <include
+            android:id="@+id/layout_snow_depth"
+            layout="@layout/layout_single_line_label_and_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            app:layout_constraintStart_toStartOf="@id/layout_number_of_hounds"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_number_of_hounds"
+            />
+
+        <include
+            android:id="@+id/layout_break_duration"
+            layout="@layout/layout_single_line_label_and_value"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            app:layout_constraintStart_toStartOf="@id/layout_snow_depth"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_snow_depth"
+            />
+
+        <include
+            android:id="@+id/layout_suggested_day_notification"
+            layout="@layout/layout_suggested_hunting_day"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            app:layout_constraintStart_toStartOf="@id/tv_label_startdate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_break_duration" />
+
+        <LinearLayout
+            android:id="@+id/layout_harvests_and_observations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/item_spacing_huge"
+            app:layout_constraintStart_toStartOf="@id/layout_suggested_day_notification"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_suggested_day_notification"
+            >
+
+            <!-- Just for design time purposes. Will be removed programmatically and
+                 real harvests and observations will be added.
+            -->
+            <include
+                layout="@layout/layout_hunting_day_diary_entry"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+
+            <include
+                layout="@layout/layout_hunting_day_diary_entry"
+                android:visibility="gone"
+                tools:visibility="visible"
+                />
+
+        </LinearLayout>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

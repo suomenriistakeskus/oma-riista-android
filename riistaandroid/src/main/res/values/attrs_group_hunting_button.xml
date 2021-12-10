@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GroupHuntingButton">
+        <attr name="buttonImage" format="reference" />
+        <attr name="buttonText" format="string" />
+        <attr name="notification" format="string" />
+        <attr name="notificationVisibility" format="enum">
+            <enum name="visible" value="0" />
+            <enum name="invisible" value="4" />
+            <enum name="gone" value="8" />
+        </attr>
+    </declare-styleable>
+</resources>

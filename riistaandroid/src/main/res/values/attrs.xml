@@ -4,4 +4,8 @@
     <declare-styleable name="CompoundButton">
         <attr name="android:button" format="reference" />
     </declare-styleable>
+
+    <declare-styleable name="ShootingTestAttemptStateView">
+        <attr name="typeText" format="reference" />
+    </declare-styleable>
 </resources>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mh_permit_card"
+    style="@style/CardView.Default"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    android:background="@android:color/white"
+    app:cardBackgroundColor="@android:color/white"
+    app:cardUseCompatPadding="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:layout_marginBottom="@dimen/item_spacing_normal"
+        android:layout_marginStart="@dimen/page_padding_horizontal"
+        android:layout_marginEnd="@dimen/page_padding_horizontal"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:background="@android:color/white">
+
+        <TextView
+            android:id="@+id/mh_permit_card_title"
+            style="@style/PrimaryTextBody.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="Metsäkanalintu" />
+
+        <TextView
+            android:id="@+id/mh_permit_card_area_name"
+            style="@style/PrimaryTextBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_small"
+            android:textColor="@color/colorPrimary"
+            app:layout_constraintTop_toBottomOf="@id/mh_permit_card_title"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="MUSTINVAARA-MÄNTYJÄRVI 11-12" />
+
+        <TextView
+            android:id="@+id/mh_permit_card_name"
+            style="@style/PrimaryTextBody"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_small"
+            app:layout_constraintTop_toBottomOf="@id/mh_permit_card_area_name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/mh_permit_card_period"
+            android:maxLines="2"
+            tools:text="Vuorokausilupa" />
+
+        <TextView
+            android:id="@+id/mh_permit_card_period"
+            style="@style/PrimaryTextBody"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_small"
+            app:layout_constraintTop_toBottomOf="@id/mh_permit_card_area_name"
+            app:layout_constraintStart_toEndOf="@id/mh_permit_card_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="10.2.2019 - 12.2.2019" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

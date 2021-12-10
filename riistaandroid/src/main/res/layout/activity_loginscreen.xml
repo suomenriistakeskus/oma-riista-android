@@ -1,88 +1,77 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical"
+    android:id="@+id/layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="@drawable/login_bg"
+    android:focusableInTouchMode="false"
     android:gravity="center_horizontal"
+    android:orientation="vertical"
     android:paddingLeft="20dp"
     android:paddingRight="20dp"
-    android:id="@+id/layout"
-    android:weightSum="10"
-    tools:context=".Loginscreen"
-    >
+    tools:context=".activity.LoginActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="6"
         android:orientation="vertical"
-        >
+        tools:ignore="UseCompoundDrawables">
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="180dp"
-            android:paddingTop="40dp"
-            android:src="@drawable/sarvi_logo"
             android:contentDescription="@string/logo"
-            />
+            android:paddingTop="40dp"
+            android:src="@drawable/sarvi_logo" />
 
         <TextView
-            android:text="@string/login_description"
-            android:id="@+id/textView1"
-            android:gravity="center"
-            android:textColor="@color/login_description_color"
-            android:textSize="18sp"
             android:layout_width="match_parent"
             android:layout_height="60dp"
+            android:gravity="center"
             android:paddingLeft="0dp"
             android:paddingTop="0dp"
-            />
+            android:paddingRight="0dp"
+            android:text="@string/login_description"
+            android:textColor="@color/onPrimary"
+            android:textSize="18sp" />
+
     </LinearLayout>
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
         android:layout_weight="4"
-        >
+        android:orientation="vertical">
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/username"
-            style="@style/EditTextAppTheme"
-            android:inputType="textEmailAddress"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginBottom="10dp"
             android:hint="@string/username"
-            android:fontFamily="sans-serif"
-            android:textSize="17sp"
+            android:inputType="textEmailAddress"
             android:nextFocusDown="@+id/password"
-            />
+            android:textSize="17sp" />
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/password"
-            style="@style/EditTextAppTheme"
-            android:inputType="textPassword"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginBottom="20dp"
             android:hint="@string/password"
-            android:fontFamily="sans-serif"
-            android:textSize="17sp"
-            android:nextFocusDown="@+id/loginbutton"
-            />
+            android:inputType="textPassword"
+            android:textSize="17sp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/loginbutton"
-            style="@style/button"
+            style="@style/PrimaryButton"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="@string/login"
-            />
+            android:layout_height="@dimen/default_button_height"
+            android:text="@string/login" />
+
     </LinearLayout>
 
 </LinearLayout>

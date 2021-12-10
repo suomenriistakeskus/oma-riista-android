@@ -15,14 +15,12 @@
  */
 package fi.vincit.androidutilslib.network;
 
-import java.io.IOException;
 import java.util.Date;
 
-import fi.vincit.httpclientandroidlib.HttpException;
-import fi.vincit.httpclientandroidlib.HttpResponse;
-import fi.vincit.httpclientandroidlib.HttpResponseInterceptor;
-import fi.vincit.httpclientandroidlib.client.utils.DateUtils;
-import fi.vincit.httpclientandroidlib.protocol.HttpContext;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.HttpResponseInterceptor;
+import cz.msebera.android.httpclient.client.utils.DateUtils;
+import cz.msebera.android.httpclient.protocol.HttpContext;
 
 /**
  * This interceptor can be used to force CachingHttpClient to cache
@@ -31,9 +29,9 @@ import fi.vincit.httpclientandroidlib.protocol.HttpContext;
  */
 public class ForceCacheInterceptor implements HttpResponseInterceptor {
     
-    long mCacheMaxAgeMillis;
+    private long mCacheMaxAgeMillis;
     
-    public ForceCacheInterceptor(long cacheMaxAgeMillis) {
+    public ForceCacheInterceptor(final long cacheMaxAgeMillis) {
         mCacheMaxAgeMillis = cacheMaxAgeMillis;
     }
     
@@ -43,12 +41,12 @@ public class ForceCacheInterceptor implements HttpResponseInterceptor {
     }
     
     @Override
-    public void process(HttpResponse response, HttpContext context)  throws HttpException, IOException {
+    public void process(final HttpResponse response, final HttpContext context) {
         response.removeHeaders("Expires");
         response.removeHeaders("Pragma");
         response.removeHeaders("Cache-Control");
         
-        //CachingHttpClient requires this header to cache requests.
+        // CachingHttpClient requires this header to cache requests.
         response.addHeader("Expires", getNewExpiresDate());
     }
 }

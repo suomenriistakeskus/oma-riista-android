@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/edit_bg"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/harvest_content"
+    <fragment
+        android:name="fi.riista.mobile.pages.HarvestFragment"
+        android:id="@+id/harvestFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/main_background_color"/>
+        android:layout_height="match_parent" />
 
 </LinearLayout>

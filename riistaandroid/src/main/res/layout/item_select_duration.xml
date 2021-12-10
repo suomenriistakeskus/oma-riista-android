@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/datafield_horizontal_margin"
+    android:layout_marginEnd="@dimen/datafield_horizontal_margin"
+    android:layout_marginBottom="@dimen/item_spacing_small"
+    >
+
+    <fi.riista.mobile.ui.Label
+        android:id="@+id/v_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/iv_drop_down_arrow"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <!-- paddings & margins finetuned to replicate choice view appearance -->
+    <TextView
+        android:id="@+id/tv_value"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="start"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:textAppearance="?attr/textAppearanceListItem"
+        android:paddingStart="10dp"
+        android:paddingEnd="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/iv_drop_down_arrow"
+        app:layout_constraintTop_toBottomOf="@id/v_label"
+        tools:text="1 tunti 30 minuuttia"
+        />
+
+    <View
+        android:id="@+id/view_underline"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:minHeight="1px"
+        android:background="@android:color/white"
+        android:backgroundTint="@color/text_color_editable_stateful"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="@dimen/edittext_internal_padding"
+        android:layout_marginEnd="@dimen/edittext_internal_padding"
+        app:layout_constraintTop_toBottomOf="@id/tv_value"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/iv_drop_down_arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_drop_down"
+        android:layout_marginStart="@dimen/item_spacing_small"
+        android:layout_marginEnd="12dp"
+        app:tint="@color/text_color_editable_stateful"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_value"
+        app:layout_constraintBottom_toBottomOf="@id/tv_value"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,19 +15,15 @@
  */
 package fi.vincit.androidutilslib.task;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
-import android.os.Environment;
-
 import fi.vincit.androidutilslib.context.WorkContext;
-import fi.vincit.httpclientandroidlib.HttpResponse;
 
 /**
  * Task for downloading (possibly large) files into internal or external storage.
@@ -94,37 +90,32 @@ public class DownloadTask extends NetworkTask
     }
     
     @Override
-    protected final void onAsyncStream(InputStream stream) throws Exception 
+    protected final void onAsyncStream(final InputStream inStream) throws Exception
     {
         if (mPath == null) {
             throw new Exception("Invalid output path");
         }
         mPath.delete();
-        
-        File parent = mPath.getParentFile();
+
+        final File parent = mPath.getParentFile();
         if (parent != null) {
             parent.mkdirs();
         }
         
-        BufferedOutputStream outStream = null;
-        try {
-            outStream = new BufferedOutputStream(new FileOutputStream(mPath), BUFFER_SIZE);
-            byte[] buffer = new byte[BUFFER_SIZE];
-            long count = IOUtils.copyLarge(stream, outStream, buffer);
-            
-            long contentSize = getHttpResponse().getEntity().getContentLength();
+        try (final BufferedOutputStream outStream = new BufferedOutputStream(new FileOutputStream(mPath), BUFFER_SIZE)) {
+            final byte[] buffer = new byte[BUFFER_SIZE];
+            final long count = IOUtils.copyLarge(inStream, outStream, buffer);
+
+            final long contentSize = getHttpResponse().getEntity().getContentLength();
             if (contentSize > 0 && count != contentSize) {
                 throw new IOException("Got " + count + " bytes, expected " + contentSize);
             }
         }
-        catch (Exception e) {
-            //Delete the file, it might have corrupt data.
+        catch (final Exception e) {
+            // Delete the file, it might have corrupt data.
             mPath.delete();
 
             throw e;
-        }
-        finally {
-            IOUtils.closeQuietly(outStream);
         }
     }
 }

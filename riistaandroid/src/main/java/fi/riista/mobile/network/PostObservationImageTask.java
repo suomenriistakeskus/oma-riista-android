@@ -1,34 +1,70 @@
 package fi.riista.mobile.network;
 
+import androidx.annotation.NonNull;
+
+import java.io.File;
+
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.client.methods.HttpRequestBase;
+import cz.msebera.android.httpclient.entity.ContentType;
+import cz.msebera.android.httpclient.entity.mime.MultipartEntityBuilder;
 import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.database.GameDatabase;
-import fi.riista.mobile.models.GameObservation;
 import fi.riista.mobile.models.LocalImage;
+import fi.riista.mobile.models.observation.GameObservation;
+import fi.riista.mobile.utils.CookieStoreSingleton;
 import fi.riista.mobile.utils.ImageUtils;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.task.TextTask;
-import fi.vincit.httpclientandroidlib.HttpEntity;
-import fi.vincit.httpclientandroidlib.entity.ContentType;
-import fi.vincit.httpclientandroidlib.entity.mime.MultipartEntityBuilder;
+
+import static java.util.Objects.requireNonNull;
 
 public abstract class PostObservationImageTask extends TextTask {
-    protected PostObservationImageTask(WorkContext workContext, GameObservation observation, LocalImage image) {
+
+    private static final int NETWORK_TIMEOUT = 20 * 1000;
+
+    private final String mObservationId;
+    private final String mImageUuid;
+
+    protected PostObservationImageTask(@NonNull final WorkContext workContext,
+                                       @NonNull final GameObservation observation,
+                                       @NonNull final LocalImage image) {
         super(workContext);
 
-        setCookieStore(GameDatabase.getInstance().getCookieStore());
+        requireNonNull(observation);
+        mObservationId = observation.remoteId.toString();
+
+        requireNonNull(image);
+        mImageUuid = requireNonNull(image.serverId);
+
         setHttpMethod(HttpMethod.POST);
-        setHttpEntity(createImageEntity(observation, image));
-        setBaseUrl(AppConfig.BASE_URL + "/gamediary/image/uploadforobservation");
+        setBaseUrl(AppConfig.getBaseUrl() + "/gamediary/image/uploadforobservation");
+
+        setHttpEntity(createMultipartEntity());
+        setCookieStore(CookieStoreSingleton.INSTANCE.getCookieStore());
+
+        setTimeout(NETWORK_TIMEOUT);
     }
 
-    private HttpEntity createImageEntity(GameObservation observation, LocalImage image) {
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    @Override
+    protected void onAsyncRequest(final HttpRequestBase request) {
+        final File imgFile = getImageFile();
 
-        builder.addTextBody("observationId", "" + observation.remoteId);
-        builder.addTextBody("uuid", image.serverId);
-        builder.addBinaryBody("file", ImageUtils.getImageFile(getWorkContext().getContext(), "" + image.serverId),
-                ContentType.create("image/jpeg"), "");
+        if (!imgFile.exists()) {
+            throw new IllegalStateException("Observation image file does not exist: " + imgFile.getAbsolutePath());
+        }
+    }
 
-        return builder.build();
+    private HttpEntity createMultipartEntity() {
+        final File imageFile = getImageFile();
+
+        return MultipartEntityBuilder.create()
+                .addTextBody("observationId", mObservationId)
+                .addTextBody("uuid", mImageUuid)
+                .addBinaryBody("file", imageFile, ContentType.create("image/jpeg"), "")
+                .build();
+    }
+
+    private File getImageFile() {
+        return ImageUtils.getImageFile(getWorkContext().getContext(), mImageUuid);
     }
 }

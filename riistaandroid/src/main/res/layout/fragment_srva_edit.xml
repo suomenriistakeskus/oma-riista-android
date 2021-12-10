@@ -1,17 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
-    
+    tools:ignore="RtlHardcoded">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_select_species"
+        style="@style/SelectSpeciesButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/attach_image_button_size"
+        android:layout_marginStart="@dimen/page_padding_horizontal"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        app:icon="@drawable/ic_species_srva"
+        app:iconSize="@dimen/species_selection_icon_size"
+        app:layout_constraintEnd_toStartOf="@id/edit_image_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Valkohäntäpeura"
+        tools:enabled="true" />
+
+    <LinearLayout
+        android:id="@+id/edit_image_view"
+        style="@style/SquareImageButton"
+        android:layout_width="@dimen/attach_image_button_size"
+        android:layout_height="@dimen/attach_image_button_size"
+        android:layout_marginStart="@dimen/margin_between_species_and_image_selection"
+        android:layout_marginEnd="@dimen/page_padding_horizontal"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="@id/btn_select_species"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_select_species"
+        app:layout_constraintTop_toTopOf="@id/btn_select_species" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_edit_date"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="@dimen/item_spacing_semilarge"
+        android:enabled="false"
+        android:textSize="@dimen/date_time_text_size"
+        android:letterSpacing="0.05"
+        app:icon="@drawable/ic_calendar"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/item_spacing_normal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_select_species"
+        tools:enabled="true"
+        tools:text="12.8.2018" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_edit_time"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/item_spacing_normal"
+        android:enabled="false"
+        android:textSize="@dimen/date_time_text_size"
+        android:letterSpacing="0.05"
+        app:icon="@drawable/ic_clock"
+        app:iconGravity="textStart"
+        app:iconPadding="@dimen/item_spacing_normal"
+        app:layout_constraintBottom_toBottomOf="@id/btn_edit_date"
+        app:layout_constraintStart_toEndOf="@id/btn_edit_date"
+        app:layout_constraintTop_toTopOf="@id/btn_edit_date"
+        tools:enabled="true"
+        tools:text="13:32" />
+
+    <TextView
+        android:id="@+id/srva_amount_label"
+        style="@style/PrimaryTextBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/page_padding_horizontal"
+        android:text="@string/harvest_amount"
+        app:layout_constraintBottom_toBottomOf="@id/srva_amount_layout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/srva_amount_layout" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/srva_amount_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        app:hintEnabled="false"
+        app:layout_constraintStart_toEndOf="@id/srva_amount_label"
+        app:layout_constraintTop_toBottomOf="@id/btn_edit_date">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/srva_amount_input"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:gravity="center"
+            android:imeOptions="actionDone"
+            android:inputType="number"
+            android:maxLength="4"
+            android:maxLines="1"
+            android:selectAllOnFocus="true" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/srva_amount_unit"
+        style="@style/PrimaryTextBody"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/permit_list_amount_short"
+        app:layout_constraintBottom_toBottomOf="@id/srva_amount_layout"
+        app:layout_constraintStart_toEndOf="@id/srva_amount_layout"
+        app:layout_constraintTop_toTopOf="@id/srva_amount_layout" />
+
     <LinearLayout
         android:id="@+id/layout_srva_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/srva_amount_layout">
 
         <!-- Generated UI goes here -->
-        
+
     </LinearLayout>
-        
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

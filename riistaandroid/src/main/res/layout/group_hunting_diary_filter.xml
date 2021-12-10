@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/FilterDialog">
+
+    <TextView
+        android:id="@+id/textView"
+        style="@style/FilterDialog.Title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/group_hunting_diary_filter_dialog_title" />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <RadioButton
+            android:id="@+id/eventTypeAll"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_event_type_all" />
+
+        <RadioButton
+            android:id="@+id/eventTypeHarvests"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_event_type_harvests" />
+
+        <RadioButton
+            android:id="@+id/eventTypeObservations"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_event_type_observations" />
+    </RadioGroup>
+
+    <View
+        style="@style/Divider"
+        tools:visibility="visible"
+        android:background="@color/separator"/>
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <RadioButton
+            android:id="@+id/acceptTypeAll"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_accept_type_all" />
+
+        <RadioButton
+            android:id="@+id/acceptTypeAccepted"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_accept_type_accepted" />
+
+        <RadioButton
+            android:id="@+id/acceptTypeRejected"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_accept_type_rejected" />
+
+        <RadioButton
+            android:id="@+id/acceptTypeProposed"
+            style="@style/FilterDialog.RadioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/group_hunting_diary_filter_accept_type_proposed" />
+    </RadioGroup>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:id="@+id/cancel_button"
+            style="?android:attr/buttonBarButtonStyle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/ok_button"
+            android:layout_height="@dimen/default_button_height"
+            android:layout_width="wrap_content"
+            android:text="@string/cancel" />
+
+        <Button
+            android:id="@+id/ok_button"
+            style="?android:attr/buttonBarButtonStyle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="@dimen/default_button_height"
+            android:layout_width="wrap_content"
+            android:text="@string/ok" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

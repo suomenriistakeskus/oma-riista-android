@@ -1,72 +1,36 @@
 package fi.riista.mobile.network;
 
-import android.os.AsyncTask;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
-
-import java.io.IOException;
-
 import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.database.GameDatabase;
 import fi.riista.mobile.models.Permit;
+import fi.riista.mobile.utils.CookieStoreSingleton;
 import fi.vincit.androidutilslib.context.WorkContext;
-import fi.vincit.androidutilslib.task.TextTask;
+import fi.vincit.androidutilslib.task.JsonObjectTask;
 
 /**
- * Get permit information from server matching permit number
+ * Get permit information for permit number.
  */
-public class CheckPermitNumberTask extends TextTask {
+public class CheckPermitNumberTask extends JsonObjectTask<Permit> {
 
-    protected CheckPermitNumberTask(WorkContext context, String permitNumber) {
-        super(context);
+    protected CheckPermitNumberTask(final WorkContext context,
+                                    final String permitNumber,
+                                    final int harvestSpecVersion) {
 
-        setCookieStore(GameDatabase.getInstance().getCookieStore());
-        setBaseUrl(AppConfig.BASE_URL + "/gamediary/checkPermitNumber");
+        super(context, AppConfig.getBaseUrl() + "/gamediary/checkPermitNumber", Permit.class);
+
+        setCookieStore(CookieStoreSingleton.INSTANCE.getCookieStore());
         setHttpMethod(HttpMethod.POST);
+
         addParameter("permitNumber", permitNumber);
+        addParameter("harvestSpecVersion", String.valueOf(harvestSpecVersion));
     }
 
     @Override
-    protected void onFinishText(String text) {
-        ParseTask task = new ParseTask(text) {
-            @Override
-            public void onPostExecute(Void result) {
-                onDone(mPermit);
-            }
-        };
-        task.execute();
+    protected void onFinishObject(Permit result) {
+        // Override this method
     }
 
     @Override
     protected void onError() {
         // Override this method
-    }
-
-    protected void onDone(Permit permit) {
-        // Override this method
-    }
-
-    private class ParseTask extends AsyncTask<Void, Void, Void> {
-        Permit mPermit;
-        private String mText;
-
-        ParseTask(String text) {
-            mText = text;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JodaModule());
-
-            try {
-                mPermit = mapper.readValue(mText, Permit.class);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
     }
 }

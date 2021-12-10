@@ -1,364 +1,261 @@
 package fi.riista.mobile.pages;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.ToggleButton;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.joda.time.DateTime;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import fi.riista.mobile.AppConfig;
+import javax.inject.Inject;
+
+import dagger.android.support.AndroidSupportInjection;
 import fi.riista.mobile.R;
-import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.HarvestActivity;
-import fi.riista.mobile.activity.MainActivity;
-import fi.riista.mobile.adapter.CalendarPagerAdapter;
-import fi.riista.mobile.adapter.CalendarPagerAdapter.CalendarSource;
 import fi.riista.mobile.adapter.GameLogAdapter;
-import fi.riista.mobile.database.DiaryEntryUpdate;
-import fi.riista.mobile.database.EventItem;
-import fi.riista.mobile.database.GameDatabase;
-import fi.riista.mobile.database.GameDatabase.DatabaseUpdateListener;
-import fi.riista.mobile.database.GameDatabase.Statistics;
+import fi.riista.mobile.database.HarvestDatabase;
+import fi.riista.mobile.database.HarvestDatabase.SeasonStats;
 import fi.riista.mobile.database.SpeciesInformation;
-import fi.riista.mobile.message.EventUpdateMessage;
+import fi.riista.mobile.event.HarvestChangeEvent;
+import fi.riista.mobile.event.HarvestChangeListener;
+import fi.riista.mobile.gamelog.HarvestSpecVersionResolver;
 import fi.riista.mobile.models.GameHarvest;
-import fi.riista.mobile.models.GameObservation;
-import fi.riista.mobile.models.LogEventBase;
+import fi.riista.mobile.models.GameLog;
 import fi.riista.mobile.models.SpeciesCategory;
+import fi.riista.mobile.models.observation.GameObservation;
 import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.observation.ObservationDatabase;
-import fi.riista.mobile.observation.ObservationDatabase.ObservationsListener;
+import fi.riista.mobile.service.harvest.HarvestEventEmitter;
 import fi.riista.mobile.srva.SrvaDatabase;
-import fi.riista.mobile.srva.SrvaDatabase.SrvaEventListener;
-import fi.riista.mobile.ui.GameCalendar;
-import fi.riista.mobile.ui.HeaderTextView;
+import fi.riista.mobile.sync.AppSync;
+import fi.riista.mobile.ui.GameLogFilterView;
+import fi.riista.mobile.ui.GameLogListItem;
 import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.UiUtils;
-import fi.vincit.androidutilslib.message.WorkMessageHandler;
-import fi.vincit.androidutilslib.util.ViewAnnotations;
-import fi.vincit.androidutilslib.util.ViewAnnotations.ViewId;
-import fi.vincit.androidutilslib.util.ViewAnnotations.ViewOnClick;
+import fi.riista.mobile.utils.UserInfoStore;
+import fi.riista.mobile.viewmodel.GameLogViewModel;
 
-public class GameLogFragment extends PageFragment implements DatabaseUpdateListener, CalendarSource {
+public class GameLogFragment extends PageFragment
+        implements HarvestChangeListener, GameLogFilterView.GameLogFilterListener, GameLogListItem.OnClickListItemListener {
 
-    public static String START_YEAR_KEY = "startYear";
+    @Inject
+    ViewModelProvider.Factory mViewModelFactory;
 
-    private static SimpleDateFormat OBSERVATION_DATE_FORMAT = new SimpleDateFormat(AppConfig.SERVER_DATE_FORMAT);
+    @Inject
+    UserInfoStore mUserInfoStore;
 
-    private static final int TAB_HARVESTS = 0;
-    private static final int TAB_OBSERVATIONS = 1;
-    private static final int TAB_SRVAS = 2;
+    @Inject
+    HarvestDatabase mHarvestDatabase;
 
-    // Update could have been received while view was destroyed. Complete updates after view has been recreated
-    private List<DiaryEntryUpdate> mPendingEvents = null;
-    private ArrayAdapter<EventItem> mAdapter = null;
-    private ListView mListView = null;
-    private List<EventItem> mEvents = new ArrayList<>();
-    private EventTask mEventTask = null;
+    @Inject
+    ObservationDatabase mObservationDatabase;
 
-    private ImageView mSelectedYearImageView = null;
-    private ViewPager mCalendarPager = null;
-    private SparseArray<CalendarYear> mCalendarYears = new SparseArray<>();
-    private CalendarPagerAdapter mCalendarAdapter = null;
-    private int mCalendarYear = -1;
-    private int mShowTab = TAB_HARVESTS;
-    private long mUpdatedEventLocalId = -1;
+    @Inject
+    AppSync mAppSync;
 
-    @ViewId(R.id.btn_show_harvest)
-    private ToggleButton mButtonHarvest;
+    @Inject
+    HarvestEventEmitter mHarvestEventEmitter;
 
-    @ViewId(R.id.btn_show_observations)
-    private ToggleButton mButtonObservations;
+    @Inject
+    HarvestSpecVersionResolver mSpecVersionResolver;
 
-    @ViewId(R.id.btn_show_srvas)
-    private ToggleButton mButtonSrvas;
+    private GameLogAdapter mAdapter;
+    private List<GameLogListItem> mDisplayItems = new ArrayList<>();
+    private GetHarvestsTask mGetHarvestsTask = null;
+    private final SparseArray<CalendarYear> mCalendarYears = new SparseArray<>();
+    private GameLogFilterView mFilterView;
+    private GameLogViewModel mModel;
+
+    private final ActivityResultLauncher<Intent> harvestActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> onHarvestActivityResult(result.getResultCode(), result.getData())
+    );
+
+    private final ActivityResultLauncher<Intent> editActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> onEditActivityResult(result.getResultCode(), result.getData())
+    );
 
     public static GameLogFragment newInstance() {
         return new GameLogFragment();
     }
 
+    // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     @Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
-        mAdapter = new GameLogAdapter(((MainActivity) getActivity()).getWorkContext(), mEvents);
+    public void onAttach(@NonNull final Context context) {
+        AndroidSupportInjection.inject(this);
+        super.onAttach(context);
     }
 
-    @ViewOnClick(R.id.btn_show_harvest)
-    private void onClickShowHarvests(View view) {
-        mShowTab = TAB_HARVESTS;
-        mCalendarYear = -1;
+    @Override
+    public View onCreateView(@NonNull final LayoutInflater inflater,
+                             final ViewGroup container,
+                             final Bundle savedInstanceState) {
 
-        refreshList();
-    }
+        final View view = inflater.inflate(R.layout.fragment_gamelog, container, false);
+        setupActionBar(R.layout.actionbar_gamelog, true);
 
-    @ViewOnClick(R.id.btn_show_observations)
-    private void onClickShowObservations(View view) {
-        mShowTab = TAB_OBSERVATIONS;
-        mCalendarYear = -1;
+        final Context context = getActivity();
 
-        refreshList();
-    }
+        final RecyclerView recyclerView = view.findViewById(R.id.historyListView);
+        final RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(layoutManager);
 
-    @ViewOnClick(R.id.btn_show_srvas)
-    private void onClickSrvas(View view) {
-        mShowTab = TAB_SRVAS;
-        mCalendarYear = -1;
+        mAdapter = new GameLogAdapter(context, mDisplayItems, this);
+        recyclerView.setAdapter(mAdapter);
 
-        refreshList();
-    }
+        mFilterView = view.findViewById(R.id.log_filter_view);
+        mFilterView.setListener(this);
 
-    @WorkMessageHandler(EventUpdateMessage.class)
-    public void onEventUpdate(EventUpdateMessage message) {
-        //Scroll to this event once list has been refreshed
-        mUpdatedEventLocalId = message.localId;
-
-        switch (message.type) {
-            case LogEventBase.TYPE_HARVEST:
-                mShowTab = TAB_HARVESTS;
-                break;
-            case LogEventBase.TYPE_OBSERVATION:
-                mShowTab = TAB_OBSERVATIONS;
-                break;
-            default:
-                mShowTab = TAB_SRVAS;
-                break;
+        mModel = new ViewModelProvider(requireActivity(), mViewModelFactory).get(GameLogViewModel.class);
+        if (GameLog.TYPE_POI.equals(mModel.getTypeSelected().getValue())) {
+            // POIs are not supported here, default to harvests
+            mModel.selectLogType(GameLog.TYPE_HARVEST);
         }
-        refreshList();
+        mModel.refreshSeasons();
 
-        //Show the year this event belongs to
-        mCalendarYear = message.huntingYear;
+        mFilterView.setupTypes(
+                UiUtils.isSrvaVisible(mUserInfoStore.getUserInfo()),
+                false,
+                mModel.getTypeSelected().getValue()
+        );
+        mFilterView.setupSeasons(mModel.getSeasons().getValue(), mModel.getSeasonSelected().getValue());
+        mFilterView.setupSpecies(mModel.getSpeciesSelected().getValue(), mModel.getCategorySelected().getValue());
+
+        final LifecycleOwner lifecycleOwner = getViewLifecycleOwner();
+
+        mModel.getTypeSelected().observe(lifecycleOwner, type -> refreshList());
+        mModel.getSeasonSelected().observe(lifecycleOwner, season -> refreshList());
+        mModel.getSpeciesSelected().observe(lifecycleOwner, speciesIds -> {
+            mFilterView.setupSpecies(speciesIds, mModel.getCategorySelected().getValue());
+            refreshList();
+        });
+
+        return view;
     }
 
     private void refreshList() {
-        if (mShowTab == TAB_HARVESTS) {
+        mModel.refreshSeasons();
+
+        final String selection = mModel.getTypeSelected().getValue();
+
+        if (GameLog.TYPE_HARVEST.equals(selection)) {
             loadHarvests();
-        } else if (mShowTab == TAB_OBSERVATIONS) {
+        } else if (GameLog.TYPE_OBSERVATION.equals(selection)) {
             loadObservations();
-        } else {
+        } else if (GameLog.TYPE_SRVA.equals(selection)) {
             loadSrvas();
+        } else if (selection != null) {
+            throw new RuntimeException("Unsupported selection type: " + selection);
         }
     }
 
-    private void loadSrvas() {
-        clearButtonsState();
-        mButtonSrvas.setSelected(true);
-
-        clearList();
-
-        SrvaDatabase.getInstance().loadEvents(new SrvaEventListener() {
-            @Override
-            public void onEvents(List<SrvaEvent> events) {
-                ArrayList<GameHarvest> items = new ArrayList<>();
-                for (SrvaEvent event : events) {
-                    items.add(srvaToEvent(event));
-                }
-                addItems(0, items);
-            }
-        });
-    }
-
-    public GameHarvest srvaToEvent(SrvaEvent srva) {
-        Calendar time = srva.toDateTime().toCalendar(null);
-
-        GameHarvest event = new GameHarvest(srva.gameSpeciesCode, srva.totalSpecimenAmount,
-                srva.description, time, srva.type, srva.toLocation(),
-                srva.getAllImages());
-        event.mSent = !srva.modified;
-        event.mSrvaEvent = srva;
-        return event;
-    }
-
     private void loadHarvests() {
-        clearButtonsState();
-        mButtonHarvest.setSelected(true);
-
         clearList();
-
         startHarvestItemsTask();
     }
 
     private void loadObservations() {
-        clearButtonsState();
-        mButtonObservations.setSelected(true);
-
         clearList();
 
-        ObservationDatabase.getInstance().loadObservations(new ObservationsListener() {
-            @Override
-            public void onObservations(List<GameObservation> observations) {
-                ArrayList<GameHarvest> items = new ArrayList<>();
+        mObservationDatabase.loadObservations(observations -> {
+            final List<GameLogListItem> items = new ArrayList<>(observations.size());
 
-                for (GameObservation observation : observations) {
-                    items.add(observationToEvent(observation));
-                }
-                addItems(0, items);
+            for (final GameObservation observation : observations) {
+                items.add(GameLogListItem.fromObservation(observation));
             }
+
+            final List<Integer> speciesSelected = mModel.getSpeciesSelected().getValue();
+            addItems(items, speciesSelected != null && speciesSelected.size() > 0);
         });
     }
 
-    private GameHarvest observationToEvent(GameObservation observation) {
-        int amount = observation.getMooselikeSpecimenCount();
-        if (amount == 0 && observation.totalSpecimenAmount != null) {
-            amount = observation.totalSpecimenAmount;
-        }
-        Calendar time = observation.toDateTime().toCalendar(null);
+    private void loadSrvas() {
+        clearList();
 
-        GameHarvest event = new GameHarvest(observation.gameSpeciesCode, amount,
-                observation.description, time, observation.type, observation.toLocation(),
-                observation.getAllImages());
-        event.mSent = !observation.modified;
-        event.mObservation = observation;
+        SrvaDatabase.getInstance().loadEvents(events -> {
+            final List<GameLogListItem> items = new ArrayList<>(events.size());
 
-        return event;
-    }
+            for (final SrvaEvent event : events) {
+                items.add(GameLogListItem.fromSrva(event));
+            }
 
-    private void clearButtonsState() {
-        mButtonHarvest.setSelected(false);
-        mButtonObservations.setSelected(false);
-        mButtonSrvas.setSelected(false);
+            addItems(items, true);
+        });
     }
 
     private void clearList() {
-        //Cancel task
-        if (mEventTask != null) {
-            mEventTask.cancel(false);
-            mEventTask = null;
+        // Cancel task
+        if (mGetHarvestsTask != null) {
+            mGetHarvestsTask.cancel(false);
+            mGetHarvestsTask = null;
         }
 
-        mEvents.clear();
+        final List<GameLogListItem> list = mDisplayItems;
+
+        if (list != null) {
+            list.clear();
+        }
 
         mAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_gamelog, container, false);
-        setHasOptionsMenu(true);
+    public void onCreateOptionsMenu(@NonNull final Menu menu, @NonNull final MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_add, menu);
+    }
 
-        mCalendarPager = (ViewPager) view.findViewById(R.id.calendar);
-        mCalendarPager.setPageMargin(20);
-        mCalendarAdapter = new CalendarPagerAdapter(this, getActivity());
-        mCalendarPager.setAdapter(mCalendarAdapter);
+    @Override
+    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
+        final String typeSelected = mModel.getTypeSelected().getValue();
 
-        //Reparent the view pager container into the list as a header view
-        ViewGroup pagerParent = (ViewGroup) mCalendarPager.getParent();
-        ViewGroup pagerRoot = (ViewGroup) pagerParent.getParent();
-        pagerRoot.removeView(pagerParent);
-        pagerParent.setLayoutParams(new ListView.LayoutParams(pagerParent.getLayoutParams()));
+        if (item.getItemId() == R.id.item_add) {
+            if (GameLog.TYPE_HARVEST.equals(typeSelected)) {
+                final Intent intent = new Intent(getActivity(), HarvestActivity.class);
+                intent.putExtra(HarvestActivity.EXTRA_HARVEST,
+                        GameHarvest.createNew(mSpecVersionResolver.resolveHarvestSpecVersion()));
+                harvestActivityResultLaunch.launch(intent);
 
-        mListView = (ListView) view.findViewById(R.id.historyListView);
-        mListView.addHeaderView(pagerParent);
-        mListView.setAdapter(mAdapter);
-        mListView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // Adding header causes positions to increase by one.
-                position = position - 1;
+            } else if (GameLog.TYPE_OBSERVATION.equals(typeSelected)) {
+                final Intent intent = new Intent(getActivity(), EditActivity.class);
+                intent.putExtra(EditActivity.EXTRA_OBSERVATION, GameObservation.createNew());
+                intent.putExtra(EditActivity.EXTRA_NEW, true);
+                editActivityResultLaunch.launch(intent);
 
-                GameHarvest event = mEvents.get(position).mEvent;
-                String eventType = "" + event.mType;
-                switch (eventType) {
-                    case LogEventBase.TYPE_HARVEST: {
-                        Intent intent = new Intent(getActivity(), HarvestActivity.class);
-                        intent.putExtra(HarvestActivity.EXTRA_HARVEST, event);
-                        startActivityForResult(intent, HarvestActivity.EDIT_HARVEST_REQUEST_CODE);
-                        break;
-                    }
-                    case LogEventBase.TYPE_OBSERVATION: {
-                        Intent intent = new Intent(getActivity(), EditActivity.class);
-                        intent.putExtra(EditActivity.EXTRA_OBSERVATION, event.mObservation);
-                        startActivityForResult(intent, EditActivity.EDIT_OBSERVATION_REQUEST_CODE);
-                        break;
-                    }
-                    case LogEventBase.TYPE_SRVA: {
-                        Intent intent = new Intent(getActivity(), EditActivity.class);
-                        intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, event.mSrvaEvent);
-                        startActivityForResult(intent, EditActivity.EDIT_SRVA_REQUEST_CODE);
-                        break;
-                    }
-                }
+            } else if (GameLog.TYPE_SRVA.equals(typeSelected)) {
+                final Intent intent = new Intent(getActivity(), EditActivity.class);
+                intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, SrvaEvent.createNew());
+                intent.putExtra(EditActivity.EXTRA_NEW, true);
+                editActivityResultLaunch.launch(intent);
             }
-        });
-
-        ViewAnnotations.apply(this, view);
-
-        int colorize = getActivity().getResources().getColor(R.color.icon_colorize);
-        setBackgroudFilter(mButtonHarvest, colorize);
-        setBackgroudFilter(mButtonObservations, colorize);
-        setBackgroudFilter(mButtonSrvas, colorize);
-
-        //noinspection ResourceType
-        mButtonSrvas.setVisibility(UiUtils.getSrvaVisibility(getActivity()));
-
-        refreshList();
-
-        return view;
-    }
-
-    private static void setBackgroudFilter(Button button, int color) {
-        button.getBackground().mutate().setColorFilter(color, Mode.MULTIPLY);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.gamelog, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-
-        ((BaseActivity) getActivity()).onHasActionbarMenu(true);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add:
-                if (mShowTab == TAB_HARVESTS) {
-                    Intent intent = new Intent(getActivity(), HarvestActivity.class);
-                    intent.putExtra(HarvestActivity.EXTRA_HARVEST, GameHarvest.createNew());
-                    intent.putExtra(HarvestActivity.EXTRA_NEW, true);
-                    startActivityForResult(intent, HarvestActivity.NEW_HARVEST_REQUEST_CODE);
-                } else if (mShowTab == TAB_OBSERVATIONS) {
-                    Intent intent = new Intent(getActivity(), EditActivity.class);
-                    intent.putExtra(EditActivity.EXTRA_OBSERVATION, GameObservation.createNew());
-                    intent.putExtra(EditActivity.EXTRA_NEW, true);
-                    startActivityForResult(intent, EditActivity.NEW_OBSERVATION_REQUEST_CODE);
-                } else if (mShowTab == TAB_SRVAS) {
-                    Intent intent = new Intent(getActivity(), EditActivity.class);
-                    intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, SrvaEvent.createNew());
-                    intent.putExtra(EditActivity.EXTRA_NEW, true);
-                    startActivityForResult(intent, EditActivity.NEW_SRVA_REQUEST_CODE);
-                }
-                return true;
+            return true;
         }
-        return false;
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -367,102 +264,51 @@ public class GameLogFragment extends PageFragment implements DatabaseUpdateListe
 
         setViewTitle(getString(R.string.title_game_log));
 
-        // Update with pending updates if any
-        if (mPendingEvents != null) {
-            eventsUpdated(mPendingEvents);
-            mPendingEvents = null;
-        }
-
-        setupCalendarArrow(getView().findViewById(R.id.calendar_previous), -1);
-        setupCalendarArrow(getView().findViewById(R.id.calendar_next), 1);
-
-        GameDatabase.getInstance().registerListener(this);
+        mHarvestEventEmitter.addListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        GameDatabase.getInstance().unregisterListener(this);
+        mHarvestEventEmitter.removeListener(this);
     }
 
-    void setupCalendarArrow(View view, final int offset) {
-        view.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                changeCalendarYear(offset);
+    private void onHarvestActivityResult(int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (data.getBooleanExtra(HarvestActivity.RESULT_DID_SAVE, false)) {
+                refreshList();
             }
-        });
-    }
-
-    public void changeCalendarYear(int offset) {
-        int index = mCalendarPager.getCurrentItem();
-        if (index + offset >= 0 && index + offset < mCalendarYears.size()) {
-            mCalendarPager.setCurrentItem(index + offset);
-            calendarYearSelected(index + offset, true);
+            mAppSync.syncImmediatelyIfAutomaticSyncEnabled();
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == HarvestActivity.NEW_HARVEST_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                boolean didSave = data.getBooleanExtra(HarvestActivity.RESULT_DID_SAVE, false);
-
-                if (didSave) {
-                    refreshList();
-                }
-
-                GameDatabase db = GameDatabase.getInstance();
-                if (db.getSyncMode(getContext()) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
-                    db.doSyncAndResetTimer();
-                }
+    private void onEditActivityResult(int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (data.getBooleanExtra(EditActivity.RESULT_DID_SAVE, false)) {
+                refreshList();
             }
-        } else if (requestCode == HarvestActivity.EDIT_HARVEST_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                boolean didSave = data.getBooleanExtra(HarvestActivity.RESULT_DID_SAVE, false);
-
-                if (didSave) {
-                    refreshList();
-                }
-            }
-        } else if (requestCode == EditActivity.NEW_OBSERVATION_REQUEST_CODE
-                || requestCode == EditActivity.EDIT_OBSERVATION_REQUEST_CODE
-                || requestCode == EditActivity.NEW_SRVA_REQUEST_CODE
-                || requestCode == EditActivity.EDIT_SRVA_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                boolean didSave = data.getBooleanExtra(EditActivity.RESULT_DID_SAVE, false);
-
-                if (didSave) {
-                    refreshList();
-                }
-
-                GameDatabase db = GameDatabase.getInstance();
-                if (db.getSyncMode(getContext()) == GameDatabase.SyncMode.SYNC_AUTOMATIC) {
-                    db.doSyncAndResetTimer();
-                }
-            }
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
+            mAppSync.syncImmediatelyIfAutomaticSyncEnabled();
         }
     }
 
-    void startHarvestItemsTask() {
-        mEventTask = new EventTask();
-        mEventTask.execute();
+    private void startHarvestItemsTask() {
+        mGetHarvestsTask = new GetHarvestsTask();
+        mGetHarvestsTask.execute();
     }
 
-    private List<GameHarvest> filterCurrentYearItems(List<GameHarvest> items) {
-        List<GameHarvest> filtered = new ArrayList<>();
+    private List<GameLogListItem> filterCurrentYearItems(final List<GameLogListItem> items) {
+        final List<GameLogListItem> filtered = new ArrayList<>(items.size());
 
-        DateTime startDate = DateTimeUtils.getHuntingYearStart(mCalendarYear);
-        DateTime endDate = DateTimeUtils.getHuntingYearEnd(mCalendarYear);
+        final int season = mModel.getSeasonSelected().getValue();
+        final DateTime startDate = DateTimeUtils.getHuntingYearStart(season);
+        final DateTime endDate = DateTimeUtils.getHuntingYearEnd(season);
 
-        for (GameHarvest event : items) {
-            DateTime eventTime = new DateTime(event.mTime);
+        for (final GameLogListItem event : items) {
+            final DateTime eventTime = new DateTime(event.dateTime);
 
-            if (LogEventBase.TYPE_SRVA.equals(event.mType)) {
-                if (eventTime.getYear() == mCalendarYear) {
+            if (GameLog.TYPE_SRVA.equals(event.type)) {
+                if (eventTime.getYear() == season) {
                     filtered.add(event);
                 }
             } else {
@@ -471,19 +317,32 @@ public class GameLogFragment extends PageFragment implements DatabaseUpdateListe
                 }
             }
         }
+        return filterSpeciesItems(filtered);
+    }
+
+    private List<GameLogListItem> filterSpeciesItems(final List<GameLogListItem> items) {
+        final List<Integer> speciesCodes = mModel.getSpeciesSelected().getValue();
+
+        if (speciesCodes == null || speciesCodes.isEmpty()) {
+            return items;
+        }
+
+        final List<GameLogListItem> filtered = new ArrayList<>(items.size());
+
+        for (final GameLogListItem event : items) {
+            if (speciesCodes.contains(event.speciesCode)) {
+                filtered.add(event);
+            }
+        }
+
         return filtered;
     }
 
-    private void sortEventsByTime(List<GameHarvest> events) {
-        Collections.sort(events, new Comparator<GameHarvest>() {
-            @Override
-            public int compare(GameHarvest lhs, GameHarvest rhs) {
-                return lhs.mTime.compareTo(rhs.mTime);
-            }
-        });
+    private void sortEventsByTime(final List<GameLogListItem> events) {
+        Collections.sort(events, (lhs, rhs) -> rhs.dateTime.compareTo(lhs.dateTime));
     }
 
-    void addItems(int offset, List<GameHarvest> allEvents) {
+    private void addItems(final List<GameLogListItem> allEvents, final boolean hideStats) {
         if (getActivity() != null) {
             clearList();
 
@@ -491,341 +350,204 @@ public class GameLogFragment extends PageFragment implements DatabaseUpdateListe
 
             setupCalendarYears(allEvents);
 
-            List<GameHarvest> newItems = filterCurrentYearItems(allEvents);
+            final List<GameLogListItem> newItems = filterCurrentYearItems(allEvents);
 
-            EventItem separator = new EventItem();
-            separator.isSeparator = true;
+            mDisplayItems = newItems;
 
-            for (int i = 0; i < newItems.size(); i++) {
-                EventItem event = new EventItem();
-                event.mEvent = newItems.get(i);
-                event.year = newItems.get(i).mTime.get(Calendar.YEAR);
-                event.month = newItems.get(i).mTime.get(Calendar.MONTH);
+            for (int i = newItems.size() - 1; i >= 0; i--) {
+                final GameLogListItem item = newItems.get(i);
 
-                if (offset > 0) {
-                    if (mEvents.size() > 0) {
-                        mEvents.add(separator);
-                    }
-                    if (mEvents.size() == 0 || (mEvents.size() > 1 && (mEvents.get(mEvents.size() - 2).month != event.month || mEvents.get(mEvents.size() - 2).year != event.year))) {
-                        EventItem header = new EventItem();
-                        header.isHeader = true;
-                        header.year = event.year;
-                        header.month = event.month;
-                        mEvents.add(header);
-                        mEvents.add(separator);
-                    }
-                    mEvents.add(event);
+                if (i == 0) {
+                    final GameLogListItem sectionItem = new GameLogListItem();
+                    sectionItem.isHeader = true;
+                    sectionItem.month = newItems.get(i).dateTime.get(Calendar.MONTH);
+                    sectionItem.year = newItems.get(i).dateTime.get(Calendar.YEAR);
+
+                    mDisplayItems.add(i, sectionItem);
                 } else {
-                    boolean headerRemoved = false;
-                    if (mEvents.size() > 0 && mEvents.get(0).isHeader && mEvents.get(0).month == event.month && mEvents.get(0).year == event.year) {
-                        mEvents.remove(0);
-                        headerRemoved = true;
-                    } else if (mEvents.size() > 0 && !mEvents.get(0).isHeader && (mEvents.get(0).month != event.month || mEvents.get(0).year != event.year)) {
-                        EventItem header = new EventItem();
-                        header.isHeader = true;
-                        header.month = mEvents.get(0).month;
-                        header.year = mEvents.get(0).year;
-                        mEvents.add(0, separator);
-                        mEvents.add(0, header);
-                    }
-                    if (!headerRemoved && mEvents.size() > 0)
-                        mEvents.add(0, separator);
-                    mEvents.add(0, event);
-                }
+                    final GameLogListItem prevItem = newItems.get(i - 1);
 
-                if (offset <= 0) {
-                    if (i == newItems.size() - 1) {
-                        EventItem header = new EventItem();
-                        header.isHeader = true;
-                        header.month = event.month;
-                        header.year = event.year;
-                        mEvents.add(0, separator);
-                        mEvents.add(0, header);
+                    if (item.month != prevItem.month) {
+                        final GameLogListItem sectionItem = new GameLogListItem();
+                        sectionItem.isHeader = true;
+                        sectionItem.month = newItems.get(i).dateTime.get(Calendar.MONTH);
+                        sectionItem.year = newItems.get(i).dateTime.get(Calendar.YEAR);
+
+                        mDisplayItems.add(i, sectionItem);
                     }
                 }
             }
-            mAdapter.notifyDataSetChanged();
+            insertSeparators(mDisplayItems);
 
-            scrollToUpdatedEvent();
+            if (!hideStats) {
+                final GameLogListItem statsItem = new GameLogListItem();
+                statsItem.isStats = true;
+                mDisplayItems.add(0, statsItem);
+            }
+
+            mAdapter.setItems(mDisplayItems);
         }
     }
 
-    private class EventTask extends AsyncTask<Void, Void, Integer> {
+    private void insertSeparators(final List<GameLogListItem> items) {
+        for (int i = 0; i < items.size(); i++) {
+            final GameLogListItem item = items.get(i);
 
-        List<GameHarvest> mNewItems = null;
-
-        EventTask() {
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            // Ensure that DB instance gets created in UI thread. If trying to create instance in background thread an
-            // exception is thrown. DB instance creates Handler which needs to be associated with UI thread looper.
-            GameDatabase.getInstance();
-        }
-
-        @Override
-        protected Integer doInBackground(Void... params) {
-            mNewItems = GameDatabase.getInstance().getAllEvents();
-            return 0;
-        }
-
-        @Override
-        protected void onPostExecute(Integer result) {
-            addItems(0, mNewItems);
+            if (i == 0) {
+                // First item is always month header
+                item.isTimelineTopVisible = false;
+                item.isTimelineBottomVisible = false;
+            } else if (i == 1 && i == items.size() - 1) {
+                item.isTimelineTopVisible = false;
+                item.isTimelineBottomVisible = false;
+            } else if (i == 1) {
+                item.isTimelineTopVisible = false;
+                item.isTimelineBottomVisible = true;
+            } else if (i == items.size() - 1) {
+                item.isTimelineTopVisible = true;
+                item.isTimelineBottomVisible = false;
+            } else {
+                item.isTimelineTopVisible = true;
+                item.isTimelineBottomVisible = true;
+            }
         }
     }
 
-    void setupCalendarYears(List<GameHarvest> events) {
+    private void setupCalendarYears(final List<GameLogListItem> events) {
         mCalendarYears.clear();
 
         int newestYear = 0;
         int newestHuntingYear = -1;
-        for (GameHarvest event : events) {
-            int year = DateTimeUtils.getSeasonStartYearFromDate(event.mTime);
-            if (year > newestHuntingYear) {
-                newestHuntingYear = year;
+
+        for (final GameLogListItem event : events) {
+            int huntingYear = DateTimeUtils.getHuntingYearForCalendar(event.dateTime);
+            if (huntingYear > newestHuntingYear) {
+                newestHuntingYear = huntingYear;
             }
 
-            int realYear = event.mTime.get(Calendar.YEAR);
+            final int realYear = event.dateTime.get(Calendar.YEAR);
             if (realYear > newestYear) {
                 newestYear = realYear;
             }
 
-            //Some observation types don't have amounts, but count them as 1 anyway
-            int amount = Math.max(event.mAmount, 1);
-            if (LogEventBase.TYPE_SRVA.equals(event.mType)) {
-                //SRVA events use normal years for grouping and each event
-                //should be counted as one
-                year = realYear;
+            // Some observation types don't have amounts, but count them as 1 anyway
+            int amount = Math.max(event.totalSpecimenAmount, 1);
+            if (GameLog.TYPE_SRVA.equals(event.type)) {
+                // SRVA events use normal years for grouping and each event
+                // should be counted as one
+                huntingYear = realYear;
                 amount = 1;
             }
 
-            CalendarYear calendarYear = mCalendarYears.get(year);
+            CalendarYear calendarYear = mCalendarYears.get(huntingYear);
             if (calendarYear == null) {
                 calendarYear = new CalendarYear();
-                calendarYear.year = year;
-                calendarYear.statistics = new Statistics();
-                mCalendarYears.put(year, calendarYear);
+                calendarYear.year = huntingYear;
+                calendarYear.statistics = new SeasonStats();
+                mCalendarYears.put(huntingYear, calendarYear);
             }
 
-            int month = event.mTime.get(Calendar.MONTH);
-            calendarYear.statistics.mMonthlyData.set(month, calendarYear.statistics.mMonthlyData.get(month) + amount);
-
-            SpeciesCategory category = SpeciesInformation.categoryForSpecies(event.mSpeciesID);
+            final SpeciesCategory category = SpeciesInformation.categoryForSpecies(event.speciesCode);
             if (category != null) {
-                Integer resultValue = amount;
-                Integer currentValue = calendarYear.statistics.mCategoryData.get(category.mId);
-                if (currentValue != null) {
-                    resultValue += currentValue;
-                }
+                final int currentValue = calendarYear.statistics.mCategoryData.get(category.mId);
+                final int resultValue = amount + currentValue;
                 calendarYear.statistics.mCategoryData.put(category.mId, resultValue);
             }
-            calendarYear.statistics.mTotalCatches += amount;
         }
 
-        if (mCalendarYears.size() == 0) {
-            //No events, create a dummy year
-            mCalendarYear = (TAB_SRVAS == mShowTab)
-                    ? Calendar.getInstance().get(Calendar.YEAR)
-                    : DateTimeUtils.getSeasonStartYearFromDate(Calendar.getInstance());
+        final int selectedSeason = mModel.getSeasonSelected().getValue();
 
-            CalendarYear year = new CalendarYear();
-            year.year = mCalendarYear;
-            year.statistics = new Statistics();
+        if (mCalendarYears.get(selectedSeason) == null) {
+            final CalendarYear year = new CalendarYear();
+            year.year = selectedSeason;
+            year.statistics = new SeasonStats();
             mCalendarYears.put(year.year, year);
         }
 
-        if (mCalendarYear < 0) {
-            mCalendarYear = (TAB_SRVAS == mShowTab) ? newestYear : newestHuntingYear;
-        }
+        mFilterView.setupSeasons(mModel.getSeasons().getValue(), selectedSeason);
 
-        mCalendarAdapter.notifyDataSetChanged();
-
-        int index = mCalendarYears.indexOfKey(mCalendarYear);
-        if (index < 0) {
-            index = mCalendarYears.indexOfKey(newestHuntingYear);
-        }
-
-        if (index > -1) {
-            mCalendarPager.setCurrentItem(index);
-            setupCalendarYearViews(index);
-        }
-
-        mCalendarAdapter.forceUpdate();
-    }
-
-    /**
-     * Setups the calendar dots under statistics view
-     * Default selection is used to highlight the current year
-     *
-     * @param startYearIndex Year's array index (0...mCalendarYears.size()-1)
-     */
-    void setupCalendarYearViews(int startYearIndex) {
-        if (mCalendarYears.size() > 0) {
-            LinearLayout calendarYears = (LinearLayout) getView().findViewById(R.id.calendar_years);
-            calendarYears.removeAllViews();
-            final Drawable circle = getResources().getDrawable(R.drawable.circle);
-            final Drawable hollowcircle = getResources().getDrawable(R.drawable.hollowcircle);
-            int circleSize = (int) getActivity().getResources().getDimension(R.dimen.year_circle_size);
-            for (int i = 0; i < mCalendarYears.size(); i++) {
-
-                final ImageView imageView = new ImageView(getActivity());
-                imageView.setImageDrawable(circle);
-                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        circleSize,
-                        circleSize
-                );
-
-                // FIXME: This fixes dots alignment to center. Need to rethink layout and use display pixels.
-                if (i == 0) {
-                    params.leftMargin = 20;
-                }
-                params.rightMargin = 20;
-                imageView.setLayoutParams(params);
-                if (i == startYearIndex) {
-                    imageView.setImageDrawable(circle);
-                    mSelectedYearImageView = imageView;
-                } else {
-                    imageView.setImageDrawable(hollowcircle);
-                }
-                mCalendarYears.get(mCalendarYears.keyAt(i)).dot = imageView;
-                calendarYears.addView(imageView);
-            }
-        }
-        if (mCalendarYears.size() > 0)
-            selectCalendarYearDot(startYearIndex);
-    }
-
-    void selectCalendarYearDot(final int yearIndex) {
-        final Drawable circle = getResources().getDrawable(R.drawable.circle);
-        final Drawable hollowcircle = getResources().getDrawable(R.drawable.hollowcircle);
-        if (mSelectedYearImageView != null) {
-            mSelectedYearImageView.setImageDrawable(hollowcircle);
-        }
-
-        if (mCalendarYears.get(mCalendarYears.keyAt(yearIndex)).dot != null) {
-            mSelectedYearImageView = mCalendarYears.get(mCalendarYears.keyAt(yearIndex)).dot;
-            mSelectedYearImageView.setImageDrawable(circle);
-        }
+        final CalendarYear calendarYear = mCalendarYears.get(selectedSeason);
+        mAdapter.setStats(calendarYear.statistics);
     }
 
     @Override
-    public void eventsUpdated(List<DiaryEntryUpdate> updatedEvents) {
+    public void onHarvestsChanged(@NonNull final Collection<HarvestChangeEvent> changeEvents) {
         if (getActivity() != null && getView() != null) {
             refreshList();
-        } else {
-            mPendingEvents = updatedEvents;
         }
     }
 
     @Override
-    public void setupCalendar(final GameCalendar calendar, final int position) {
-        final int year = mCalendarYears.get(mCalendarYears.keyAt(position)).year;
-        if (getView() != null && mCalendarYears.get(year) != null && mCalendarYears.get(year).statistics != null && calendar != null) {
-            SparseArray<SpeciesCategory> categories = SpeciesInformation.getSpeciesCategories();
-            calendar.setData(mCalendarYears.get(year).statistics.mMonthlyData);
-            calendar.setCategories(categories, mCalendarYears.get(year).statistics.mCategoryData);
-
-            float statsHeight = getResources().getDimension(R.dimen.season_stats_height);
-            if (mShowTab != TAB_SRVAS) {
-                calendar.showCategories(true);
-                mCalendarPager.getLayoutParams().height = (int) statsHeight;
-            } else {
-                //Hide categories for SRVA events. We need to set the view visibility and
-                //also manually adjust the view height.
-                calendar.showCategories(false);
-                mCalendarPager.getLayoutParams().height = (int) (statsHeight - (statsHeight - getResources().getDimension(R.dimen.season_months_height)));
-            }
-
-            if (mCalendarPager.getCurrentItem() == position) {
-                calendarYearSelected(position, false);
-            }
-        }
+    public void onLogTypeSelected(@Nullable final String type) {
+        mModel.selectLogType(type);
     }
 
-    private void scrollToUpdatedEvent() {
-        if (mUpdatedEventLocalId <= 0) {
-            return;
-        }
+    @Override
+    public void onLogSeasonSelected(final int season) {
+        mModel.selectLogSeason(season);
+    }
 
-        int position = 0;
-        for (EventItem item : mEvents) {
-            if (item.mEvent != null && item.mEvent.mLocalId == mUpdatedEventLocalId) {
-                mListView.setSelection(position);
+    @Override
+    public void onLogSpeciesSelected(@Nullable final List<Integer> speciesIds) {
+        mModel.selectSpeciesIds(speciesIds);
+    }
+
+    @Override
+    public void onLogSpeciesCategorySelected(final int categoryId) {
+        mModel.selectSpeciesCategory(categoryId);
+    }
+
+    @Override
+    public void onItemClick(final GameLogListItem item) {
+        switch (item.type) {
+            case GameLog.TYPE_HARVEST: {
+                final Intent intent = new Intent(getActivity(), HarvestActivity.class);
+                intent.putExtra(HarvestActivity.EXTRA_HARVEST, item.mHarvest);
+                harvestActivityResultLaunch.launch(intent);
                 break;
             }
-            position++;
-        }
-
-        //Only scroll here one time
-        mUpdatedEventLocalId = -1;
-    }
-
-    private void calendarYearSelected(int yearIndex, boolean interact) {
-        CalendarYear calendarYear = mCalendarYears.get(mCalendarYears.keyAt(yearIndex));
-        View view = getView();
-
-        HeaderTextView textView = (HeaderTextView) view.findViewById(R.id.season_text);
-        String textFormat = getResources().getString(R.string.season);
-
-        if (mShowTab == TAB_SRVAS) {
-            String text = String.format(getResources().getString(R.string.season_srva), "" + (calendarYear.year));
-            textView.setText(text);
-        } else {
-            //Setup season title
-            String text = String.format(textFormat, calendarYear.year + " - " + (calendarYear.year + 1));
-            textView.setText(text);
-        }
-        textView.setLeftPadding(0);
-
-        // Statistics data
-        TextView catchView = (TextView) view.findViewById(R.id.catch_total);
-
-        if (mShowTab == TAB_HARVESTS) {
-            textFormat = getResources().getString(R.string.catch_total);
-        } else if (mShowTab == TAB_OBSERVATIONS) {
-            textFormat = getResources().getString(R.string.observation_total);
-        } else {
-            textFormat = getResources().getString(R.string.srva_total);
-        }
-
-        if (calendarYear.statistics != null) {
-            catchView.setText(String.format(textFormat, calendarYear.statistics.mTotalCatches.toString()));
-        }
-        selectCalendarYearDot(yearIndex);
-
-        // Calendar arrows
-        view.findViewById(R.id.calendar_previous).setVisibility(yearIndex > 0 ? View.VISIBLE : View.INVISIBLE);
-        view.findViewById(R.id.calendar_next).setVisibility(yearIndex < mCalendarYears.size() - 1 ? View.VISIBLE : View.INVISIBLE);
-
-        if (interact) {
-            mCalendarYear = mCalendarYears.keyAt(yearIndex);
-
-            refreshList();
+            case GameLog.TYPE_OBSERVATION: {
+                final Intent intent = new Intent(getActivity(), EditActivity.class);
+                item.mObservation.observationCategorySelected = true; // This selection is not stored so set it to true, as it must have been selected as observation is saved.
+                intent.putExtra(EditActivity.EXTRA_OBSERVATION, item.mObservation);
+                editActivityResultLaunch.launch(intent);
+                break;
+            }
+            case GameLog.TYPE_SRVA: {
+                final Intent intent = new Intent(getActivity(), EditActivity.class);
+                intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, item.mSrva);
+                editActivityResultLaunch.launch(intent);
+                break;
+            }
         }
     }
 
-    @Override
-    public int getCount() {
-        return mCalendarYears.size();
-    }
+    private class GetHarvestsTask extends AsyncTask<Void, Void, Integer> {
 
-    @Override
-    public int getStartMonth() {
-        if (mShowTab == TAB_SRVAS) {
+        private List<GameHarvest> mNewItems = null;
+
+        @Override
+        protected Integer doInBackground(final Void... params) {
+            mNewItems = mHarvestDatabase.getAllHarvests();
             return 0;
-        } else {
-            return 7;
+        }
+
+        @Override
+        protected void onPostExecute(final Integer result) {
+            final List<GameLogListItem> items = new ArrayList<>(mNewItems.size());
+
+            for (final GameHarvest harvest : mNewItems) {
+                items.add(GameLogListItem.fromHarvest(harvest));
+            }
+
+            final List<Integer> speciesSelected = mModel.getSpeciesSelected().getValue();
+            addItems(items, speciesSelected != null && speciesSelected.size() > 0);
         }
     }
 
-    private class CalendarYear {
+    private static class CalendarYear {
         public int year;
 
-        ImageView dot;
-        GameDatabase.Statistics statistics;
+        SeasonStats statistics;
     }
 }

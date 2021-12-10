@@ -1,6 +1,6 @@
 <resources>
 
-    <style name="segmented_button_style" parent="Widget.AppCompat.CompoundButton.RadioButton">
+    <style name="segmented_button" parent="Widget.AppCompat.CompoundButton.RadioButton">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
@@ -13,7 +13,14 @@
         <item name="android:gravity">center</item>
         <item name="android:background">@drawable/segmented_control_background</item>
         <item name="android:button">@null</item>
-        <item name="android:textColor">@drawable/segmented_control_text</item>
+        <item name="android:textColor">@color/segmented_control_text</item>
+    </style>
+
+    <style name="segmented_button.map_type" parent="segmented_button">
+        <item name="android:padding">2dp</item>
+        <item name="android:background">@drawable/segmented_control_background_map_type</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:maxLines">1</item>
     </style>
 
 </resources>

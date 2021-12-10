@@ -1,39 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="@dimen/item_spacing_small"
-    android:paddingBottom="@dimen/item_spacing_small"
-    android:paddingLeft="@dimen/page_padding_horizontal"
-    android:paddingRight="@dimen/page_padding_horizontal"
     android:orientation="vertical"
-    >
+    android:paddingLeft="@dimen/page_padding_horizontal"
+    android:paddingTop="@dimen/item_spacing_small"
+    android:paddingRight="@dimen/page_padding_horizontal"
+    android:paddingBottom="@dimen/item_spacing_small">
 
     <TextView
         android:id="@+id/permit_item_number"
+        style="@style/PrimaryTextBody"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        tools:text="2015-0-000-00000-0"
-        />
+        tools:text="2015-0-000-00000-0" />
 
     <TextView
         android:id="@+id/permit_item_type"
+        style="@style/PrimaryTextBody"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        tools:text="00 C§ poikkeuslupa"
-        />
+        tools:text="00 C§ poikkeuslupa" />
 
     <TextView
         android:id="@+id/permit_item_details"
+        style="@style/PrimaryTextBody"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
-        tools:text="Varis (100) 10.10.2015 - 11.10.2015, 13.10.2015 - 14.10.2015"
-        />
+        tools:text="Varis (100) 10.10.2015 - 11.10.2015, 13.10.2015 - 14.10.2015" />
 
 </LinearLayout>

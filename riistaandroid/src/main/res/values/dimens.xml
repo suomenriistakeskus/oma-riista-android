@@ -1,31 +1,80 @@
 <resources>
+    <dimen name="home_view_icon_size">40dp</dimen>
+    <dimen name="log_image_size">50dp</dimen>
 
-    <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="padding_tiny">2dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">12dp</dimen>
+    <dimen name="padding_medium_large">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    <dimen name="padding_xlarge">32dp</dimen>
 
-    <dimen name="user_image_size">50dp</dimen>
-    <dimen name="category_text_size">12dp</dimen>
-    <dimen name="map_height">150dp</dimen>
-    <dimen name="season_stats_height">170dp</dimen>
-    <dimen name="season_months_height">100dp</dimen>
-    <dimen name="pictures_and_description_min_height">50dp</dimen>
-    <dimen name="logimage_size">50dp</dimen>
-    <dimen name="year_circle_size">10dp</dimen>
+    <dimen name="datafield_padding_small">4dp</dimen>
+    <dimen name="datafield_padding_small_medium">8dp</dimen>
+    <dimen name="datafield_padding_medium">@dimen/padding_medium</dimen>
+    <dimen name="datafield_padding_medium_large">@dimen/padding_medium_large</dimen>
+    <dimen name="datafield_padding_large">@dimen/padding_large</dimen>
 
-    <dimen name="page_padding_horizontal">20dp</dimen>
-    <dimen name="page_padding_vertical">20dp</dimen>
+    <dimen name="page_padding_horizontal">12dp</dimen>
+    <dimen name="page_padding_vertical">12dp</dimen>
+    <dimen name="page_padding_top">20dp</dimen>
+
+    <dimen name="edittext_internal_padding">4dp</dimen>
 
     <dimen name="item_spacing_small">4dp</dimen>
+    <dimen name="item_spacing_semismall">8dp</dimen>
     <dimen name="item_spacing_normal">10dp</dimen>
+    <dimen name="item_spacing_semilarge">15dp</dimen>
+    <dimen name="item_spacing_large">20dp</dimen>
+    <dimen name="item_spacing_huge">32dp</dimen>
+
+    <dimen name="date_time_text_size">20sp</dimen>
+    <dimen name="date_time_text_size_small">16sp</dimen>
+
+    <dimen name="specimen_button_width">200dp</dimen>
+    <dimen name="specimen_button_icon_padding">0dp</dimen>
+    <dimen name="specimen_button_text_padding">0dp</dimen>
+    <dimen name="harvest_specimen_age_button_padding">12dp</dimen>
 
     <dimen name="my_details_item_spacing">4dp</dimen>
-    <dimen name="my_details_section_spacing">12dp</dimen>
-    <dimen name="settings_item_spacing">10dp</dimen>
 
     <dimen name="segmented_control_min_height">40dp</dimen>
     <dimen name="weight_input_width">100dp</dimen>
 
     <dimen name="permit_checkbox_padding_left">32dp</dimen>
 
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="card_corner_radius">4dp</dimen>
+    <dimen name="card_marginal">8dp</dimen>
+
+    <dimen name="button_corner_radius">4dp</dimen>
+    <dimen name="default_button_border_width">1dp</dimen>
+
+    <dimen name="attach_image_button_size">50dp</dimen>
+    <dimen name="attach_image_button_icon_padding">8dp</dimen>
+
+    <dimen name="species_selection_icon_size">44dp</dimen>
+    <dimen name="species_selection_icon_padding">4dp</dimen>
+    <dimen name="species_selection_icon_left_padding">3dp</dimen>
+    <dimen name="species_selection_text_left_padding">10dp</dimen>
+    <dimen name="margin_between_species_and_image_selection">6dp</dimen>
+
+    <dimen name="square_image_button_dimen">46dp</dimen>
+    <dimen name="default_button_height">50dp</dimen>
+    <dimen name="radio_button_height">40dp</dimen>
+
+    <dimen name="antler_instructions_section_padding">36dp</dimen>
+    <dimen name="antler_instructions_vertical_padding">8dp</dimen>
+
+    <dimen name="hunting_group_vertical_margin">8dp</dimen>
+    <dimen name="hunting_group_horizontal_margin">8dp</dimen>
+
+    <dimen name="datafield_horizontal_margin">16dp</dimen>
+    <dimen name="datafield_vertical_margin">16dp</dimen>
+    <dimen name="datafield_string_choiceview_horizontal_margin">4dp</dimen>
+    <dimen name="datafield_instructions_button_text_margin">8dp</dimen>
+    <dimen name="datafield_instructions_button_text_size">24sp</dimen>
+
+    <dimen name="date_filter_label_padding_horizontal">16dp</dimen>
+    <dimen name="date_filter_btn_padding_horizontal">8dp</dimen>
 </resources>

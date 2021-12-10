@@ -1,59 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/edit_choice_bg">
+    android:layout_marginStart="@dimen/page_padding_horizontal"
+    android:layout_marginEnd="@dimen/page_padding_horizontal">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/separator" />
-
-    <android.support.v7.widget.AppCompatCheckBox
+    <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/check_choice"
-        android:layout_width="wrap_content"
+        style="@style/CheckBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_margin="5dp"
-        android:theme="@style/CheckBoxAppTheme" />
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        tools:text="Checkbox title replaces title textview" />
 
     <TextView
         android:id="@+id/txt_choice_title"
+        style="@style/HeaderText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/check_choice"
-        android:layout_marginLeft="5dp"
         android:layout_marginTop="5dp"
         android:text="@string/observation_type"
-        android:textColor="@color/text_dark"
-        android:textSize="16sp"
         tools:ignore="RelativeOverlap" />
 
-    <android.support.v7.widget.AppCompatSpinner
+    <androidx.appcompat.widget.AppCompatSpinner
         android:id="@+id/spinner_choice"
+        style="@style/Base.Widget.AppCompat.Spinner.Underlined"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/txt_choice_title"
         android:layout_marginBottom="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        style="@style/SpinnerAppTheme" />
+        android:backgroundTint="@color/text_input_color" />
 
     <EditText
         android:id="@+id/edit_text_choice"
+        style="@style/TextInputAppTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/txt_choice_title"
         android:layout_marginBottom="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:gravity="start"
-        android:inputType="number"
-        android:textColor="@android:color/black"
-        style="@style/EditTextAppTheme"/>
+        android:inputType="number" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/text_readonly_choice"
+        style="@style/HeaderText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/txt_choice_title"
+        android:layout_marginBottom="5dp"
+        android:textColor="@color/colorTextLight" />
 
     <LinearLayout
         android:id="@+id/container_check_boxes"
@@ -65,12 +64,5 @@
         <!-- Views added in code -->
 
     </LinearLayout>
-
-    <View
-        android:id="@+id/separator_choice_bottom"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/separator" />
 
 </RelativeLayout>

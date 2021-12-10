@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:paddingLeft="@dimen/page_padding_horizontal"
+    android:paddingRight="@dimen/page_padding_horizontal">
+
+    <ImageView
+        android:id="@+id/timeline_circle"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:src="@drawable/circle"
+        android:tint="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
+
+    <View
+        android:id="@+id/log_item_timeline_top"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="5dp"
+        android:background="@color/colorPrimary"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/timeline_circle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <View
+        android:id="@+id/log_item_timeline_bottom"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="5dp"
+        android:background="@color/colorPrimary"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/timeline_circle"
+        tools:visibility="visible" />
+
+    <androidx.cardview.widget.CardView
+        style="@style/CardView.Default"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        app:cardUseCompatPadding="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/timeline_circle"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="74dp">
+
+            <fi.vincit.androidutilslib.view.WebImageView
+                android:id="@+id/log_item_species_image"
+                android:layout_width="74dp"
+                android:layout_height="0dp"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@drawable/ic_camera"
+                tools:tint="@color/colorPrimary"/>
+
+            <TextView
+                android:id="@+id/log_item_date"
+                style="@style/SecondaryTextBody"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="@dimen/item_spacing_small"
+                app:layout_constraintStart_toEndOf="@id/log_item_species_image"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="12.2.2018   13:32" />
+
+            <TextView
+                android:id="@+id/log_item_species"
+                style="@style/HeaderText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                app:layout_constraintEnd_toStartOf="@id/log_item_upload_image"
+                app:layout_constraintStart_toStartOf="@id/log_item_date"
+                app:layout_constraintTop_toBottomOf="@id/log_item_date"
+                tools:text="Valkohäntäpeura" />
+
+            <TextView
+                android:id="@+id/log_item_description"
+                style="@style/SecondaryTextBody"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="@id/log_item_date"
+                app:layout_constraintTop_toBottomOf="@id/log_item_species"
+                tools:text="Näköhavainto" />
+
+            <ImageView
+                android:id="@+id/log_item_state_image"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginEnd="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:contentDescription="@null"
+                android:src="@drawable/circle"
+                app:layout_constraintBottom_toBottomOf="@id/log_item_state_text"
+                app:layout_constraintStart_toStartOf="@id/log_item_date"
+                app:layout_constraintTop_toTopOf="@id/log_item_state_text" />
+
+            <TextView
+                android:id="@+id/log_item_state_text"
+                style="@style/SecondaryTextBody"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/item_spacing_small"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginBottom="@dimen/item_spacing_small"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/log_item_state_image"
+                app:layout_constraintTop_toBottomOf="@id/log_item_description"
+                tools:text="@string/harvest_permit_accepted" />
+
+            <ImageView
+                android:id="@+id/log_item_upload_image"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_margin="@dimen/item_spacing_normal"
+                android:contentDescription="@null"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_upload"
+                tools:visibility="visible" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/log_item_state_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:constraint_referenced_ids="log_item_state_image, log_item_state_text"
+                tools:visibility="visible" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

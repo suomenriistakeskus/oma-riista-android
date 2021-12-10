@@ -1,114 +1,111 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="@dimen/page_padding_vertical"
-    android:paddingBottom="@dimen/page_padding_vertical"
-    android:orientation="vertical"
-    tools:ignore="RtlHardcoded"
-    >
+    android:paddingTop="@dimen/page_padding_top"
+    tools:ignore="RtlHardcoded">
 
-    <RelativeLayout
+    <TextView
+        android:id="@+id/permit_list_help_text"
+        style="@style/HeaderText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:text="@string/permit_list_help_text"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/permit_list_help_divider"
+        style="@style/HorizontalSeparator"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginTop="@dimen/item_spacing_normal"
         android:layout_marginRight="@dimen/page_padding_horizontal"
         android:layout_marginBottom="@dimen/item_spacing_normal"
-        >
+        app:layout_constraintTop_toBottomOf="@id/permit_list_help_text" />
 
-        <TextView
-            android:id="@+id/permit_list_help_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
-            android:text="@string/permit_list_help_text"
-            />
-
-        <View
-            android:id="@+id/permit_list_help_divider"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_below="@+id/permit_list_help_text"
-            android:layout_marginTop="@dimen/item_spacing_normal"
-            android:layout_marginBottom="@dimen/item_spacing_normal"
-            android:background="@color/light_border_color"
-            />
-
-        <TextView
-            android:id="@+id/permit_list_manual_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/permit_list_help_divider"
-            android:textColor="@android:color/black"
-            android:text="@string/permit_list_input_prompt"
-            />
-
-        <EditText
-            android:id="@+id/permit_list_manual_input"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_below="@+id/permit_list_manual_title"
-            android:layout_toLeftOf="@+id/permit_list_progress_bar"
-            android:inputType="text"
-            android:textSize="16sp"
-            android:textColor="@android:color/black"
-            style="@style/EditTextAppTheme"
-            tools:text="2014-1-400-00281-9"
-            />
-
-        <ProgressBar
-            android:id="@+id/permit_list_progress_bar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/permit_list_manual_button"
-            android:layout_alignBottom="@+id/permit_list_manual_button"
-            android:visibility="gone"
-            tools:visibility="visible"
-            />
-
-        <Button
-            android:id="@+id/permit_list_manual_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignBottom="@id/permit_list_manual_input"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="4dp"
-            android:enabled="false"
-            android:textSize="12sp"
-            android:text="@string/permit_list_button"
-            style="@style/button"
-            />
-
-        <TextView
-            android:id="@+id/permit_list_error_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/permit_list_manual_input"
-            android:layout_marginTop="@dimen/item_spacing_normal"
-            android:visibility="gone"
-            android:textColor="@android:color/black"
-            android:text="@string/permit_list_not_available"
-            />
-    </RelativeLayout>
-
-    <fi.riista.mobile.ui.HeaderTextView
+    <TextView
+        android:id="@+id/permit_list_manual_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/page_padding_horizontal"
         android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:text="@string/permit_list_input_prompt"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/permit_list_help_divider" />
+
+    <androidx.appcompat.widget.AppCompatEditText
+        android:id="@+id/permit_list_manual_input"
+        style="@style/TextInputAppTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:inputType="text"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@id/permit_list_progress_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/permit_list_manual_title"
+        tools:text="2014-1-400-00281-9" />
+
+    <ProgressBar
+        android:id="@+id/permit_list_progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/permit_list_manual_button"
+        app:layout_constraintEnd_toStartOf="@id/permit_list_manual_button"
+        app:layout_constraintStart_toEndOf="@id/permit_list_manual_input"
+        tools:visibility="visible" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/permit_list_manual_button"
+        style="@style/PrimaryButton"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/default_button_height"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:enabled="false"
+        android:text="@string/permit_list_button"
+        app:layout_constraintBottom_toBottomOf="@id/permit_list_manual_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/permit_list_progress_bar" />
+
+    <TextView
+        android:id="@+id/permit_list_error_text"
+        style="@style/HeaderText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
+        android:text="@string/permit_list_not_available"
+        android:textColor="@color/colorWarning"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/permit_list_manual_input"
+        app:layout_goneMarginTop="0dp"
+        tools:visibility="visible" />
+
+    <TextView
+        android:id="@+id/permit_list_list_title"
+        style="@style/HeaderText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/page_padding_horizontal"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:layout_marginRight="@dimen/page_padding_horizontal"
         android:text="@string/permit_list_page_title"
-        />
+        app:layout_constraintTop_toBottomOf="@id/permit_list_error_text" />
 
     <ListView
         android:id="@+id/permit_list_item_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:divider="@drawable/horizontal_divider"
+        android:layout_height="0dp"
+        android:divider="@drawable/line_divider_horizontal_inset"
         android:showDividers="middle|end"
-        tools:listitem="@layout/view_permit_list_item"
-        />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/permit_list_list_title"
+        tools:listitem="@layout/view_permit_list_item" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

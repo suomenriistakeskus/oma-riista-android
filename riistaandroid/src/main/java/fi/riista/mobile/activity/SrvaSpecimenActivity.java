@@ -3,18 +3,23 @@ package fi.riista.mobile.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
 
 import fi.riista.mobile.R;
 import fi.riista.mobile.adapter.SrvaSpecimensAdapter;
 import fi.riista.mobile.database.SpeciesInformation;
+import fi.riista.mobile.models.GameLog;
 import fi.riista.mobile.models.Species;
 import fi.riista.mobile.models.srva.SrvaEvent;
+import fi.riista.mobile.models.srva.SrvaSpecimen;
+import fi.riista.mobile.utils.UiUtils;
 import fi.vincit.androidutilslib.util.ViewAnnotations;
 import fi.vincit.androidutilslib.util.ViewAnnotations.ViewId;
 
-public class SrvaSpecimenActivity extends BaseActivity {
+public class SrvaSpecimenActivity extends BaseActivity implements SrvaSpecimensAdapter.SrvaSpecimensChangedCallback {
 
     public static final String EXTRA_SRVA_EVENT = "extra_srva_event";
     public static final String EXTRA_EDIT_MODE = "extra_edit_mode";
@@ -39,7 +44,7 @@ public class SrvaSpecimenActivity extends BaseActivity {
         mEvent = (SrvaEvent) getIntent().getSerializableExtra(EXTRA_SRVA_EVENT);
         mEditMode = getIntent().getBooleanExtra(EXTRA_EDIT_MODE, false);
 
-        mAdapter = new SrvaSpecimensAdapter(mEvent, mEditMode);
+        mAdapter = new SrvaSpecimensAdapter(mEvent, mEditMode, this);
         mSpeciesListView.setAdapter(mAdapter);
         mAdapter.reset();
 
@@ -58,12 +63,33 @@ public class SrvaSpecimenActivity extends BaseActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (mEditMode) {
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.menu_add, menu);
+        }
+
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
                 onBackPressed();
                 return true;
+            case R.id.item_add:
+                if (mEvent.specimens.size() < GameLog.SPECIMEN_DETAILS_MAX) {
+                    mEvent.specimens.add(new SrvaSpecimen());
+                }
+                mAdapter.reset();
+                updateTitle();
+
+                UiUtils.scrollToListviewBottom(mSpeciesListView);
+
+                return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -74,5 +100,15 @@ public class SrvaSpecimenActivity extends BaseActivity {
         setResult(Activity.RESULT_OK, result);
 
         super.onBackPressed();
+    }
+
+    @Override
+    public void onRemoveSpecimen(int index) {
+        if (mEvent.specimens.size() > 1) {
+            mEvent.specimens.remove(index);
+
+            mAdapter.reset();
+            updateTitle();
+        }
     }
 }

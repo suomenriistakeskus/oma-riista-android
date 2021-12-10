@@ -1,22 +1,22 @@
 package fi.riista.mobile.ui;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.AppCompatSpinner;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.TextWatcher;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.appcompat.widget.AppCompatSpinner;
+import androidx.appcompat.widget.AppCompatTextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,10 +27,10 @@ import fi.riista.mobile.observation.ObservationStrings;
 import fi.riista.mobile.utils.TextValueFilter;
 import fi.riista.mobile.utils.UiUtils;
 
-public class ChoiceView extends LinearLayout {
+public class ChoiceView<T> extends LinearLayout {
 
-    public interface OnChoiceListener {
-        void onChoice(int position, String value);
+    public interface OnChoiceListener<T> {
+        void onChoice(int position, T value);
     }
 
     public interface OnCheckListener {
@@ -41,201 +41,219 @@ public class ChoiceView extends LinearLayout {
         void onText(String text);
     }
 
-    private AppCompatSpinner mSpinner;
-    private AppCompatCheckBox mCheckBox;
-    private EditText mEditText;
-    private LinearLayout mCheckBoxes;
-    private View mBottomSeparator;
-    private boolean mFirstChoice;
-    private HashMap<String, Integer> mLocalizationAliases = new HashMap<String, Integer>();
+    private final TextView mTitle;
+    private final AppCompatSpinner mSpinner;
+    private final AppCompatCheckBox mCheckBox;
+    private final EditText mEditText;
+    private final AppCompatTextView mTextReadonly;
+    private final LinearLayout mCheckBoxes;
 
-    public ChoiceView(Context context, String titleText) {
-        super(context);
+    private final HashMap<String, Integer> mLocalizationAliases = new HashMap<>();
+
+    private boolean mFirstChoice;
+
+    public ChoiceView(final Context context, final AttributeSet attributeSet) {
+        super(context, attributeSet);
 
         LayoutInflater.from(context).inflate(R.layout.view_choice, this);
 
-        ((TextView) findViewById(R.id.txt_choice_title)).setText(titleText);
-        mSpinner = (AppCompatSpinner) findViewById(R.id.spinner_choice);
-        mCheckBox = (AppCompatCheckBox) findViewById(R.id.check_choice);
-        mEditText = (EditText) findViewById(R.id.edit_text_choice);
-        mCheckBoxes = (LinearLayout) findViewById(R.id.container_check_boxes);
-        mBottomSeparator = findViewById(R.id.separator_choice_bottom);
+        mTitle = findViewById(R.id.txt_choice_title);
+        mCheckBox = findViewById(R.id.check_choice);
+        mSpinner = findViewById(R.id.spinner_choice);
+        mEditText = findViewById(R.id.edit_text_choice);
+        mTextReadonly = findViewById(R.id.text_readonly_choice);
+        mCheckBoxes = findViewById(R.id.container_check_boxes);
     }
 
-    public void setChoiceEnabled(boolean enabled) {
+    public ChoiceView(final Context context) {
+        this(context, (AttributeSet) null);
+    }
+
+    public ChoiceView(final Context context, final String titleText) {
+        this(context, (AttributeSet) null);
+        mTitle.setText(titleText);
+        mCheckBox.setText(titleText);
+    }
+
+    public void setTitle(final String title) {
+        mTitle.setText(title);
+    }
+
+    public void setChoiceEnabled(final boolean enabled) {
         mSpinner.setEnabled(enabled);
         mCheckBox.setEnabled(enabled);
         mEditText.setEnabled(enabled);
+
         for (int i = 0; i < mCheckBoxes.getChildCount(); ++i) {
             mCheckBoxes.getChildAt(i).setEnabled(enabled);
         }
     }
 
-    public void setTopMargin(int dip) {
+    public void setTopMargin(final int dip) {
         UiUtils.setTopMargin(this, dip);
     }
 
-    private String localize(String value) {
-        Integer alias = mLocalizationAliases.get(value);
-        if (alias != null) {
-            //Need to remap the localization string
-            value = getContext().getString(alias);
-        }
+    private String localize(final String value) {
+        final Context context = getContext();
+        final Integer alias = mLocalizationAliases.get(value);
 
-        String localized = ObservationStrings.get(getContext(), value);
-        if (localized == null) {
-            localized = value;
-        }
-        return localized;
+        // Need to remap the localization string
+        final String mappedValue = alias != null ? context.getString(alias) : value;
+
+        final String localized = ObservationStrings.get(context, mappedValue);
+
+        return localized != null ? localized : mappedValue;
     }
 
-    public void setChoices(List<String> choices, String selectedChoice, boolean nullable, final OnChoiceListener listener) {
+    public void setChoices(final List<T> choices,
+                           final T selectedChoice,
+                           final boolean nullable,
+                           final OnChoiceListener<T> listener) {
+        setChoices(choices, selectedChoice, nullable, true, listener);
+    }
+
+    public void setChoices(final List<T> choices,
+                           final T selectedChoice,
+                           final boolean nullable,
+                           final boolean localize,
+                           final OnChoiceListener<T> listener) {
+
         mFirstChoice = true;
 
         hideAll();
         mSpinner.setVisibility(View.VISIBLE);
 
-        ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(getContext(),
-                android.R.layout.simple_spinner_item);
+        final ArrayAdapter<CharSequence> adapter =
+                new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        final List<String> choicesCopy = new ArrayList<>(choices);
-        if (nullable) {
-            choicesCopy.add(0, "");
+        final List<T> choicesCopy = new ArrayList<>(choices);
+        if (nullable || selectedChoice == null) {
+            choicesCopy.add(0, null);
         }
 
         int selectedPosition = 0;
-        for (String choice : choicesCopy) {
-            adapter.add(localize(choice));
+        for (final T choice : choicesCopy) {
+            if (choice == null) {
+                adapter.add("");
+            } else {
+                if (localize) {
+                    adapter.add(localize(choice.toString()));
+                } else {
+                    adapter.add(choice.toString());
+                }
+            }
 
-            if (choice.equals(selectedChoice)) {
-                selectedPosition = adapter.getCount() - 1; // -1 For empty first item
+            if ((choice == null && selectedChoice == null) || (choice != null && choice.equals(selectedChoice))) {
+                selectedPosition = adapter.getCount() - 1; // -1 for empty first item
             }
         }
-        mSpinner.setAdapter(adapter);
 
+        mSpinner.setAdapter(adapter);
         mSpinner.setSelection(selectedPosition);
         mSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
             @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemSelected(final AdapterView<?> parent, final View view, final int position, final long id) {
                 if (mFirstChoice) {
                     mFirstChoice = false;
-                    return;
-                }
+                } else {
+                    final T value = choicesCopy.get(position);
+                    final T selected = "".equals(value) ? null : value;
 
-                String selected = choicesCopy.get(position);
-                if (selected.equals("")) {
-                    selected = null;
+                    listener.onChoice(position, selected);
                 }
-                listener.onChoice(position, selected);
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
+            public void onNothingSelected(final AdapterView<?> parent) {
             }
         });
     }
 
-    public void setChecked(boolean checked, final OnCheckListener listener) {
-        hideAll();
+    public void setChecked(final boolean checked, final OnCheckListener listener) {
+        hideAll(true);
+
         mCheckBox.setVisibility(View.VISIBLE);
-
         mCheckBox.setChecked(checked);
-        mCheckBox.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                listener.onCheck(isChecked);
-            }
-        });
+        mCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> listener.onCheck(isChecked));
     }
 
-    public void setEditTextChoice(String text, final OnTextListener listener) {
+    public void setEditTextChoice(final String text, final OnTextListener listener) {
         hideAll();
-        mEditText.setVisibility(View.VISIBLE);
 
-        if (text == null) {
-            text = "";
-        }
-        mEditText.setText(text);
+        mEditText.setVisibility(View.VISIBLE);
+        mEditText.setText(text != null ? text : "");
         mEditText.setSelectAllOnFocus(true);
 
         mEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
             }
 
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
+            public void afterTextChanged(final Editable s) {
                 listener.onText(s.toString());
             }
         });
     }
 
+    public void setTextReadonlyChoice(final String text) {
+        hideAll();
+
+        mTextReadonly.setVisibility(View.VISIBLE);
+        mTextReadonly.setText(text != null ? text : "");
+    }
+
     public void startMultipleChoices() {
         hideAll();
+
         mCheckBoxes.setVisibility(View.VISIBLE);
         mCheckBoxes.removeAllViews();
     }
 
-    public void addMultipleChoice(String text, boolean checked, final OnCheckListener listener) {
-        ColorStateList colorStateList = new ColorStateList(
-                new int[][]{
-                        new int[]{-android.R.attr.state_enabled}, //disabled
-                        new int[]{android.R.attr.state_enabled}, //enabled
-                        new int[]{android.R.attr.state_checked}
-                },
-                new int[]{
-                        R.color.checkbox_disabled_color, //disabled
-                        R.color.checkbox_enabled_color, //enabled
-                        R.color.checkbox_checked_color
-                }
-        );
+    public void addMultipleChoice(final String text, final boolean checked, final OnCheckListener listener) {
+        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final AppCompatCheckBox box = (AppCompatCheckBox) inflater.inflate(R.layout.view_right_checkbox, null);
 
-        AppCompatCheckBox box = new AppCompatCheckBox(getContext());
         box.setChecked(checked);
-        box.setSupportButtonTintList(colorStateList);
         box.setText(localize(text));
-        box.setTextColor(getResources().getColor(R.color.text_dark));
-        box.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                listener.onCheck(isChecked);
-            }
-        });
+        box.setOnCheckedChangeListener((buttonView, isChecked) -> listener.onCheck(isChecked));
+
         mCheckBoxes.addView(box);
     }
 
     private void hideAll() {
+        hideAll(false);
+    }
+
+    private void hideAll(final boolean hideTitle) {
+        mTitle.setVisibility(hideTitle ? GONE : VISIBLE);
         mSpinner.setVisibility(View.GONE);
         mCheckBox.setVisibility(View.GONE);
         mEditText.setVisibility(View.GONE);
         mCheckBoxes.setVisibility(View.GONE);
+        mTextReadonly.setVisibility(View.GONE);
     }
 
-    public void setEditTextMode(int inputType, int lines) {
+    public void setEditTextMode(final int inputType, final int lines) {
         mEditText.setInputType(inputType);
         mEditText.setLines(lines);
         mEditText.setMaxLines(lines);
     }
 
-    public void setEditTextMaxLength(int maxLength) {
+    public void setEditTextMaxLength(final int maxLength) {
         mEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
     }
 
-    public void setEditTextMaxValue(float value) {
+    public void setEditTextMaxValue(final float value) {
         mEditText.setFilters(new InputFilter[]{new TextValueFilter(value)});
     }
 
-    public void setShowBottomSeparator(boolean show) {
-        mBottomSeparator.setVisibility(show ? View.VISIBLE : View.GONE);
-    }
-
-    public void setLocalizationAlias(String value, int stringId) {
+    public void setLocalizationAlias(final String value, final int stringId) {
         mLocalizationAliases.put(value, stringId);
     }
 }

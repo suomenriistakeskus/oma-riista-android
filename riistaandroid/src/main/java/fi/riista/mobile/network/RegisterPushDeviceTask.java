@@ -3,7 +3,7 @@ package fi.riista.mobile.network;
 import java.util.HashMap;
 
 import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.database.GameDatabase;
+import fi.riista.mobile.utils.CookieStoreSingleton;
 import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.task.TextTask;
@@ -16,15 +16,15 @@ public class RegisterPushDeviceTask extends TextTask {
 
         mPushToken = pushToken;
 
-        setCookieStore(GameDatabase.getInstance().getCookieStore());
-        setBaseUrl(AppConfig.BASE_URL + "/push/register");
+        setCookieStore(CookieStoreSingleton.INSTANCE.getCookieStore());
+        setBaseUrl(AppConfig.getBaseUrl() + "/push/register");
         setHttpMethod(HttpMethod.POST);
 
         HashMap<String, Object> object = new HashMap<>();
         object.put("platform", "ANDROID");
         object.put("deviceName", android.os.Build.MODEL);
         object.put("pushToken", pushToken);
-        object.put("clientVersion", Utils.getAppVersionName(workContext.getContext()));
+        object.put("clientVersion", Utils.getAppVersionName());
         setJsonEntity(object);
     }
 

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/page_padding_horizontal"
+    android:paddingTop="@dimen/item_spacing_large"
+    android:paddingRight="@dimen/page_padding_horizontal"
+    android:paddingBottom="0dp"
+    tools:context="fi.riista.mobile.activity.MapAreaListActivity">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/search_input"
+        style="@style/TextInputAppTheme"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/item_spacing_normal"
+        android:layout_marginRight="@dimen/item_spacing_normal"
+        android:drawableStart="@drawable/ic_search_white"
+        android:drawableLeft="@drawable/ic_search_white"
+        android:drawableTint="@color/button_background_color_gray"
+        android:hint="@string/map_area_filter_hint"
+        android:imeOptions="actionDone"
+        android:inputType="text|textNoSuggestions"
+        app:layout_constraintEnd_toStartOf="@id/btn_add_area_map_code"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Area name or number input" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_area_map_code"
+        style="@style/PrimaryButton"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/default_button_height"
+        android:text="@string/map_settings_add_with_area_code"
+        android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@id/search_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/area_map_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_input" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

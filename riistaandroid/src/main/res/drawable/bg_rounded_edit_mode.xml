@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+         Designed for buttons that change their background color from
+         light grey to primary color when activated (disabled -> enabled).
+     -->
+
+    <item android:state_enabled="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorPrimary" />
+            <corners android:radius="@dimen/button_corner_radius" />
+        </shape>
+    </item>
+
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke android:color="@color/colorLightGrey" android:width="@dimen/default_button_border_width" />
+            <corners android:radius="@dimen/button_corner_radius" />
+        </shape>
+    </item>
+</selector>

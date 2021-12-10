@@ -4,16 +4,18 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -23,292 +25,221 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.R;
 import fi.riista.mobile.RiistaApplication;
-import fi.riista.mobile.SpeciesMapping;
-import fi.riista.mobile.database.DiaryDataSource;
-import fi.riista.mobile.database.GameDatabase;
-import fi.riista.mobile.database.LogImageSendCompletion;
-import fi.riista.mobile.database.LogImageUpdate;
-import fi.riista.mobile.database.LogImageUpdateStatus;
-import fi.riista.mobile.models.LogImage;
-import fi.riista.mobile.network.BitmapWorkerTask;
-import fi.riista.mobile.network.LogImageTask;
-import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.task.NetworkTask;
 import fi.vincit.androidutilslib.task.WorkAsyncTask;
-import fi.vincit.androidutilslib.view.WebImageView;
 
 public class Utils {
 
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static final String IMAGE_PATH_FORMAT = "%s/gamediary/image/%s/resize/%dx%dx%d";
-    private static final int IMAGE_SCALING_CROP = 0;
-    private static final int IMAGE_SCALING_KEEP_RATIO = 1;
-
     public static final String LOG_TAG = "RIISTA_LOG:";
 
-    public static final int MOOSE_ID = 47503;
-    public static final int FALLOW_DEER_ID = 47484;
-    public static final int WHITE_TAILED_DEER = 47629;
-    public static final int WILD_FOREST_DEER = 200556;
-    public static final int BEAR_ID = 47348;
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    public static boolean checkPlayServices(Activity activity) {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(activity);
+    public static boolean isPlayServicesAvailable(@NonNull final Activity activity,
+                                                  final boolean finishActivityIfNotUserResolvableError) {
+
+        final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+
+        final int resultCode = apiAvailability.isGooglePlayServicesAvailable(activity);
+
         if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, activity,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
-            } else {
+            if (apiAvailability.isUserResolvableError(resultCode)) {
+                apiAvailability.getErrorDialog(activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST).show();
+            } else if (finishActivityIfNotUserResolvableError) {
                 activity.finish();
             }
             return false;
         }
+
         return true;
     }
 
     public static void unregisterNotificationsAsync() {
-        WorkAsyncTask task = new WorkAsyncTask(RiistaApplication.getInstance().getWorkContext()) {
-            @Override
-            protected void onAsyncRun() throws Exception {
-                //This is a blocking call
-                FirebaseInstanceId.getInstance().deleteInstanceId();
-            }
-        };
-        task.start();
+        FirebaseMessaging.getInstance().deleteToken();
     }
 
-    public static String getAppVersionName(Context context) {
+    @Nullable
+    public static PackageInfo getAppPackageInfo(@NonNull final Context context) {
         try {
             final String packageName = context.getPackageName();
             final PackageManager packageManager = context.getPackageManager();
-            final PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
-
-            return packageInfo.versionName;
-
-        } catch (PackageManager.NameNotFoundException e) {
+            return packageManager.getPackageInfo(packageName, 0);
+        } catch (final PackageManager.NameNotFoundException e) {
             return null;
         }
     }
 
-    public static void hideKeyboard(Context context, View view) {
-        InputMethodManager in = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        if (in != null) {
-            in.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-        }
+    @Nullable
+    public static String getAppVersionName() {
+        final PackageInfo packageInfo = getAppPackageInfo(RiistaApplication.getInstance().getApplicationContext());
+        return packageInfo != null ? packageInfo.versionName : null;
     }
 
-    public static String parseJSONStream(InputStream inputStream) {
-        StringBuilder sb = new StringBuilder();
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 8);
+    public static String parseJSONStream(final InputStream inputStream) {
+        final StringBuilder sb = new StringBuilder();
+
+        try (final BufferedReader reader =
+                     new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8), 8)) {
+
             String line = null;
             while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
+                sb.append(line).append("\n");
             }
             return sb.toString();
-        } catch (Exception e) {
-            Log.e(GameDatabase.class.getSimpleName(), e.getMessage());
+        } catch (final Exception e) {
+            Log.e(LOG_TAG, e.getMessage());
         }
         return null;
     }
 
-    public static Drawable getSpeciesImage(Context context, Integer speciesId) {
-        if (speciesId != null) {
-            int drawableId = SpeciesMapping.species.get(speciesId);
-            if (drawableId > 0) {
-                return context.getResources().getDrawable(drawableId);
-            }
-        }
-        Drawable unknown = context.getResources().getDrawable(R.drawable.ic_no_gender).mutate();
-        unknown.setColorFilter(Color.BLACK, Mode.MULTIPLY);
-        return unknown;
-    }
-
-    /**
-     * Setups image for WebImageView
-     *
-     * @param affix Can be used to use separate cache images
-     */
-    public static void setupImage(WorkContext context, final WebImageView imageView, LogImage logimage, int reqWidth, int reqHeight, String affix) {
-        setupImage(context, imageView, logimage, reqWidth, reqHeight, true, affix);
-    }
-
-    public static void setupImage(WorkContext context, final WebImageView imageView, LogImage logimage, int reqWidth, int reqHeight, boolean keepRatio, String affix) {
-        imageView.setTargetImageSize(reqWidth);
-        imageView.setAnimateFadeIn(true);
-        imageView.setCookieStore(GameDatabase.getInstance().getCookieStore());
-        if (logimage.type == LogImage.ImageType.URI) {
-            BitmapWorkerTask task = new BitmapWorkerTask(context.getContext(), imageView, logimage.uri, reqWidth, reqHeight);
-            task.execute(0);
-        } else {
-            if (affix == null) {
-                imageView.setImageURI(String.format(IMAGE_PATH_FORMAT, AppConfig.BASE_URL, logimage.uuid, reqWidth, reqHeight, keepRatio ? IMAGE_SCALING_KEEP_RATIO : IMAGE_SCALING_CROP));
-            } else {
-                imageView.setImageURI(String.format(IMAGE_PATH_FORMAT, AppConfig.BASE_URL, logimage.uuid, reqWidth, reqHeight, keepRatio ? IMAGE_SCALING_KEEP_RATIO : IMAGE_SCALING_CROP) + "?" + affix);
-            }
-            imageView.setVisibility(View.VISIBLE);
-        }
-    }
-
-    public static boolean isRecentTime(Date date, float minutes) {
-        Calendar calendar = Calendar.getInstance();
-        // Substract some time as sync could be skipped in border cases
-        if (date != null && ((calendar.getTime().getTime() - date.getTime()) / 1000.0f) / 60.0f < minutes - 0.05f) {
-            return true;
-        }
-        return false;
-    }
-
-    public static void sendImages(WorkContext context, int eventId, LogImageUpdate imageUpdate, final LogImageSendCompletion completion) {
-
-        final LogImageUpdateStatus status = new LogImageUpdateStatus();
-        status.totalImageOperations = imageUpdate.deletedImages.size() + imageUpdate.addedImages.size();
-
-        if (status.totalImageOperations == 0 && completion != null) {
-            completion.finish(false);
-            return;
-        }
-
-        if (imageUpdate.deletedImages != null) {
-            for (int i = 0; i < imageUpdate.deletedImages.size(); i++) {
-                LogImageTask task = new LogImageTask(context, LogImageTask.OperationType.DELETE, eventId, imageUpdate.deletedImages.get(i));
-                task.start();
-
-                // The number can be incremented without success status
-                status.imageOperationsDone++;
-                if (status.imageOperationsDone == status.totalImageOperations) {
-                    if (completion != null) completion.finish(status.errors);
-                }
-            }
-        }
-        if (imageUpdate.addedImages != null) {
-            for (int i = 0; i < imageUpdate.addedImages.size(); i++) {
-                LogImageTask task = new LogImageTask(context, LogImageTask.OperationType.ADD, eventId, imageUpdate.addedImages.get(i)) {
-
-                    @Override
-                    protected void onFinishText(String text) {
-                        super.onFinishText(text);
-                        status.imageOperationsDone++;
-                        if (status.imageOperationsDone == status.totalImageOperations) {
-                            if (completion != null) completion.finish(status.errors);
-                        }
-                    }
-
-                    @Override
-                    protected void onError() {
-                        super.onError();
-                        if (getHttpStatusCode() >= 400) {
-                            status.errors = true;
-                        }
-                        status.imageOperationsDone++;
-                        if (status.imageOperationsDone == status.totalImageOperations) {
-                            if (completion != null) completion.finish(status.errors);
-                        }
-                    }
-                };
-                task.start();
-            }
-        }
+    public static boolean isRecentTime(final Date date, final float minutes) {
+        final Calendar calendar = Calendar.getInstance();
+        // Subtract some time as sync could be skipped in border cases.
+        return date != null && ((calendar.getTime().getTime() - date.getTime()) / 1000.0f) / 60.0f < minutes - 0.05f;
     }
 
     public static Locale getLanguage() {
-        Locale language = new Locale(AppPreferences.LANGUAGE_CODE_EN);
-        String locale = Locale.getDefault().getLanguage();
-        List<String> languages = Arrays.asList(AppPreferences.LANGUAGE_CODE_FI, AppPreferences.LANGUAGE_CODE_SV, AppPreferences.LANGUAGE_CODE_EN);
-        if (languages.contains(locale)) {
-            language = new Locale(locale);
-        }
-        return language;
+        final List<String> languages = Arrays.asList(
+                AppPreferences.LANGUAGE_CODE_FI, AppPreferences.LANGUAGE_CODE_SV, AppPreferences.LANGUAGE_CODE_EN);
+        final String locale = Locale.getDefault().getLanguage();
+
+        return languages.contains(locale) ? new Locale(locale) : new Locale(AppPreferences.LANGUAGE_CODE_EN);
     }
 
-    static public Date parseDate(String dateString) {
-        Date date = null;
-        String[] formats = new String[]{DiaryDataSource.ISO_8601, DiaryDataSource.ISO_8601_SHORT};
-        for (String format : formats) {
-            SimpleDateFormat f = new SimpleDateFormat(format);
-            try {
-                date = f.parse(dateString);
-                return date;
-            } catch (ParseException ignored) {
-            }
-        }
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(0, Calendar.JANUARY, 0);
-        return calendar.getTime();
-    }
-
-    public static Integer parseInt(String text) {
+    public static Integer parseInt(final String text) {
         try {
             return Integer.parseInt(text.trim());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LogMessage("Can't parse int from: " + text);
         }
         return null;
     }
 
-    public static Double parseDouble(String text) {
+    public static Double parseDouble(final String text) {
         try {
             return Double.parseDouble(text.trim());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LogMessage("Can't parse double from: " + text);
         }
         return null;
     }
 
-    public static String formatInt(Integer value) {
-        String text = "";
-        if (value != null) {
-            text = value.toString();
-        }
-        return text;
+    public static String formatInt(final Integer value) {
+        return value != null ? value.toString() : "";
     }
 
-    public static String formatDouble(Double value) {
-        String text = "";
-        if (value != null) {
-            text = String.format((Locale) null, "%.2f", value);
-        }
-        return text;
+    public static String formatDouble(final Double value) {
+        return formatDouble(value, 2);
     }
 
-    public static void printTaskInfo(String logTag, NetworkTask task) {
-        if (task != null)
+    public static String formatDouble(final Double value, final int decimals) {
+        return value != null ? String.format((Locale) null, "%." + decimals + "f", value) : "";
+    }
+
+    public static boolean isTrue(@NonNull final LiveData<Boolean> value) {
+        return Boolean.TRUE == value.getValue();
+    }
+
+    public static void printTaskInfo(final String logTag, final NetworkTask task) {
+        if (task != null) {
             System.out.println(logTag + " " + task.getHttpStatusCode());
 
-        if (task != null && task.getCookieStore() != null)
-            System.out.println(task.getCookieStore().toString());
+            if (task.getCookieStore() != null) {
+                System.out.println(task.getCookieStore().toString());
+            }
+        }
     }
 
-    public static void LogMessage(String className, String message) {
+    public static void LogMessage(final String className, final String message) {
         Log.d(LOG_TAG + className, message);
     }
 
-    public static void LogMessage(String message) {
+    public static void LogMessage(final String message) {
         LogMessage("", message);
     }
 
-    public static Object cloneObject(Serializable object) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
+    public static Object cloneObject(final Serializable object) {
+        try (final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             final ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+
             oos.writeObject(object);
 
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            return ois.readObject();
-        } catch (Exception e) {
+            try (final ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                 final ObjectInputStream ois = new ObjectInputStream(bais)) {
+
+                return ois.readObject();
+            }
+        } catch (final Exception e) {
             return null;
         }
+    }
+
+    public static boolean shouldDisplayVersionUpdateDialog(final String versionJson) {
+        try {
+            final JSONObject jsonObject = new JSONObject(versionJson);
+            final String version = jsonObject.getString("android");
+
+            return isGreaterThanCurrentVersion(version);
+        } catch (final JSONException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private static boolean isGreaterThanCurrentVersion(final String versionName) {
+        String currentVersion = getAppVersionName();
+        if (currentVersion == null) {
+            return false;
+        }
+
+        // Remove suffix from debug build versions.
+        final int suffixStart = currentVersion.indexOf("-");
+        if (suffixStart != -1) {
+            currentVersion = currentVersion.substring(0, suffixStart);
+        }
+
+        return versionCompare(versionName, currentVersion) > 0;
+    }
+
+    /**
+     * Compares two version strings.
+     * <p>
+     * Use this instead of String.compareTo() for a non-lexicographical
+     * comparison that works for version strings. e.g. "1.10".compareTo("1.6").
+     *
+     * @note It does not work if "1.10" is supposed to be equal to "1.10.0".
+     *
+     * @param str1 a string of ordinal numbers separated by decimal points.
+     * @param str2 a string of ordinal numbers separated by decimal points.
+     * @return The result is a negative integer if str1 is _numerically_ less than str2.
+     *         The result is a positive integer if str1 is _numerically_ greater than str2.
+     *         The result is zero if the strings are _numerically_ equal.
+     */
+    private static int versionCompare(final String str1, final String str2) {
+        final String[] vals1 = str1.split("\\.");
+        final String[] vals2 = str2.split("\\.");
+
+        int i = 0;
+        // set index to first non-equal ordinal or length of shortest version string
+        while (i < vals1.length && i < vals2.length && vals1[i].equals(vals2[i])) {
+            i++;
+        }
+
+        // compare first non-equal ordinal number
+        if (i < vals1.length && i < vals2.length) {
+            int diff = Integer.valueOf(vals1[i]).compareTo(Integer.valueOf(vals2[i]));
+            return Integer.signum(diff);
+        }
+        // the strings are equal or one string is a substring of the other
+        // e.g. "1.2.3" = "1.2.3" or "1.2.3" < "1.2.3.4"
+        return Integer.signum(vals1.length - vals2.length);
     }
 }

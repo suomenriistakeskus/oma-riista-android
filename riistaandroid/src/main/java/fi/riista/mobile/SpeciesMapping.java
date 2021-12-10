@@ -45,6 +45,7 @@ public class SpeciesMapping {
         species.put(27911, R.drawable.species_27911);
         species.put(33117, R.drawable.species_33117);
         species.put(37122, R.drawable.species_37122);
+        species.put(37142, R.drawable.species_37142);
         species.put(37166, R.drawable.species_37166);
         species.put(37178, R.drawable.species_37178);
         species.put(46542, R.drawable.species_46542);

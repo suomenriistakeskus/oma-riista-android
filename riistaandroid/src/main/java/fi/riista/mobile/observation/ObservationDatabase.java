@@ -1,28 +1,38 @@
 package fi.riista.mobile.observation;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
-import org.joda.time.DateTime;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 
-import fi.riista.mobile.models.GameObservation;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import fi.riista.mobile.models.DeerHuntingType;
 import fi.riista.mobile.models.GeoLocation;
 import fi.riista.mobile.models.LocalImage;
-import fi.riista.mobile.models.ObservationSpecimen;
+import fi.riista.mobile.models.observation.GameObservation;
+import fi.riista.mobile.models.observation.ObservationCategory;
+import fi.riista.mobile.models.observation.ObservationSpecimen;
+import fi.riista.mobile.models.observation.ObservationType;
 import fi.riista.mobile.utils.BaseDatabase;
 import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.JsonUtils;
+import fi.riista.mobile.utils.UserInfoStore;
 import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.database.AsyncCursor;
 import fi.vincit.androidutilslib.database.AsyncDatabase.AsyncQuery;
 import fi.vincit.androidutilslib.database.AsyncDatabase.AsyncWrite;
 
-public class ObservationDatabase extends BaseDatabase<GameObservation> {
+import static java.util.Objects.requireNonNull;
+
+@Singleton
+public class ObservationDatabase extends BaseDatabase {
 
     public interface ObservationsListener {
         void onObservations(List<GameObservation> observations);
@@ -36,27 +46,26 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         void onYears(List<Integer> years);
     }
 
-    private static ObservationDatabase sInstance;
+    private final ObservationDatabaseHelper mDatabaseHelper;
 
-    public static void init(Context context) {
-        ObservationDatabaseHelper.init(context);
+    @Inject
+    public ObservationDatabase(@NonNull final ObservationDatabaseHelper databaseHelper,
+                               @NonNull final UserInfoStore userInfoStore) {
 
-        sInstance = new ObservationDatabase();
+        super(userInfoStore);
+
+        mDatabaseHelper = requireNonNull(databaseHelper);
     }
 
-    public static ObservationDatabase getInstance() {
-        return sInstance;
-    }
-
-    public void loadObservation(long localId, final ObservationListener listener) {
-        ObservationDatabaseHelper.getInstance().query(new AsyncQuery(
+    public void loadObservation(final long localId, @NonNull final ObservationListener listener) {
+        mDatabaseHelper.query(new AsyncQuery(
                 "SELECT * FROM observation WHERE username = ? AND localId = ?",
                 getUsername(), "" + localId) {
 
             private GameObservation mResult;
 
             @Override
-            protected void onAsyncQuery(AsyncCursor cursor) {
+            protected void onAsyncQuery(final AsyncCursor cursor) {
                 if (cursor.moveToNext()) {
                     mResult = cursorToObservation(cursor);
                 }
@@ -74,21 +83,23 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         });
     }
 
-    public void deleteObservation(GameObservation observation, boolean force, DeleteListener listener) {
-        deleteEntry(ObservationDatabaseHelper.getInstance(), "observation",
-                observation.localId, observation.remoteId, force, listener);
+    public void deleteObservation(@NonNull final GameObservation observation,
+                                  final boolean force,
+                                  @NonNull final DeleteListener listener) {
+
+        deleteEntry(mDatabaseHelper, "observation", observation.localId, observation.remoteId, force, listener);
     }
 
-    public void saveObservation(final GameObservation observation, final SaveListener listener) {
+    public void saveObservation(@NonNull final GameObservation observation, @NonNull final SaveListener listener) {
         observation.username = getUsername();
 
         final ContentValues values = observationToContentValues(observation);
 
-        ObservationDatabaseHelper.getInstance().write(new AsyncWrite() {
+        mDatabaseHelper.write(new AsyncWrite() {
             private long localId;
 
             @Override
-            protected void onAsyncWrite(SQLiteDatabase db) {
+            protected void onAsyncWrite(final SQLiteDatabase db) {
                 localId = db.replaceOrThrow("observation", null, values);
             }
 
@@ -104,18 +115,19 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         });
     }
 
-    public void loadObservationYears(final ObservationYearsListener listener) {
-        ObservationDatabaseHelper.getInstance().query(new AsyncQuery(
+    public void loadObservationYears(@NonNull final ObservationYearsListener listener) {
+        mDatabaseHelper.query(new AsyncQuery(
                 "SELECT pointOfTime FROM observation WHERE username = ?", getUsername()) {
 
-            private HashSet<Integer> mYears = new HashSet<>();
+            private final HashSet<Integer> mYears = new HashSet<>();
 
             @Override
-            protected void onAsyncQuery(AsyncCursor cursor) {
+            protected void onAsyncQuery(final AsyncCursor cursor) {
                 while (cursor.moveToNext()) {
-                    String pointOfTime = cursor.getString(0);
-                    DateTime dateTime = DateTimeUtils.parseDate(pointOfTime);
-                    mYears.add(DateTimeUtils.getSeasonStartYearFromDate(dateTime.toCalendar(null)));
+                    final String pointOfTimeStr = cursor.getString(0);
+                    final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr, false);
+
+                    mYears.add(DateTimeUtils.getHuntingYearForCalendar(pointOfTime));
                 }
             }
 
@@ -131,44 +143,45 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         });
     }
 
-    public void loadLatestObservationSpecimens(int amount, ObservationsListener listener) {
+    public void loadLatestObservationSpecimens(final int amount, @NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener,
-                "SELECT * FROM observation WHERE username = ? AND deleted = 0 GROUP BY gameSpeciesCode ORDER BY pointOfTime DESC LIMIT ?",
+                "SELECT * FROM observation WHERE username = ? AND deleted = 0 GROUP BY gameSpeciesCode ORDER BY MAX(datetime(pointOfTime)) DESC LIMIT ?",
                 getUsername(), "" + amount);
     }
 
-    public void loadDeletedRemoteObservations(ObservationsListener listener) {
+    public void loadDeletedRemoteObservations(@NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener, "SELECT * FROM observation WHERE username = ? AND deleted != 0 AND remoteId IS NOT NULL", getUsername());
     }
 
-    public void loadModifiedObservations(ObservationsListener listener) {
+    public void loadModifiedObservations(@NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener, "SELECT * FROM observation WHERE username = ? AND deleted = 0 AND modified != 0", getUsername());
     }
 
-    public void loadAllObservations(ObservationsListener listener) {
+    public void loadAllObservations(@NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener, "SELECT * FROM observation WHERE username = ?", getUsername());
     }
 
-    public void loadObservations(ObservationsListener listener) {
+    public void loadObservations(@NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener, "SELECT * FROM observation WHERE username = ? AND deleted = 0", getUsername());
     }
 
-    public void loadObservationsWithLocalImages(ObservationsListener listener) {
+    public void loadObservationsWithLocalImages(@NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener, "SELECT * FROM observation WHERE username = ? AND deleted = 0 AND LENGTH(localImages) > 5", getUsername());
     }
 
-    public void loadObservationsWithAnyImages(ObservationsListener listener) {
+    public void loadObservationsWithAnyImages(@NonNull final ObservationsListener listener) {
         loadObservationsQuery(listener,
-                "SELECT * FROM observation WHERE username = ? AND deleted = 0 AND LENGTH(localImages) > 5 OR LENGTH(imageIds) > 5",
+                "SELECT * FROM observation WHERE username = ? AND deleted = 0 AND (LENGTH(localImages) > 5 OR LENGTH(imageIds) > 5) ORDER BY pointOfTime DESC",
                 getUsername());
     }
 
-    private void loadObservationsQuery(final ObservationsListener listener, String query, String... args) {
-        ObservationDatabaseHelper.getInstance().query(new AsyncQuery(query, args) {
-            private ArrayList<GameObservation> results = new ArrayList<>();
+    private void loadObservationsQuery(final ObservationsListener listener, final String query, final String... args) {
+        mDatabaseHelper.query(new AsyncQuery(query, args) {
+
+            private final ArrayList<GameObservation> results = new ArrayList<>();
 
             @Override
-            protected void onAsyncQuery(AsyncCursor cursor) {
+            protected void onAsyncQuery(final AsyncCursor cursor) {
                 while (cursor.moveToNext()) {
                     results.add(cursorToObservation(cursor));
                 }
@@ -186,30 +199,60 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         });
     }
 
-    void handleReceivedObservations(final List<GameObservation> observations) {
+    public void handleReceivedObservations(@NonNull final List<GameObservation> observations) {
         final String username = getUsername();
 
-        ObservationDatabaseHelper.getInstance().write(new AsyncWrite() {
+        mDatabaseHelper.write(new AsyncWrite() {
             @Override
-            protected void onAsyncWrite(SQLiteDatabase db) {
-                for (GameObservation observation : observations) {
-                    boolean insert = false;
+            protected void onAsyncWrite(final SQLiteDatabase db) {
+                for (final GameObservation observation : observations) {
+                    boolean insertOrUpdate = false;
 
-                    GameObservation old = findOne(db, "SELECT * FROM observation WHERE remoteId = ?", "" + observation.remoteId);
+                    final GameObservation old = findOne(db, "SELECT * FROM observation WHERE remoteId = ?", "" + observation.remoteId);
                     if (old != null) {
-                        //We have this item locally, compare revisions
+                        // We have this item locally, compare revisions
                         if (observation.rev >= old.rev && !old.deleted) {
-                            //Server version is newer or equal, replace our local, not deleted version with it
+                            // Server version is newer or equal, replace our local, not deleted version with it
+
+                            // User may have local modifications but for some reason sending those
+                            // to the backend failed: changes are sent first, only then are updated
+                            // observations received (yes, we're implicitly depending on knowing
+                            // how observation synchronization is implemented).
+                            //
+                            // The most probable reason for send failure is version conflict i.e.
+                            // user has made local modifications but the version on the server
+                            // has also been updated. When sending local modifications there's
+                            // a version conflict on the backend which causes send to fail.
+                            //
+                            // If this is the case, the local version of the observation has most
+                            // likely been already updated as previous implementation overwrote
+                            // local modifications without questioning. The previous implementation
+                            // also kept local attributes (incl. modified flag) and as a result
+                            // user may have observations with server data and modified flag. This
+                            // is problematic since the observation data received from the backend
+                            // can NOT be sent back to the backend in some cases. This is e.g. the case
+                            // when observation has been made within moose hunting (observationCategory ==
+                            // MOOSE_HUNTING). In this case the backend calculates the totalSpeciesAmount
+                            // which cannot be sent to backend (the amounts are described using
+                            // moose-like fields).
+                            //
+                            // In order to remove errors from backend logs let's just clear
+                            // modified flag from observations:
+                            // - user should not lose any valid local modifications since those are
+                            //   supposedly sent in the previous observation sync phase
+                            // - we're preventing further errors on the backend as client no longer
+                            //   attempts to send those observations (only modified observations are sent).
                             observation.copyLocalAttributes(old);
+                            observation.modified = false;
                             observation.localImages = removeImages(old, observation);
-                            insert = true;
+                            insertOrUpdate = true;
                         }
                     } else {
-                        //New from server
-                        insert = true;
+                        // New from server
+                        insertOrUpdate = true;
                     }
 
-                    if (insert) {
+                    if (insertOrUpdate) {
                         observation.username = username;
                         db.replace("observation", null, observationToContentValues(observation));
                     }
@@ -218,20 +261,22 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         });
     }
 
-    private List<LocalImage> removeImages(GameObservation local, GameObservation remote) {
-        ArrayList<LocalImage> images = new ArrayList<>();
-        for (LocalImage image : local.localImages) {
+    private List<LocalImage> removeImages(final GameObservation local, final GameObservation remote) {
+        final ArrayList<LocalImage> images = new ArrayList<>();
+
+        for (final LocalImage image : local.localImages) {
             if (local.imageIds.contains(image.serverId) && !remote.imageIds.contains(image.serverId)) {
                 Utils.LogMessage("Observation image removed from the server: " + image.serverId);
             } else {
                 images.add(image);
             }
         }
+
         return images;
     }
 
-    private static GameObservation cursorToObservation(AsyncCursor cursor) {
-        GameObservation observation = new GameObservation();
+    private static GameObservation cursorToObservation(@NonNull final AsyncCursor cursor) {
+        final GameObservation observation = new GameObservation();
         observation.localId = cursor.getLong("localId");
         observation.remoteId = cursor.getLong("remoteId");
         observation.rev = cursor.getLong("rev");
@@ -248,8 +293,11 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         observation.gameSpeciesCode = cursor.getInt("gameSpeciesCode");
         observation.description = cursor.getString("description");
         observation.imageIds = JsonUtils.jsonToList(cursor.getString("imageIds"), String.class);
-        observation.observationType = cursor.getString("observationType");
-        observation.withinMooseHunting = cursor.getBool("withinMooseHunting");
+        observation.observationCategory =
+                ObservationCategory.fromString(cursor.getString("observationCategory"));
+        observation.observationType = ObservationType.fromString(cursor.getString("observationType"));
+        observation.deerHuntingType = DeerHuntingType.fromString(cursor.getString("deerHuntingType"));
+        observation.deerHuntingTypeDescription = cursor.getString("deerHuntingTypeDescription");
         observation.specimens = JsonUtils.jsonToList(cursor.getString("specimens"), ObservationSpecimen.class);
         observation.canEdit = cursor.getInt("canEdit", 0) != 0;
         observation.mobileClientRefId = cursor.getLong("mobileClientRefId");
@@ -260,7 +308,15 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         observation.mooselikeFemale2CalfsAmount = cursor.getInt("mooselikeFemale2CalfsAmount");
         observation.mooselikeFemale3CalfsAmount = cursor.getInt("mooselikeFemale3CalfsAmount");
         observation.mooselikeFemale4CalfsAmount = cursor.getInt("mooselikeFemale4CalfsAmount");
+        observation.mooselikeCalfAmount = cursor.getInt("mooselikeCalfAmount");
         observation.mooselikeUnknownSpecimenAmount = cursor.getInt("mooselikeUnknownSpecimenAmount");
+        observation.verifiedByCarnivoreAuthority = cursor.getBool("verifiedByCarnivoreAuthority");
+        observation.observerName = cursor.getString("observerName");
+        observation.observerPhoneNumber = cursor.getString("observerPhoneNumber");
+        observation.officialAdditionalInfo = cursor.getString("officialAdditionalInfo");
+        observation.inYardDistanceToResidence = cursor.getInt("inYardDistanceToResidence");
+        observation.litter = cursor.getBool("litter");
+        observation.pack = cursor.getBool("pack");
         observation.deleted = cursor.getInt("deleted") != 0;
         observation.modified = cursor.getInt("modified") != 0;
         observation.localImages = JsonUtils.jsonToList(cursor.getString("localImages"), LocalImage.class);
@@ -268,8 +324,8 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         return observation;
     }
 
-    private static ContentValues observationToContentValues(GameObservation observation) {
-        ContentValues values = new ContentValues();
+    private static ContentValues observationToContentValues(final GameObservation observation) {
+        final ContentValues values = new ContentValues();
         values.put("localId", observation.localId);
         values.put("remoteId", observation.remoteId);
         values.put("rev", observation.rev);
@@ -284,10 +340,12 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         values.put("pointOfTime", observation.pointOfTime);
         values.put("gameSpeciesCode", observation.gameSpeciesCode);
         values.put("description", observation.description);
-        values.put("imageIds", objectToJson(observation.imageIds));
-        values.put("observationType", observation.observationType);
-        values.put("withinMooseHunting", observation.withinMooseHunting);
-        values.put("specimens", objectToJson(observation.specimens));
+        values.put("imageIds", JsonUtils.objectToJson(observation.imageIds));
+        values.put("observationCategory", ObservationCategory.toString(observation.observationCategory));
+        values.put("observationType", ObservationType.toString(observation.observationType));
+        values.put("deerHuntingType", DeerHuntingType.toString(observation.deerHuntingType));
+        values.put("deerHuntingTypeDescription", observation.deerHuntingTypeDescription);
+        values.put("specimens", JsonUtils.objectToJson(observation.specimens));
         values.put("canEdit", observation.canEdit);
         values.put("mobileClientRefId", observation.mobileClientRefId);
         values.put("totalSpecimenAmount", observation.totalSpecimenAmount);
@@ -297,18 +355,26 @@ public class ObservationDatabase extends BaseDatabase<GameObservation> {
         values.put("mooselikeFemale2CalfsAmount", observation.mooselikeFemale2CalfsAmount);
         values.put("mooselikeFemale3CalfsAmount", observation.mooselikeFemale3CalfsAmount);
         values.put("mooselikeFemale4CalfsAmount", observation.mooselikeFemale4CalfsAmount);
+        values.put("mooselikeCalfAmount", observation.mooselikeCalfAmount);
         values.put("mooselikeUnknownSpecimenAmount", observation.mooselikeUnknownSpecimenAmount);
+        values.put("verifiedByCarnivoreAuthority", observation.verifiedByCarnivoreAuthority);
+        values.put("observerName", observation.observerName);
+        values.put("observerPhoneNumber", observation.observerPhoneNumber);
+        values.put("officialAdditionalInfo", observation.officialAdditionalInfo);
+        values.put("inYardDistanceToResidence", observation.inYardDistanceToResidence);
+        values.put("litter", observation.litter);
+        values.put("pack", observation.pack);
         values.put("deleted", observation.deleted);
         values.put("modified", observation.modified);
-        values.put("localImages", objectToJson(observation.localImages));
+        values.put("localImages", JsonUtils.objectToJson(observation.localImages));
         values.put("username", observation.username);
         return values;
     }
 
-    private static GameObservation findOne(SQLiteDatabase db, String query, String... args) {
+    private static GameObservation findOne(final SQLiteDatabase db, final String query, final String... args) {
         GameObservation result = null;
 
-        AsyncCursor cursor = query(db, query, args);
+        final AsyncCursor cursor = query(db, query, args);
         if (cursor.moveToFirst()) {
             result = cursorToObservation(cursor);
         }

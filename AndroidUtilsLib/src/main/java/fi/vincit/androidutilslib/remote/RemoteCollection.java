@@ -126,7 +126,7 @@ public class RemoteCollection<T extends RemoteObject<T>> implements Collection<T
     private ArrayList<T> mItems = new ArrayList<T>();
     private String mUrl;
     private RemoteCollectionListener<T> mListener;
-    private ArrayList<T> mSyncingObjects;
+    private ArrayList<T> mSyncingObjects; //TODO: HashSet for perf
     private FetchTask mFetchTask;
     
     public RemoteCollection(WorkContext workContext, Class<T> klass)
@@ -208,6 +208,10 @@ public class RemoteCollection<T extends RemoteObject<T>> implements Collection<T
     {
         return mItems.containsAll(items);
     }
+    
+    //TODO equals()
+    
+    //TODO hashCode()
     
     @Override
     public boolean isEmpty()

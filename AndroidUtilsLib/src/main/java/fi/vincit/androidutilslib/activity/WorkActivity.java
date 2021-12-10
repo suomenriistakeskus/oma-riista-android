@@ -15,7 +15,7 @@
  */
 package fi.vincit.androidutilslib.activity;
 
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.context.WorkContextProvider;
 import android.app.Activity;

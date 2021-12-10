@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rl_busy_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="visible"
+
+        tools:visibility="visible"
+        tools:ignore="UselessParent">
+
+        <TextView
+            android:id="@+id/tv_label_text"
+            style="@style/HeaderText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="Label"
+            />
+
+        <TextView
+            android:id="@+id/tv_label_required_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="*"
+            android:textSize="20sp"
+            android:visibility="gone"
+            android:textColor="@color/button_destructive_color"
+            android:paddingStart="@dimen/padding_tiny"
+            android:paddingEnd="@dimen/padding_tiny"
+            app:layout_constraintStart_toEndOf="@id/tv_label_text"
+            app:layout_constraintBaseline_toBaselineOf="@id/tv_label_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            tools:visibility="visible"
+            tools:ignore="HardcodedText" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</merge>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CardView.Default"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardUseCompatPadding="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/button_content"
+            style="@style/HomeViewButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintVertical_weight="0.4"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="parent"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:id="@+id/buttonImage"
+                android:layout_width="@dimen/home_view_icon_size"
+                android:layout_height="0dp"
+                android:layout_weight="0.55"
+                android:gravity="center_horizontal|bottom"
+                android:scaleType="fitEnd"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                app:layout_constraintVertical_weight="0.5"
+                app:tint="@drawable/group_hunting_button_image" />
+
+            <TextView
+                android:id="@+id/buttonText"
+                style="@style/GroupHuntingButtonText"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.45"
+                android:gravity="center_horizontal|top"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                app:layout_constraintVertical_weight="0.5" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/notification"
+            style="@style/GroupHuntingButtonNotification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/hunting_group_horizontal_margin"
+            android:layout_marginEnd="@dimen/hunting_group_vertical_margin"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/rounded_textview"
+            android:gravity="center" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

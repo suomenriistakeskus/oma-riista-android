@@ -18,31 +18,32 @@ package fi.vincit.androidutilslib.network;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.entity.HttpEntityWrapper;
 import fi.vincit.androidutilslib.stream.ProgressOutputStream;
 import fi.vincit.androidutilslib.stream.ProgressStreamListener;
-import fi.vincit.httpclientandroidlib.HttpEntity;
-import fi.vincit.httpclientandroidlib.entity.HttpEntityWrapper;
 
 public class ProgressHttpEntityWrapper extends HttpEntityWrapper {
 
     private ProgressStreamListener mListener;
     
-    public ProgressHttpEntityWrapper(HttpEntity wrapped) {
+    public ProgressHttpEntityWrapper(final HttpEntity wrapped) {
         super(wrapped);
     }
     
-    public void setProgressStreamListener(ProgressStreamListener listener) {
+    public void setProgressStreamListener(final ProgressStreamListener listener) {
         mListener = listener;
     }
     
     @Override
     public void writeTo(OutputStream out) throws IOException {
         if (!(out instanceof ProgressOutputStream) && mListener != null) {
-            ProgressOutputStream stream = new ProgressOutputStream(out);
+            final ProgressOutputStream stream = new ProgressOutputStream(out);
             stream.setProgressStreamListener(mListener);
             
             out = stream;
         }
-        wrappedEntity.writeTo(out);
+
+        super.writeTo(out);
     }
 }

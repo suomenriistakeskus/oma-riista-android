@@ -1,262 +1,269 @@
 package fi.riista.mobile;
 
 import android.app.Activity;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v7.app.AlertDialog;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.FileProvider;
+
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import fi.riista.mobile.models.LogImage;
-import fi.riista.mobile.utils.ImageUtils;
+import fi.riista.mobile.models.GameLogImage;
+import fi.riista.mobile.utils.DiaryImageUtil;
 import fi.riista.mobile.utils.Utils;
-import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.view.WebImageView;
 
+import static java.util.Objects.requireNonNull;
+
 /**
- * Class for handling user image attachments for diary entry creation page
- * The manager can be given list of initial images which have already been added
- * After use, manager can be used to return list of LogImage instances
+ * Class for handling user image attachments for harvest/observation/SRVA-event forms.
+ * The manager can be given list of initial images of which the first one is picked.
+ * After use, manager can be used to return a singleton list containing at most one GameLogImage object.
  */
 public class DiaryImageManager {
 
-    public static final boolean IMAGE_LIMIT_ENABLED = true;
-    public static final int MAX_IMAGES = 1;
+    public interface ImageManagerActivityAPI {
+
+        void viewImage(GameLogImage image);
+
+        boolean hasPhotoPermissions();
+
+        void requestPhotoPermissions();
+    }
+
     public static final int REQUEST_IMAGE_CAPTURE = 1;
     public static final int REQUEST_SELECT_PHOTO = 100;
-    DiaryImageManagerInterface mInterface = null;
-    ViewGroup mContainerView = null;
-    private WorkContext mWorkContext = null;
-    // Store the image to be edited after getting result from intent
-    private DiaryImage mEditImage = null;
-    private Uri mCameraUri = null;
-    private ImageView mAddButton = null;
-    private boolean mEditMode = false;
-    private List<LogImage> mCurrentImages = new ArrayList<>();
-    private List<DiaryImage> mDiaryImages = new ArrayList<>();
 
-    public DiaryImageManager(WorkContext context, DiaryImageManagerInterface result) {
-        mWorkContext = context;
-        mInterface = result;
-        mEditMode = false;
+    private final Context mContext;
+    private final ImageManagerActivityAPI mCallingActivity;
+
+    private ActivityResultLauncher<Intent> mCaptureImageActivityResultLauncher;
+    private ActivityResultLauncher<Intent> mSelectPhotoActivityResultLauncher;
+    private ViewGroup mImageViewContainer = null;
+    private WebImageView mImageView = null;
+
+    private Uri mCameraUri = null;
+
+    private boolean mEditMode = false;
+
+    // Store image after getting it as a result of intent.
+    private GameLogImage mCurrentImage = null;
+
+    public DiaryImageManager(@NonNull final Context context,
+                             @NonNull final ImageManagerActivityAPI callingActivity) {
+
+        mContext = requireNonNull(context);
+        mCallingActivity = requireNonNull(callingActivity);
     }
 
-    public void setItems(List<LogImage> items) {
-        mCurrentImages.clear();
-        mCurrentImages.addAll(items);
+    public void setItems(final List<GameLogImage> items) {
+        mCurrentImage = items == null || items.isEmpty() ? null : items.get(0);
     }
 
     /**
-     * Setups current images to view
+     * Setups current images to view.
      */
-    public void setup(ViewGroup viewgroup) {
-        mContainerView = viewgroup;
-        mDiaryImages.clear();
-        mContainerView.removeAllViews();
-        if (mCurrentImages != null) {
-            for (int i = 0; i < mCurrentImages.size() && i < MAX_IMAGES; i++) {
-                addImage(mCurrentImages.get(i), i);
+    public void setup(
+            final ViewGroup viewgroup,
+            final ActivityResultLauncher<Intent> captureImageActivityResultLauncher,
+            final ActivityResultLauncher<Intent> selectPhotoActivityResultLauncher
+    ) {
+        mCaptureImageActivityResultLauncher = captureImageActivityResultLauncher;
+        mSelectPhotoActivityResultLauncher = selectPhotoActivityResultLauncher;
+        mImageViewContainer = viewgroup;
+        mImageViewContainer.removeAllViews();
+
+        mImageView = new WebImageView(mContext);
+
+        if (mCurrentImage != null) {
+            DiaryImageUtil.changeImage(mContext, mImageView, mCurrentImage);
+        } else {
+            mImageView.setImageDrawable(getImagePlaceholderIcon());
+        }
+
+        prepareImageView(mImageView);
+
+        mImageViewContainer.addView(mImageView);
+    }
+
+    public void handleCaptureImageResult(final int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            Uri newImageUri = null;
+
+            // mCameraUri might be null if hosting activity has died after URI value was set.
+            // TODO Implement state persistence.
+            if (mCameraUri != null) {
+                newImageUri = mCameraUri;
+                DiaryImageUtil.addGalleryPic(mContext, newImageUri);
+                mCameraUri = null;
+                handleNewImage(newImageUri);
             }
         }
-        // add new image indicator
-        addImage(null, 0);
-        boolean isEnabled = mEditMode && (!IMAGE_LIMIT_ENABLED || mCurrentImages.size() < MAX_IMAGES);
-        mAddButton.setVisibility(isEnabled ? View.VISIBLE : View.GONE);
     }
 
-    /**
-     * This function is used to handle onActivityResult callback
-     */
-    public void handleImageResult(int requestCode, int resultCode, Intent data) {
-        Uri newImageUri = null;
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            newImageUri = mCameraUri;
-            addGalleryPic(newImageUri);
-        } else if (requestCode == REQUEST_SELECT_PHOTO && resultCode == Activity.RESULT_OK) {
-            newImageUri = data.getData();
+    public void handleSelectPhotoResult(final int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            Uri newImageUri = data.getData();
+            handleNewImage(newImageUri);
         }
+    }
+
+    private void handleNewImage(Uri newImageUri) {
         if (newImageUri != null) {
-            String uuid = UUID.randomUUID().toString();
+            final String uuid = UUID.randomUUID().toString();
 
             try {
-                newImageUri = copyImageToInternalStorage(newImageUri, uuid);
-            } catch (Exception e) {
+                newImageUri = DiaryImageUtil.copyImageToInternalStorage(mContext, newImageUri, uuid);
+
+                mCurrentImage = new GameLogImage(newImageUri);
+                mCurrentImage.uuid = uuid;
+
+                DiaryImageUtil.changeImage(mContext, mImageView, mCurrentImage);
+
+            } catch (final Exception e) {
                 Utils.LogMessage("Image handling error: " + e.getMessage());
-                return;
             }
-
-            LogImage image = new LogImage(newImageUri);
-            image.uuid = uuid;
-
-            if (!mEditImage.isUserImage) {
-                mCurrentImages.add(image);
-                addImage(null, mCurrentImages.size());
-            } else {
-                mCurrentImages.set(mEditImage.index, image);
-            }
-            changeImage(mEditImage, image);
         }
     }
 
-    private Uri copyImageToInternalStorage(Uri imageUri, String uuid) throws Exception {
-        final int size = ImageUtils.IMAGE_RESIZE;
-        Bitmap image = ImageUtils.getBitmapFromStreamForImageView(mWorkContext.getContext(), imageUri, size, size);
-
-        File path = ImageUtils.getImageFile(mWorkContext.getContext(), uuid);
-        FileOutputStream output = new FileOutputStream(path);
-
-        image.compress(CompressFormat.JPEG, 100, output);
-        image.recycle();
-
-        return Uri.parse(path.getPath());
-    }
-
-    /**
-     * Returns list of LogImage objects
-     */
-    public List<LogImage> getLogImages() {
-        return mCurrentImages;
-    }
-
-    /**
-     * Adds new image to container view
-     *
-     * @param logImage LogImage object, if null, adds new image indicator instead
-     * @param index    Image index
-     */
-    private void addImage(LogImage logImage, int index) {
-        WebImageView imageView = new WebImageView(mWorkContext.getContext());
-        DiaryImage diaryImage = new DiaryImage(imageView);
-        diaryImage.index = index;
-        if (logImage != null) {
-            changeImage(diaryImage, logImage);
+    public void updateItems(final List<GameLogImage> items) {
+        setItems(items);
+        if (mCurrentImage != null) {
+            DiaryImageUtil.changeImage(mContext, mImageView, mCurrentImage);
         } else {
-            mAddButton = imageView;
-            imageView.setImageDrawable(mWorkContext.getContext().getResources().getDrawable(R.drawable.ic_camera));
-            imageView.setBackgroundResource(R.drawable.bg_image_button);
+            mImageView.setImageDrawable(getImagePlaceholderIcon());
         }
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams((int) mWorkContext.getContext().getResources().getDimension(R.dimen.logimage_size),
-                (int) mWorkContext.getContext().getResources().getDimension(R.dimen.logimage_size));
-        imageView.setLayoutParams(layoutParams);
-        imageView.setScaleType(ScaleType.CENTER_CROP);
-        mContainerView.addView(imageView);
-        mDiaryImages.add(diaryImage);
-        setupImageEdit(diaryImage, imageView, index);
     }
 
     /**
-     * Changes diary image using LogImage object
+     * Returns internally stored GameLogImage as a singleton list, if one is present.
      */
-    private void changeImage(DiaryImage diaryImage, LogImage logImage) {
-        int reqWidth = (int) mWorkContext.getContext().getResources().getDimension(R.dimen.user_image_size);
-        int reqHeight = (int) mWorkContext.getContext().getResources().getDimension(R.dimen.user_image_size);
-        Utils.setupImage(mWorkContext, diaryImage.imageView, logImage, reqWidth, reqHeight, false, null);
-        diaryImage.isUserImage = true;
+    public List<GameLogImage> getImages() {
+        final List<GameLogImage> images = new ArrayList<>(1);
+
+        if (mCurrentImage != null) {
+            images.add(mCurrentImage);
+        }
+
+        return images;
     }
 
-    private void setupImageEdit(final DiaryImage image, final WebImageView imageView, final int index) {
-        imageView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mEditMode) {
-                    AlertDialog.Builder popup = new AlertDialog.Builder(mWorkContext.getContext());
-                    CharSequence items[] = {mWorkContext.getContext().getResources().getString(R.string.take_picture),
-                            mWorkContext.getContext().getResources().getString(R.string.pick_gallery)};
-                    popup.setItems(items, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
+    /**
+     * Get placeholder icon to view in case no user-provided image is available.
+     */
+    private Drawable getImagePlaceholderIcon() {
+        final Drawable icon = AppCompatResources.getDrawable(mContext, R.drawable.ic_camera_padded);
+        if (icon != null) {
+            icon.setTintList(AppCompatResources.getColorStateList(mContext, R.color.edit_mode_button_icon_tint));
+        }
+        return icon;
+    }
+
+    private void prepareImageView(final WebImageView imageView) {
+        // Ensuring rounded corners are not overlaid by user selected image.
+        imageView.setBackgroundResource(R.drawable.bg_rounded_backround);
+        imageView.setClipToOutline(true);
+
+        imageView.setLayoutParams(getImageViewLayoutParams(mContext));
+        imageView.setScaleType(ScaleType.CENTER_CROP);
+
+        setupClickListener(imageView);
+    }
+
+    private ViewGroup.LayoutParams getImageViewLayoutParams(final Context context) {
+        final int edgeLen = (int) context.getResources().getDimension(R.dimen.attach_image_button_size);
+        return new LinearLayout.LayoutParams(/* width */edgeLen, /* height */edgeLen);
+    }
+
+    private void setupClickListener(final WebImageView imageView) {
+        imageView.setOnClickListener(v -> {
+            if (mEditMode) {
+                final CharSequence[] items = {
+                        mContext.getString(R.string.take_picture),
+                        mContext.getString(R.string.pick_gallery)
+                };
+
+                new AlertDialog.Builder(mContext)
+                        .setItems(items, (dialog, which) -> {
                             if (which == 0) {
-                                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                if (takePictureIntent.resolveActivity(mWorkContext.getContext().getPackageManager()) != null) {
-                                    File imageFile = null;
-                                    try {
-                                        imageFile = createImageFile();
-                                    } catch (IOException ignored) {
-                                    }
-                                    if (imageFile != null) {
-                                        mCameraUri = Uri.fromFile(imageFile);
-                                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                                Uri.fromFile(imageFile));
-                                        mInterface.startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-                                    }
+                                if (mCallingActivity.hasPhotoPermissions()) {
+                                    takePicture();
+                                } else {
+                                    mCallingActivity.requestPhotoPermissions();
                                 }
                             } else {
-                                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                                photoPickerIntent.setType("image/*");
-                                mInterface.startActivityForResult(photoPickerIntent, REQUEST_SELECT_PHOTO);
+                                selectPhoto();
                             }
-                            mEditImage = image;
-                        }
-                    });
-                    popup.setTitle(mWorkContext.getContext().getResources().getString(R.string.image_prompt));
-                    popup.create().show();
-                } else if (imageView.getId() == mAddButton.getId()) {
-                    mInterface.viewImage(mCurrentImages.get(index).uuid);
-                }
+                        })
+                        .setTitle(mContext.getString(R.string.image_prompt))
+                        .create()
+                        .show();
+
+            } else if (mCurrentImage != null) {
+                mCallingActivity.viewImage(mCurrentImage);
             }
         });
     }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-        return image;
-    }
+    private void takePicture() {
+        // CAMERA permission is required since camera is used elsewhere in app
+        // <quote>
+        // Note: if you app targets M and above and declares as using the Manifest.permission.CAMERA
+        // permission which is not granted, then attempting to use this action will result in a SecurityException.
+        // </quote>
 
-    private void addGalleryPic(Uri uri) {
-        Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-        mediaScanIntent.setData(uri);
-        mWorkContext.getContext().sendBroadcast(mediaScanIntent);
-    }
+        if (mCallingActivity.hasPhotoPermissions()) {
+            final Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-    public void setEditMode(boolean enabled) {
-        mEditMode = enabled;
-        if (mAddButton != null) {
-            boolean addButtonEnabled = mEditMode && (!IMAGE_LIMIT_ENABLED || mCurrentImages.size() < MAX_IMAGES);
-            mAddButton.setVisibility(addButtonEnabled ? View.VISIBLE : View.GONE);
+            if (takePictureIntent.resolveActivity(mContext.getPackageManager()) != null) {
+                File imageFile = null;
+
+                try {
+                    imageFile = DiaryImageUtil.createImageFile(mContext);
+                } catch (final IOException ignored) {
+                }
+
+                if (imageFile != null) {
+                    mCameraUri = Uri.fromFile(imageFile);
+
+                    final Context appContext = mContext.getApplicationContext();
+                    final Uri cameraUri = FileProvider.getUriForFile(
+                            appContext, appContext.getPackageName() + ".provider", imageFile);
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraUri);
+                    mCaptureImageActivityResultLauncher.launch(takePictureIntent);
+                }
+            }
         }
     }
 
-    public interface DiaryImageManagerInterface {
-        void startActivityForResult(Intent intent, int requestCode);
-
-        void viewImage(String uuid);
+    private void selectPhoto() {
+        final Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("image/*");
+        mSelectPhotoActivityResultLauncher.launch(photoPickerIntent);
     }
 
-    // Visual object
-    private class DiaryImage {
-        int index = 0;
-        boolean isUserImage = false;
-        WebImageView imageView = null;
+    public void setEditMode(final boolean editModeOn) {
+        mEditMode = editModeOn;
 
-        DiaryImage(WebImageView view) {
-            imageView = view;
+        if (mImageView != null) {
+            final boolean enabled = mEditMode || mCurrentImage != null;
+
+            mImageViewContainer.setEnabled(enabled);
+            mImageView.setEnabled(enabled);
         }
     }
 }

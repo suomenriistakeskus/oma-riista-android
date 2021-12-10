@@ -15,35 +15,29 @@
  */
 package fi.vincit.androidutilslib.context;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
+import android.app.Activity;
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import fi.vincit.androidutilslib.message.OnAppExitMessage;
 import fi.vincit.androidutilslib.message.OnPauseMessage;
 import fi.vincit.androidutilslib.message.OnResumeMessage;
 import fi.vincit.androidutilslib.message.WorkMessageHandler;
 import fi.vincit.androidutilslib.task.WorkAsyncTask;
 import fi.vincit.androidutilslib.util.WorkTimer;
-
-import android.app.Activity;
-import android.app.Application;
-import android.app.Service;
-import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.view.Window;
 
 /**
  * WorkContext is used to control the lifetime and state of different resources
@@ -267,8 +261,8 @@ public class WorkContext
                 View decor = win.getDecorView();
                 enumViewsOnCallback(decor, event);
             }
-            if (activity instanceof ActionBarActivity) {
-                ActionBarActivity barActivity = (ActionBarActivity)activity;
+            if (activity instanceof AppCompatActivity) {
+                AppCompatActivity barActivity = (AppCompatActivity)activity;
                 
                 FragmentManager manager = barActivity.getSupportFragmentManager();
                 if (manager != null) {
@@ -317,29 +311,32 @@ public class WorkContext
         
         boolean foundListeners = false;
         Class<?> eventClass = event.getClass();
-        
-        for (Method m : obj.getClass().getDeclaredMethods()) {
-            WorkMessageHandler listenerAnnotation = m.getAnnotation(WorkMessageHandler.class);
-            if (listenerAnnotation != null) {
-                foundListeners = true;
-                
-                for (Class<?> type : listenerAnnotation.value()) {
-                    if (eventClass.equals(type)) {
-                        //This method is a matching listener.
-                        if (!m.isAccessible()) {
-                            m.setAccessible(true);
+
+        try {
+            for (Method m : obj.getClass().getDeclaredMethods()) {
+                WorkMessageHandler listenerAnnotation = m.getAnnotation(WorkMessageHandler.class);
+                if (listenerAnnotation != null) {
+                    foundListeners = true;
+
+                    for (Class<?> type : listenerAnnotation.value()) {
+                        if (eventClass.equals(type)) {
+                            //This method is a matching listener.
+                            if (!m.isAccessible()) {
+                                m.setAccessible(true);
+                            }
+
+                            try {
+                                m.invoke(obj, event);
+                                break;
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                        
-                        try {
-                            m.invoke(obj, event);
-                            break;
-                        } 
-                        catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }   
+                    }
                 }
             }
+        } catch (NoClassDefFoundError error) {
+            Log.e("RIISTA_LOG", "callIfMatches: " + obj.getClass(), error);
         }
         
         if (hasEvents == null) {

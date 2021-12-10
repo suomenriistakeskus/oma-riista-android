@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_medium"
+    android:background="@color/colorPrimary"
+    >
+
+    <TextView
+        android:id="@+id/tv_suggested_day_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:singleLine="false"
+        android:textColor="@color/onPrimary"
+        android:gravity="center"
+        tools:text="@string/group_hunting_suggested_hunting_day"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_add_hunting_day"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:textColor="@color/onPrimary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/group_hunting_add_hunting_day"
+        app:iconTint="@color/onPrimary"
+        app:icon="@drawable/ic_add"
+        app:iconGravity="start"
+        />
+
+</LinearLayout>

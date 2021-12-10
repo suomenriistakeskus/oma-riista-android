@@ -14,8 +14,6 @@ public class ChooseSpeciesActivity extends BaseActivity {
 
     public static final String RESULT_SPECIES = "result_species";
 
-    public static final int SPECIES_REQUEST_CODE = 20;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/attempt_type"
+        style="@style/shooting_test_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Metsäkauris" />
+
+    <TextView
+        android:id="@+id/attempt_result_title"
+        style="@style/shooting_test_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:text="@string/shooting_test_attempt_result_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/attempt_type" />
+
+    <TextView
+        android:id="@+id/attempt_result"
+        style="@style/shooting_test_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/attempt_result_title"
+        app:layout_constraintTop_toBottomOf="@id/attempt_type"
+        tools:text="Hylätty" />
+
+    <TextView
+        android:id="@+id/attempt_hits_title"
+        style="@style/shooting_test_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:paddingBottom="10dp"
+        android:text="@string/shooting_test_attempt_hits_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/attempt_result" />
+
+    <TextView
+        android:id="@+id/attempt_hits"
+        style="@style/shooting_test_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:paddingBottom="10dp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/attempt_hits_title"
+        app:layout_constraintTop_toBottomOf="@id/attempt_result"
+        tools:text="2" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/edit_button"
+        style="@style/button_secondary_style"
+        android:layout_width="@dimen/square_image_button_dimen"
+        android:layout_height="@dimen/square_image_button_dimen"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:padding="4dp"
+        android:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/delete_button"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_edit" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/delete_button"
+        style="@style/button_destructive_style"
+        android:layout_width="@dimen/square_image_button_dimen"
+        android:layout_height="@dimen/square_image_button_dimen"
+        android:layout_marginEnd="10dp"
+        android:layout_marginRight="10dp"
+        android:padding="4dp"
+        android:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_delete" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

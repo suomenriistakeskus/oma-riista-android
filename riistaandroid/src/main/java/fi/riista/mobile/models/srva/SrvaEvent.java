@@ -10,18 +10,17 @@ import org.joda.time.DateTime;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.database.GameDatabase;
+import fi.riista.mobile.models.GameLog;
+import fi.riista.mobile.models.GameLogImage;
 import fi.riista.mobile.models.GeoLocation;
 import fi.riista.mobile.models.LocalImage;
-import fi.riista.mobile.models.LogEventBase;
-import fi.riista.mobile.models.LogImage;
+import fi.riista.mobile.utils.ConstantsKt;
 import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.ModelUtils;
 
-public class SrvaEvent extends LogEventBase implements Serializable {
+public class SrvaEvent implements Serializable {
 
     public static final String STATE_UNFINISHED = "UNFINISHED";
     public static final String STATE_APPROVED = "APPROVED";
@@ -120,13 +119,12 @@ public class SrvaEvent extends LogEventBase implements Serializable {
     @JsonIgnore
     public String username;
 
-
     public DateTime toDateTime() {
-        return DateTimeUtils.parseDate(pointOfTime);
+        return DateTimeUtils.parseDateTime(pointOfTime, false);
     }
 
     public void setPointOfTime(DateTime dateTime) {
-        pointOfTime = dateTime.toString(AppConfig.SERVER_DATE_FORMAT);
+        pointOfTime = dateTime.toString(ConstantsKt.ISO_8601);
     }
 
     public Location toLocation() {
@@ -136,15 +134,15 @@ public class SrvaEvent extends LogEventBase implements Serializable {
         return null;
     }
 
-    public List<LogImage> getAllImages() {
-        return ModelUtils.combineImages(localId, imageIds, localImages);
+    public List<GameLogImage> getImages() {
+        return ModelUtils.combineImages(imageIds, localImages);
     }
 
-    public void setLocalImages(List<LogImage> images) {
+    public void setLocalImages(List<GameLogImage> images) {
         localImages.clear();
 
-        for (LogImage image : images) {
-            localImages.add(LocalImage.fromLogImage(image));
+        for (GameLogImage image : images) {
+            localImages.add(LocalImage.fromGameLogImage(image));
         }
     }
 
@@ -159,9 +157,9 @@ public class SrvaEvent extends LogEventBase implements Serializable {
     public static SrvaEvent createNew() {
         SrvaEvent event = new SrvaEvent();
         event.setPointOfTime(DateTime.now());
-        event.type = TYPE_SRVA;
+        event.type = GameLog.TYPE_SRVA;
         event.srvaEventSpecVersion = AppConfig.SRVA_SPEC_VERSION;
-        event.mobileClientRefId = GameDatabase.generateMobileRefId(new Random());
+        event.mobileClientRefId = GameLog.generateMobileRefId();
         event.state = STATE_UNFINISHED;
         event.canEdit = true;
         event.modified = true;

@@ -1,27 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/item_spacing_small"
-    >
+    android:layout_marginTop="@dimen/item_spacing_normal"
+    android:layout_marginBottom="@dimen/item_spacing_normal">
 
     <TextView
-        android:id="@+id/occupation_description"
+        android:id="@+id/occupation_type"
+        style="@style/PrimaryTextBody.Bold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:textColor="@android:color/black"
-        tools:text="RHY name in finnish or swedish\nOccupation or role description\nbegin date - end date"
-        />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Occupation or role description" />
 
-    <View
-        android:id="@+id/occupation_separator"
+    <TextView
+        android:id="@+id/occupation_rhy"
+        style="@style/PrimaryTextBody"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/light_border_color"
-        android:layout_below="@+id/occupation_description"
-        />
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/occupation_type"
+        tools:text="RHY name in finnish or swedish" />
 
-</RelativeLayout>
+    <TextView
+        android:id="@+id/occupation_duration"
+        style="@style/PrimaryTextBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/occupation_rhy"
+        tools:text="begin date - end date" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

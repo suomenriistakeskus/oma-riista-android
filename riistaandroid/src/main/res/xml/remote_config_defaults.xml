@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+    <entry>
+        <key>riista_sdk_remote_settings</key>
+        <value></value>
+    </entry>
+    <entry>
+        <key>harvest_season_overrides</key>
+        <value>[]</value>
+    </entry>
+</defaultsMap>

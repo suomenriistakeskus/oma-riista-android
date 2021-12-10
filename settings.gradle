@@ -1,2 +1,3 @@
-include ':androidUtilsLib'
+include ':AndroidUtilsLib'
 include ':riistaandroid'
+include ':mobile-common-lib'

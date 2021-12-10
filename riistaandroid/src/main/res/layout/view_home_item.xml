@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/CardView.Default"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    app:cardUseCompatPadding="true"
+    tools:context=".activity.MainActivity">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:id="@+id/home_view_main_item"
+            style="@style/HomeViewButton"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintVertical_weight="0.4"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/home_view_subitem_1"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:id="@+id/home_view_main_item_image"
+                android:layout_width="@dimen/home_view_icon_size"
+                android:layout_height="0dp"
+                android:layout_weight="0.55"
+                android:gravity="center_horizontal|bottom"
+                android:scaleType="fitEnd"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                app:layout_constraintVertical_weight="0.5"
+                app:tint="@color/colorPrimary"
+                tools:src="@drawable/ic_placeholder" />
+
+            <TextView
+                android:id="@+id/home_view_main_item_text"
+                style="@style/HomeViewMainButtonText"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.45"
+                android:gravity="center_horizontal|top"
+                android:layout_marginTop="4dp"
+                app:layout_constraintVertical_weight="0.5"
+                tools:text="Uusi saalis" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/home_view_subitem_1"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintVertical_weight="0.2"
+            app:layout_constraintTop_toBottomOf="@id/home_view_main_item"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/home_view_subitem_2">
+
+            <View
+                android:id="@+id/home_view_subitem_1_separator"
+                style="@style/HorizontalSeparator"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="0dp"
+                android:layout_marginEnd="0dp" />
+
+            <TextView
+                android:id="@+id/home_view_subitem_1_button"
+                style="@style/HomeViewSubitemText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:text="Valkohäntäpeura" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/home_view_subitem_2"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:layout_constraintVertical_weight="0.2"
+            app:layout_constraintTop_toBottomOf="@id/home_view_subitem_1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <View
+                android:id="@+id/home_view_subitem_2_separator"
+                style="@style/HorizontalSeparator"
+                android:layout_width="match_parent"
+                android:layout_marginStart="0dp"
+                android:layout_marginEnd="0dp" />
+
+            <TextView
+                android:id="@+id/home_view_subitem_2_button"
+                style="@style/HomeViewSubitemText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:text="Metsäjänis" />
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

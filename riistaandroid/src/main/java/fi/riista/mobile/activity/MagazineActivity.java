@@ -7,6 +7,8 @@ import android.view.KeyEvent;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import fi.riista.mobile.R;
+
 public class MagazineActivity extends BaseActivity {
     static final String EXTRA_URL = "extra_url";
 
@@ -36,6 +38,7 @@ public class MagazineActivity extends BaseActivity {
             }
         });
 
+        setTitle(R.string.menu_show_magazine);
         this.setContentView(mWebView);
     }
 

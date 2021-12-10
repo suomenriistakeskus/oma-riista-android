@@ -1,0 +1,255 @@
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="fi.riista.mobile.pages.MyDetailsLicenseFragment">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/ToolbarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back_white"
+        app:title="@string/my_details_title_hunting_license" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="@dimen/page_padding_horizontal"
+            android:paddingTop="@dimen/page_padding_top"
+            android:paddingRight="@dimen/page_padding_horizontal">
+
+            <TextView
+                android:id="@+id/my_details_name"
+                style="@style/PrimaryTextBody"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/my_details_name"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/my_details_name_value" />
+
+            <TextView
+                android:id="@+id/my_details_name_value"
+                style="@style/PrimaryTextBody.Bold"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/my_details_name"
+                app:layout_constraintWidth_percent="0.55"
+                tools:text="Pentti Mujunen" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/my_details_name_barrier"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="my_details_name, my_details_name_value" />
+
+            <TextView
+                android:id="@+id/my_details_no_valid_license"
+                style="@style/PrimaryTextBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_spacing_normal"
+                android:text="@string/my_details_no_valid_license"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/my_details_name_barrier"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/my_details_hunting_ban"
+                style="@style/PrimaryTextBody"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_spacing_normal"
+                android:text="@string/my_details_hunting_ban"
+                android:visibility="gone"
+                android:ellipsize="end"
+                android:maxLines="2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/my_details_no_valid_license"
+                app:layout_constraintEnd_toStartOf="@id/my_details_hunting_ban_value"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/my_details_hunting_ban_value"
+                style="@style/PrimaryTextBody.Bold"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/my_details_hunting_ban"
+                app:layout_constraintWidth_percent="0.55"
+                tools:text="1.1.2001 - 31.12.2014" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/my_details_hunting_ban_barrier"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="my_details_hunting_ban, my_details_hunting_ban_value" />
+
+            <TextView
+                android:id="@+id/my_details_hunter_id"
+                style="@style/PrimaryTextBody"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_spacing_normal"
+                android:text="@string/my_details_hunter_id"
+                android:ellipsize="end"
+                android:maxLines="2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/my_details_hunting_ban_barrier"
+                app:layout_constraintEnd_toStartOf="@id/my_details_hunter_id_value"/>
+
+            <TextView
+                android:id="@+id/my_details_hunter_id_value"
+                style="@style/PrimaryTextBody.Bold"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/my_details_hunter_id"
+                app:layout_constraintWidth_percent="0.55"
+                tools:text="00000000" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/my_details_hunter_id_barrier"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="my_details_hunter_id, my_details_hunter_id_value" />
+
+            <TextView
+                android:id="@+id/my_details_payment"
+                style="@style/PrimaryTextBody"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_spacing_normal"
+                android:text="@string/my_details_payment"
+                android:ellipsize="end"
+                android:maxLines="2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/my_details_hunter_id_barrier"
+                app:layout_constraintEnd_toStartOf="@id/my_details_payment_value"/>
+
+            <TextView
+                android:id="@+id/my_details_payment_value"
+                style="@style/PrimaryTextBody.Bold"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/my_details_payment"
+                app:layout_constraintWidth_percent="0.55"
+                tools:text="Maksettu\n1.1.2001 - 31.12.2014" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/my_details_payment_barrier"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="my_details_payment, my_details_payment_value" />
+
+            <TextView
+                android:id="@+id/my_details_membership"
+                style="@style/PrimaryTextBody"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_spacing_normal"
+                android:text="@string/my_details_membership"
+                android:ellipsize="end"
+                android:maxLines="2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/my_details_payment_barrier"
+                app:layout_constraintEnd_toStartOf="@id/my_details_membership_value"/>
+
+            <TextView
+                android:id="@+id/my_details_membership_value"
+                style="@style/PrimaryTextBody.Bold"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/my_details_membership"
+                app:layout_constraintWidth_percent="0.55"
+                tools:text="Esimerkkiseura (000)" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/my_details_membership_barrier"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:orientation="horizontal"
+                app:barrierDirection="bottom"
+                app:constraint_referenced_ids="my_details_membership, my_details_membership_value" />
+
+            <TextView
+                android:id="@+id/my_details_insurance_policy"
+                style="@style/PrimaryTextBody"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_spacing_large"
+                android:gravity="center"
+                android:text="@string/my_details_insurance_policy_text"
+                android:visibility="gone"
+                app:layout_constraintEnd_toStartOf="@+id/my_details_qr_code_image"
+                app:layout_constraintStart_toStartOf="@+id/my_details_qr_code_image"
+                app:layout_constraintTop_toBottomOf="@id/my_details_membership_barrier"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/my_details_qr_code_image"
+                android:layout_width="240dp"
+                android:layout_height="240dp"
+                android:layout_marginBottom="@dimen/item_spacing_normal"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/my_details_insurance_policy"
+                tools:src="@drawable/ic_placeholder" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/my_details_name_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="my_details_name, my_details_name_value" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/my_details_hunting_ban_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="my_details_hunting_ban, my_details_hunting_ban_value" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/my_details_hunter_id_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="my_details_hunter_id, my_details_hunter_id_value" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/my_details_payment_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="my_details_payment, my_details_payment_value" />
+
+            <androidx.constraintlayout.widget.Group
+                android:id="@+id/my_details_membership_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="my_details_membership, my_details_membership_value" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

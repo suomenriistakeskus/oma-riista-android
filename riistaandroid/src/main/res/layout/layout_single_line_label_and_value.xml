@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    >
+
+    <TextView
+        android:id="@+id/tv_label"
+        style="@style/GroupHuntingText14.Bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/item_spacing_normal"
+        android:textAllCaps="true"
+        tools:text="Tässä on otsikko"
+        tools:visibility="visible"
+        />
+
+    <TextView
+        android:id="@+id/tv_value"
+        style="@style/GroupHuntingText14.Normal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:textStyle="normal"
+        android:gravity="end"
+        tools:text="Tähän tulee sitten arvo, joka voi olla pitkä"
+        />
+
+    <androidx.constraintlayout.helper.widget.Flow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:constraint_referenced_ids="tv_label,tv_value"
+        app:flow_horizontalBias="0.0"
+        app:flow_horizontalStyle="spread_inside"
+        app:flow_verticalStyle="packed"
+        app:flow_verticalGap="@dimen/item_spacing_small"
+        app:flow_wrapMode="chain"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

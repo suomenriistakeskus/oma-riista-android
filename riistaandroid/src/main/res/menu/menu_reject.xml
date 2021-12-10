@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/item_reject_harvest"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/group_hunting_reject_proposed_harvest"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/item_reject_observation"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/group_hunting_reject_proposed_observation"
+        app:showAsAction="never" />
+</menu>

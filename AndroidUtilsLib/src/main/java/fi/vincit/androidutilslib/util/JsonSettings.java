@@ -15,15 +15,16 @@
  */
 package fi.vincit.androidutilslib.util;
 
-import java.io.File;
-import java.io.IOException;
-import org.apache.commons.io.FileUtils;
+import android.content.Context;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import android.content.Context;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Helper class for storing persistent settings to disk in a JSON form.
@@ -42,8 +43,9 @@ public class JsonSettings<T> {
         public T value;
     }
     
-    private ObjectMapper mMapper = JsonSerializator.createDefaultMapper();
-    private File mSettingsFile;
+    private final ObjectMapper mMapper;
+    private final File mSettingsFile;
+
     private SettingsData<T> mData;
     
     /**
@@ -51,10 +53,11 @@ public class JsonSettings<T> {
      * be a valid file name. The default value will be used to initialize settings
      * if this is the first time settings is created or if loading from the file fails.
      */
-    public JsonSettings(Context context, String name, T defaultValue) {
+    public JsonSettings(Context context, final ObjectMapper mapper, String name, T defaultValue) {
         if (defaultValue == null) {
             throw new RuntimeException("JsonSettings default value must not be null");
         }
+        mMapper = mapper;
         mSettingsFile = new File(new File(context.getApplicationContext().getFilesDir(), SETTINGS_DIRECTORY), name);
         
         mData = newData(defaultValue, 1);

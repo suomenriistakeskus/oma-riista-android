@@ -1,231 +1,85 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.MainActivity">
+    android:paddingTop="6dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="6dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    <fi.riista.mobile.ui.HomeButtonView
+        android:id="@+id/home_harvest_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="2dp"
+        app:layout_constraintHorizontal_weight="0.5"
+        app:layout_constraintTop_toTopOf="@id/home_observation_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/home_observation_view"
+        app:layout_constraintBottom_toBottomOf="@id/home_observation_view"
+        app:mainButtonSrc="@drawable/ic_harvest"
+        app:mainButtonText="@string/home_new_harvest"
+        tools:subitem1Text="Alli"
+        tools:subitem2Text="Valkohäntäpeura" />
 
-        <LinearLayout
-            android:id="@+id/layout_quick_game"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:orientation="vertical"
-            android:paddingBottom="20dp"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:paddingTop="20dp">
+    <fi.riista.mobile.ui.HomeButtonView
+        android:id="@+id/home_observation_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="2dp"
+        app:layout_constraintHorizontal_weight="0.5"
+        app:layout_constraintVertical_weight="0.5"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/home_harvest_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/home_my_details_view"
+        app:mainButtonSrc="@drawable/ic_observation"
+        app:mainButtonText="@string/home_new_observation"
+        tools:subitem1Text="White-tailed deer"
+        tools:subitem2Text="Red-breasted merganser" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_marginBottom="10dp"
-                android:padding="0dp">
+    <fi.riista.mobile.ui.HomeButtonView
+        android:id="@+id/home_srva_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_weight="0.25"
+        app:layout_constraintTop_toBottomOf="@id/home_harvest_view"
+        app:layout_constraintStart_toStartOf="@id/home_harvest_view"
+        app:layout_constraintEnd_toEndOf="@id/home_harvest_view"
+        app:layout_constraintBottom_toTopOf="@id/home_map_view"
+        app:mainButtonSrc="@drawable/ic_srva"
+        app:mainButtonText="@string/home_new_srva"
+        app:subitem1Visibility="gone"
+        app:subitem2Visibility="gone" />
 
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+    <fi.riista.mobile.ui.HomeButtonView
+        android:id="@+id/home_map_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_weight="0.25"
+        app:layout_constraintTop_toBottomOf="@id/home_srva_view"
+        app:layout_constraintStart_toStartOf="@id/home_harvest_view"
+        app:layout_constraintEnd_toEndOf="@id/home_harvest_view"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:mainButtonSrc="@drawable/ic_map"
+        app:mainButtonText="@string/menu_map"
+        app:subitem1Visibility="gone"
+        app:subitem2Visibility="gone" />
 
-                    <Button
-                        android:id="@+id/loggame"
-                        style="@style/button"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
+    <fi.riista.mobile.ui.HomeButtonView
+        android:id="@+id/home_my_details_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintVertical_weight="0.5"
+        app:layout_constraintTop_toBottomOf="@id/home_observation_view"
+        app:layout_constraintStart_toStartOf="@id/home_observation_view"
+        app:layout_constraintEnd_toEndOf="@id/home_observation_view"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:mainButtonSrc="@drawable/ic_person"
+        app:mainButtonText="@string/title_my_details"
+        app:subitem1Text="@string/home_hunting_license"
+        app:subitem2Text="@string/home_shooting_tests" />
 
-                </FrameLayout>
-
-                <TextView
-                    style="@style/buttontext"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:layout_gravity="center"
-                    android:drawableLeft="@drawable/ic_button_saalis"
-                    android:drawablePadding="10dp"
-                    android:gravity="center"
-                    android:text="@string/loggame" />
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <Button
-                    android:id="@+id/quickbutton1"
-                    style="@style/button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:maxLines="2" />
-
-                <Button
-                    android:id="@+id/quickbutton2"
-                    style="@style/button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:maxLines="2" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:id="@+id/layout_quick_observation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:orientation="vertical"
-            android:paddingBottom="20dp"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:paddingTop="20dp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_marginBottom="10dp"
-                android:padding="0dp">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <Button
-                        android:id="@+id/logobservation"
-                        style="@style/button"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-
-                </FrameLayout>
-
-                <TextView
-                    style="@style/buttontext"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:layout_gravity="center"
-                    android:drawableLeft="@drawable/ic_spot"
-                    android:drawablePadding="10dp"
-                    android:gravity="center"
-                    android:text="@string/logobservation" />
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <Button
-                    android:id="@id/quickbutton1"
-                    style="@style/button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:maxLines="2" />
-
-                <Button
-                    android:id="@id/quickbutton2"
-                    style="@style/button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:maxLines="2" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layout_quick_srva"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:orientation="vertical"
-            android:paddingBottom="20dp"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:paddingTop="20dp">
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:layout_marginBottom="10dp"
-                android:padding="0dp">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <Button
-                        android:id="@+id/logsrva"
-                        style="@style/button"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-
-                </FrameLayout>
-
-                <TextView
-                    style="@style/buttontext"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:layout_gravity="center"
-                    android:drawableLeft="@drawable/ic_srva_white"
-                    android:drawablePadding="10dp"
-                    android:gravity="center"
-                    android:text="@string/logsrva" />
-
-            </RelativeLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:orientation="horizontal"
-                android:weightSum="2">
-
-                <Button
-                    android:id="@+id/srvaquickbutton1"
-                    style="@style/button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginRight="10dp"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:gravity="center"
-                    android:maxLines="2" />
-
-                <Button
-                    android:id="@+id/srvaquickbutton2"
-                    style="@style/button"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:maxLines="2" />
-
-            </LinearLayout>
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

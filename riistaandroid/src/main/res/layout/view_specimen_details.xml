@@ -1,196 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    >
+    android:layout_height="wrap_content">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/season_separator_color"
-        />
-
-    <RelativeLayout
+    <RadioGroup
+        android:id="@+id/gender_select"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        >
-
-        <RadioGroup
-            android:id="@+id/gender_select"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            >
-
-            <fi.riista.mobile.ui.RadioButtonCenter
-                android:id="@+id/gender_select_female"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:button="@drawable/button_female"
-                style="@style/segmented_button_style"
-                />
-
-            <fi.riista.mobile.ui.RadioButtonCenter
-                android:id="@+id/gender_select_male"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:button="@drawable/button_male"
-                style="@style/segmented_button_style"
-                />
-
-        </RadioGroup>
-
-        <TextView
-            android:id="@+id/gender_select_required"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:paddingRight="6dp"
-            android:visibility="invisible"
-            android:textColor="@color/required_indicator_color"
-            android:textSize="20sp"
-            android:text="*"
-            tools:visibility="visible"
-            tools:ignore="RtlHardcoded,RtlSymmetry"
-            />
-
-    </RelativeLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/season_separator_color"
-        />
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-
-        <RadioGroup
-            android:id="@+id/age_select"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            >
-
-            <fi.riista.mobile.ui.ToggleRadioButton
-                android:id="@+id/age_select_adult"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/age_value_adult"
-                style="@style/segmented_button_style"
-                />
-
-            <fi.riista.mobile.ui.ToggleRadioButton
-                android:id="@+id/age_select_young"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/age_value_young"
-                style="@style/segmented_button_style"
-                />
-
-        </RadioGroup>
-
-        <TextView
-            android:id="@+id/age_select_required"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:paddingRight="6dp"
-            android:visibility="invisible"
-            android:textColor="@color/required_indicator_color"
-            android:textSize="20sp"
-            android:text="*"
-            tools:visibility="visible"
-            tools:ignore="RtlHardcoded,RtlSymmetry"
-            />
-
-    </RelativeLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/season_separator_color"
-        />
-
-    <RelativeLayout
-        android:id="@+id/layout_specimen_weight"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/segmented_control_min_height"
-        android:background="@color/segmented_button_not_checked"
+        android:layout_marginTop="@dimen/item_spacing_normal"
         android:orientation="horizontal"
-        >
+        app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_toLeftOf="@+id/weight_select_center"
-            android:layout_centerVertical="true"
-            android:gravity="center"
-            android:textColor="@color/small_text_color"
-            android:text="@string/weight_input_header"
-            tools:ignore="RtlHardcoded"
-            />
-
-        <View
-            android:id="@+id/weight_select_center"
+        <fi.riista.mobile.ui.RadioButtonImageText
+            android:id="@+id/gender_select_female"
+            style="@style/HarvestSpecimenRadioButton"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            />
+            android:layout_height="@dimen/radio_button_height"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:drawableStart="@drawable/ic_female"
+            android:text="@string/gender_female"
+            tools:checked="true" />
 
-        <EditText
-            android:id="@+id/weight_input"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_toRightOf="@+id/weight_select_center"
-            android:layout_centerVertical="true"
-            android:maxWidth="@dimen/weight_input_width"
-            android:gravity="center"
-            android:inputType="numberDecimal"
-            android:digits="0123456789,."
-            android:imeOptions="actionDone"
-            android:singleLine="true"
-            android:maxLength="5"
-            tools:text="50.0"
-            tools:ignore="RtlHardcoded"
-            style="@style/specimen_weight_input"
-            />
+        <fi.riista.mobile.ui.RadioButtonImageText
+            android:id="@+id/gender_select_male"
+            style="@style/HarvestSpecimenRadioButton"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/radio_button_height"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:drawableStart="@drawable/ic_male"
+            android:text="@string/gender_male" />
 
-        <TextView
-            android:id="@+id/weight_select_required"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:paddingRight="6dp"
-            android:visibility="invisible"
-            android:textColor="@color/required_indicator_color"
-            android:textSize="20sp"
-            android:text="*"
-            tools:visibility="visible"
-            tools:ignore="RtlHardcoded,RtlSymmetry"
-            />
+    </RadioGroup>
 
-    </RelativeLayout>
+    <TextView
+        android:id="@+id/gender_select_required"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="6dp"
+        android:text="*"
+        android:textColor="@color/colorWarning"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/gender_select"
+        tools:ignore="HardcodedText,RtlHardcoded,RtlSymmetry"
+        tools:visibility="visible" />
 
-    <View
+    <RadioGroup
+        android:id="@+id/age_select"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/season_separator_color"
-        />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/gender_select">
 
-</LinearLayout>
+        <fi.riista.mobile.ui.RadioButtonToggle
+            android:id="@+id/age_select_adult"
+            style="@style/HarvestSpecimenRadioButton"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/radio_button_height"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:paddingStart="@dimen/harvest_specimen_age_button_padding"
+            android:text="@string/age_adult" />
+
+        <fi.riista.mobile.ui.RadioButtonToggle
+            android:id="@+id/age_select_young"
+            style="@style/HarvestSpecimenRadioButton"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/radio_button_height"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:paddingStart="@dimen/harvest_specimen_age_button_padding"
+            android:text="@string/age_young"
+            tools:checked="true" />
+
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/age_select_required"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingEnd="6dp"
+        android:text="*"
+        android:textColor="@color/colorWarning"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/age_select"
+        app:layout_constraintTop_toTopOf="@id/age_select"
+        tools:ignore="HardcodedText,RtlHardcoded,RtlSymmetry"
+        tools:visibility="visible" />
+
+    <fi.riista.mobile.ui.NoBgChangeTextInputLayout
+        android:id="@+id/weight_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        app:errorEnabled="true"
+        app:layout_constraintTop_toBottomOf="@id/age_select">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/weight_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:digits="0123456789,."
+            android:hint="@string/weight_title"
+            android:imeOptions="actionDone"
+            android:inputType="numberDecimal"
+            android:maxLength="5"
+            android:singleLine="true"
+            tools:ignore="Autofill,RtlHardcoded" />
+
+    </fi.riista.mobile.ui.NoBgChangeTextInputLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

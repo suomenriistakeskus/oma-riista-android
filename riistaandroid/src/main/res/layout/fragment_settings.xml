@@ -1,169 +1,191 @@
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="@dimen/page_padding_vertical"
-    android:divider="@drawable/horizontal_divider"
+    android:fillViewport="true"
     android:orientation="vertical"
-    android:showDividers="middle"
+    android:scrollbars="vertical"
     >
 
-    <RelativeLayout
-        style="@style/settings_item"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        >
+        android:clipToPadding="false"
+        android:paddingTop="@dimen/page_padding_top"
+        android:paddingStart="@dimen/page_padding_horizontal"
+        android:paddingEnd="@dimen/page_padding_horizontal"
+        android:paddingBottom="@dimen/page_padding_top">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="@string/synchronization"
-            android:textColor="@android:color/black"
-            />
-
-        <RadioGroup
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:orientation="vertical"
-            >
-
-            <RadioButton
-                android:id="@+id/manual"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/manual"
-                android:textColor="@android:color/black"
-                android:theme="@style/RadioButtonAppTheme"
-                />
-
-            <RadioButton
-                android:id="@+id/automatic"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/automatic"
-                android:textColor="@android:color/black"
-                android:theme="@style/RadioButtonAppTheme"
-                />
-
-        </RadioGroup>
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        style="@style/settings_item"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="@string/language"
-            android:textColor="@android:color/black"
-            />
-
-        <android.support.v7.widget.AppCompatSpinner
-            android:id="@+id/languageSpinner"
-            style="@style/SpinnerAppTheme"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:minWidth="120dp"
-            android:prompt="@string/language_prompt"
-            />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        style="@style/settings_item"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="@string/settings_map_type_title"
-            android:textColor="@android:color/black"
-            />
-
-        <RadioGroup
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:orientation="vertical"
-            >
-
-            <RadioButton
-                android:id="@+id/map_type_google_button"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/settings_map_type_google"
-                android:textColor="@android:color/black"
-                android:theme="@style/RadioButtonAppTheme"
-                />
-
-            <RadioButton
-                android:id="@+id/map_type_mml_button"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:text="@string/settings_map_type_mml"
-                android:textColor="@android:color/black"
-                android:theme="@style/RadioButtonAppTheme"
-                />
-
-        </RadioGroup>
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        style="@style/settings_item"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-
-        <TextView
+            android:id="@+id/settings_version_title"
+            style="@style/HeaderText.Bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/version"
-            android:textColor="@android:color/black"
-            />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/versionnumber"
+            android:id="@+id/settings_version_value"
+            style="@style/HeaderText.Bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:textColor="@android:color/black"
-            tools:text="1.0.0"
-            />
+            android:layout_marginStart="@dimen/item_spacing_normal"
+            app:layout_constraintStart_toEndOf="@id/settings_version_title"
+            app:layout_constraintTop_toTopOf="@id/settings_version_title"
+            tools:text="1.0.0" />
 
-    </RelativeLayout>
+        <TextView
+            android:id="@+id/settings_server_address"
+            style="@style/HeaderText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_version_title"
+            android:visibility="gone"
+            tools:text="Palvelimen osoite: 192.168.1.2" />
 
-    <Button
-        android:id="@+id/licences_button"
-        style="@style/button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:text="@string/licences_dialog_title"
-        />
+        <TextView
+            android:id="@+id/settings_sync_title"
+            style="@style/HeaderText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:text="@string/synchronization"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_server_address" />
 
+        <RadioGroup
+            android:id="@+id/settings_sync_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            app:layout_constraintTop_toBottomOf="@id/settings_sync_title">
 
-</LinearLayout>
+            <RadioButton
+                android:id="@+id/settings_sync_manual_btn"
+                style="@style/RadioButtonAppTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/radio_button_height"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:text="@string/manual"
+                tools:checked="true" />
+
+            <RadioButton
+                android:id="@+id/settings_sync_auto_btn"
+                style="@style/RadioButtonAppTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/radio_button_height"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:text="@string/automatic" />
+
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/settings_language_title"
+            style="@style/HeaderText.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_large"
+            android:text="@string/language"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/settings_sync_group" />
+
+        <RadioGroup
+            android:id="@+id/settings_language_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            app:layout_constraintTop_toBottomOf="@id/settings_language_title">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/settings_language_finnish"
+                style="@style/RadioButtonAppTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/radio_button_height"
+                android:layout_marginEnd="6dp"
+                android:layout_weight="1"
+                android:text="@string/Finnish"
+                tools:checked="true" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/settings_language_swedish"
+                style="@style/RadioButtonAppTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/radio_button_height"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="6dp"
+                android:layout_weight="1"
+                android:text="@string/Swedish" />
+
+            <RadioButton
+                android:id="@+id/settings_language_english"
+                style="@style/RadioButtonAppTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/radio_button_height"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:text="@string/English" />
+
+        </RadioGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/settings_privacy_statement_btn"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            android:layout_marginTop="40dp"
+            android:text="@string/settings_privacy_statement"
+            android:textAllCaps="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_language_group" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/settings_terms_of_service_btn"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/settings_terms_of_service"
+            android:textAllCaps="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_privacy_statement_btn" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/settings_accessibility_btn"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:minHeight="@dimen/default_button_height"
+            android:text="@string/settings_accessibility"
+            android:textAllCaps="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_terms_of_service_btn" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/settings_licences_btn"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/settings_third_party_libraries"
+            android:textAllCaps="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_accessibility_btn" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

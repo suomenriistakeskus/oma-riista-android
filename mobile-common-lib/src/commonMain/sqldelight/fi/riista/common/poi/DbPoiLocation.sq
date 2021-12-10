@@ -1,0 +1,27 @@
+CREATE TABLE DbPoiLocation(
+    id INTEGER NOT NULL,
+    poi_id INTEGER NOT NULL,
+    external_id TEXT NOT NULL,
+    description TEXT,
+    visible_id INTEGER AS Int NOT NULL,
+    -- GeoLocation
+    latitude INTEGER AS Int NOT NULL,
+    longitude INTEGER AS Int NOT NULL,
+    source TEXT NOT NULL,
+    accuracy REAL,
+    altitude REAL,
+    altitudeAccuracy REAL,
+
+    CONSTRAINT constraint_DbPoiLocation_pk PRIMARY KEY (id, poi_id, external_id),
+    CONSTRAINT fk_poi_location_group
+      FOREIGN KEY (poi_id, external_id)
+      REFERENCES DbPoiLocationGroup (id, external_id)
+      ON DELETE CASCADE
+);
+
+selectByPoiId:
+SELECT * FROM DbPoiLocation WHERE poi_id = ?;
+
+insert:
+INSERT INTO DbPoiLocation (id, poi_id, external_id, description, visible_id, latitude, longitude, source, accuracy, altitude, altitudeAccuracy)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
