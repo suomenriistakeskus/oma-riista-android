@@ -11,9 +11,9 @@ import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import fi.riista.common.RiistaSDK
-import fi.riista.common.poi.ui.PoiFilter
-import fi.riista.common.poi.ui.PoiListController
-import fi.riista.common.poi.ui.PoiListItem
+import fi.riista.common.domain.poi.ui.PoiFilter
+import fi.riista.common.domain.poi.ui.PoiListController
+import fi.riista.common.domain.poi.ui.PoiListItem
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
@@ -36,6 +36,12 @@ class PoiListFragment : DialogFragment(), PoiGroupItemViewHolder.Listener, PoiIt
     private lateinit var adapter: PoiListRecyclerViewAdapter
     private lateinit var controller: PoiListController
     private val disposeBag = DisposeBag()
+    var listener: PoiLocationActivity.CenterMapListener? = null
+
+    private val resultLauncher = PoiLocationActivity.registerForActivityResult(this) { location ->
+        listener?.centerMapTo(location)
+        dismiss()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -131,12 +137,15 @@ class PoiListFragment : DialogFragment(), PoiGroupItemViewHolder.Listener, PoiIt
 
     override fun poiItemSelected(poiItem: PoiListItem.PoiItem) {
         val groupAndLocation = controller.findPoiLocationAndItsGroup(poiItem.id)
-        if (groupAndLocation != null) {
-            startActivity(PoiLocationActivity.getIntent(
+        val extId = externalId
+        if (groupAndLocation != null && extId != null) {
+            val intent = PoiLocationActivity.getIntent(
                 context = requireContext(),
+                externalId = extId,
                 poiLocationGroup = groupAndLocation.first,
-                poiLocation = groupAndLocation.second)
+                poiLocation = groupAndLocation.second,
             )
+            resultLauncher.launch(intent)
         }
     }
 

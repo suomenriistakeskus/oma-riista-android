@@ -143,6 +143,75 @@
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="0dp" />
 
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_moose_restrictions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_moose_restrictions"
+                android:layout_marginBottom="0dp" />
+            <TextView
+                style="@style/TextBase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="@dimen/padding_small"
+                android:text="@string/map_settings_moose_restrictions_link"
+                android:autoLink="web" />
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_small_game_restrictions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_small_game_restrictions" />
+            <TextView
+                style="@style/TextBase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="@dimen/padding_small"
+                android:text="@string/map_settings_small_game_restrictions_link"
+                android:autoLink="web" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_avi_hunting_ban"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_avi_hunting_ban" />
+            <TextView
+                style="@style/TextBase"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:layout_marginTop="0dp"
+                android:layout_marginBottom="@dimen/padding_small"
+                android:text="@string/map_settings_avi_hunting_ban_link"
+                android:autoLink="web" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_offline_map_settings"
                 style="@style/OutlineButton"

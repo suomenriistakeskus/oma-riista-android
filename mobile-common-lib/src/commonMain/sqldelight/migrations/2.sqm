@@ -1,0 +1,77 @@
+CREATE TABLE DbHuntingControlRhy (
+    username TEXT NOT NULL,
+    remote_id INTEGER NOT NULL,
+    name_fi TEXT,
+    name_sv TEXT,
+    name_en TEXT,
+    official_code TEXT NOT NULL,
+
+    CONSTRAINT pk_constraint_DbRhy PRIMARY KEY (remote_id, username)
+);
+
+CREATE TABLE DbHuntingControlEvent (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    remote_id INTEGER,
+    spec_version INTEGER AS Int NOT NULL,
+    rev INTEGER AS Int,
+    mobile_client_ref_id INTEGER,
+    username TEXT NOT NULL,
+    rhy_id INTEGER NOT NULL,
+    event_type TEXT NOT NULL,
+    status TEXT NOT NULL,
+    cooperation_types TEXT NOT NULL,
+    date TEXT NOT NULL CHECK(date IS strftime('%Y-%m-%d', date)),
+    start_time TEXT NOT NULL CHECK(start_time IS strftime('%H:%M', start_time)),
+    end_time TEXT NOT NULL CHECK(end_time IS strftime('%H:%M', end_time)),
+    wolf_territory INTEGER AS Boolean NOT NULL DEFAULT 0,
+    description TEXT,
+    location_description TEXT,
+    proof_order_count INTEGER AS Int NOT NULL DEFAULT 0,
+    customer_count INTEGER AS Int NOT NULL DEFAULT 0,
+    other_participants TEXT,
+    can_edit INTEGER AS Boolean NOT NULL DEFAULT 0,
+    modified INTEGER AS Boolean NOT NULL DEFAULT 0,
+
+    -- GeoLocation
+    latitude INTEGER AS Int NOT NULL,
+    longitude INTEGER AS Int NOT NULL,
+    source TEXT NOT NULL,
+    accuracy REAL,
+    altitude REAL,
+    altitudeAccuracy REAL,
+
+    CONSTRAINT fk_hunting_control_event_rhy
+        FOREIGN KEY (rhy_id, username)
+        REFERENCES DbHuntingControlRhy (remote_id, username)
+        ON DELETE CASCADE,
+    CONSTRAINT hunting_control_event_remote_id_unique UNIQUE(username, remote_id)
+);
+
+CREATE TABLE DbHuntingControlEventInspector(
+    hunting_control_event_id INTEGER NOT NULL,
+    remote_id INTEGER NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+
+    CONSTRAINT pk_constraint_DbHuntingControlEventInspector PRIMARY KEY (hunting_control_event_id, remote_id),
+    CONSTRAINT fk_DbHuntingControlEvent
+        FOREIGN KEY (hunting_control_event_id)
+        REFERENCES DbHuntingControlEvent (local_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE DbHuntingControlGameWarden(
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rhy_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    remote_id INTEGER NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    start_date TEXT NOT NULL CHECK(start_date IS strftime('%Y-%m-%d', start_date)),
+    end_date TEXT NOT NULL CHECK(end_date IS strftime('%Y-%m-%d', end_date)),
+
+    CONSTRAINT fk_DbHuntingControlRhy
+      FOREIGN KEY (rhy_id, username)
+      REFERENCES DbHuntingControlRhy (remote_id, username)
+      ON DELETE CASCADE
+);

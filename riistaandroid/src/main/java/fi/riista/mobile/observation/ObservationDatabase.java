@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -86,8 +87,14 @@ public class ObservationDatabase extends BaseDatabase {
     public void deleteObservation(@NonNull final GameObservation observation,
                                   final boolean force,
                                   @NonNull final DeleteListener listener) {
+        deleteObservation(observation.localId, observation.remoteId, force, listener);
+    }
 
-        deleteEntry(mDatabaseHelper, "observation", observation.localId, observation.remoteId, force, listener);
+    public void deleteObservation(@Nullable final Long localId,
+                                  @Nullable final Long remoteId,
+                                  final boolean force,
+                                  @NonNull final DeleteListener listener) {
+        deleteEntry(mDatabaseHelper, "observation", localId, remoteId, force, listener);
     }
 
     public void saveObservation(@NonNull final GameObservation observation, @NonNull final SaveListener listener) {
@@ -125,7 +132,7 @@ public class ObservationDatabase extends BaseDatabase {
             protected void onAsyncQuery(final AsyncCursor cursor) {
                 while (cursor.moveToNext()) {
                     final String pointOfTimeStr = cursor.getString(0);
-                    final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr, false);
+                    final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr);
 
                     mYears.add(DateTimeUtils.getHuntingYearForCalendar(pointOfTime));
                 }

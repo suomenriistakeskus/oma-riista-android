@@ -10,24 +10,22 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.location.LocationListener
 import com.google.android.material.button.MaterialButton
-import fi.riista.common.groupHunting.GroupHuntingObservationOperationResponse
-import fi.riista.common.groupHunting.model.GroupHuntingObservationId
-import fi.riista.common.groupHunting.model.HuntingGroupTarget
-import fi.riista.common.groupHunting.ui.GroupObservationField
-import fi.riista.common.groupHunting.ui.groupObservation.modify.CreateGroupObservationController
-import fi.riista.common.groupHunting.ui.groupObservation.modify.ModifyGroupObservationViewModel
-import fi.riista.common.model.*
+import fi.riista.common.domain.groupHunting.GroupHuntingObservationOperationResponse
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationId
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.ui.GroupObservationField
+import fi.riista.common.domain.groupHunting.ui.groupObservation.modify.CreateGroupObservationController
+import fi.riista.common.domain.groupHunting.ui.groupObservation.modify.ModifyGroupObservationViewModel
+import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
-import fi.riista.common.ui.dataField.*
 import fi.riista.common.util.toETRMSGeoLocation
 import fi.riista.mobile.LocationClientProvider
 import fi.riista.mobile.R
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import kotlinx.coroutines.*
 
@@ -130,11 +128,7 @@ class CreateGroupObservationFragment
         interactionManager.locationClient.removeListener(this)
     }
 
-    override fun onLocationChanged(location: Location?) {
-        if (location == null) {
-            return
-        }
-
+    override fun onLocationChanged(location: Location) {
         val observationLocationChanged = controller.tryMoveObservationToCurrentUserLocation(
                 location = location.toETRMSGeoLocation(GeoLocationSource.GPS_DEVICE)
         )

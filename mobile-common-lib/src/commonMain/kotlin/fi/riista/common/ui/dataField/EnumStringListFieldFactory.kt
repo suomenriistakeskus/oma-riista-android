@@ -3,9 +3,8 @@ package fi.riista.common.ui.dataField
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.RepresentsBackendEnum
 import fi.riista.common.model.StringWithId
+import fi.riista.common.model.toBackendEnum
 import fi.riista.common.resources.*
-import fi.riista.common.resources.isEmptyBackendEnumValue
-import fi.riista.common.resources.toLocalizedStringWithId
 
 /**
  * A factory that is able to create [StringListField]s based on given [BackendEnum]
@@ -13,12 +12,13 @@ import fi.riista.common.resources.toLocalizedStringWithId
  */
 internal class EnumStringListFieldFactory<E>(
     private val stringProvider: StringProvider,
-    enumValues: List<E>
-) where E : Enum<E>, E : LocalizableEnum, E : RepresentsBackendEnum {
+    internal val allEnumValues: List<BackendEnum<E>>,
+    private val enumToStringWithIdConverter: (BackendEnum<E>, StringProvider) -> StringWithId
+) where E : Enum<E>, E : RepresentsBackendEnum {
 
-    private val localizedEnumValues: List<StringWithId> by lazy {
-        enumValues.map {
-            it.toLocalizedStringWithId(stringProvider)
+    private val allLocalizedEnumValues: Map<BackendEnum<E>, StringWithId> by lazy {
+        allEnumValues.associateWith { enumValue ->
+            enumToStringWithIdConverter(enumValue, stringProvider)
         }
     }
 
@@ -28,7 +28,23 @@ internal class EnumStringListFieldFactory<E>(
         allowEmptyValue: Boolean,
         configureFieldSettings: (StringListField.DefaultStringListFieldSettings.() -> Unit)? = null,
     ): StringListField<DataId> {
-        val selectedValue = currentEnumValue.toLocalizedStringWithId(stringProvider)
+        return create(
+            fieldId = fieldId,
+            currentEnumValue = currentEnumValue,
+            enumValues = allEnumValues,
+            allowEmptyValue = allowEmptyValue,
+            configureFieldSettings = configureFieldSettings
+        )
+    }
+
+    fun <DataId: DataFieldId> create(
+        fieldId: DataId,
+        currentEnumValue: BackendEnum<E>,
+        enumValues: List<BackendEnum<E>>,
+        allowEmptyValue: Boolean,
+        configureFieldSettings: (StringListField.DefaultStringListFieldSettings.() -> Unit)? = null,
+    ): StringListField<DataId> {
+        val selectedValue = enumToStringWithIdConverter(currentEnumValue, stringProvider)
         val values = mutableListOf<StringWithId>()
 
         // add an extra empty value if allowed _and_ selected value is not empty one
@@ -45,12 +61,14 @@ internal class EnumStringListFieldFactory<E>(
             values += selectedValue
         }
 
-        values += localizedEnumValues
+        values += enumValues.mapNotNull {
+            allLocalizedEnumValues[it]
+        }
 
         return StringListField(
                 id = fieldId,
                 values = values,
-                selected = selectedValue.id,
+                selected = listOf(selectedValue.id),
                 configureSettings = configureFieldSettings
         )
     }
@@ -61,8 +79,25 @@ internal class EnumStringListFieldFactory<E>(
             stringProvider: StringProvider
         ): EnumStringListFieldFactory<E> where E : Enum<E>, E : LocalizableEnum, E : RepresentsBackendEnum {
 
-            val enumValues = enumValues<E>().toList()
-            return EnumStringListFieldFactory(stringProvider, enumValues)
+            val enumValues = enumValues<E>().toList().map {
+                it.toBackendEnum()
+            }
+            return EnumStringListFieldFactory(stringProvider, enumValues) { enumValue, strProvider ->
+                enumValue.toLocalizedStringWithId(strProvider)
+            }
+        }
+
+
+        // cannot use reified type parameters in constructor --> separate factory function
+        inline fun <reified E> createForNonLocalizableEnum(
+            stringProvider: StringProvider,
+            noinline enumToStringWithIdConverter: (BackendEnum<E>, StringProvider) -> StringWithId
+        ): EnumStringListFieldFactory<E> where E : Enum<E>, E : RepresentsBackendEnum {
+            val enumValues = enumValues<E>().toList().map {
+                it.toBackendEnum()
+            }
+
+            return EnumStringListFieldFactory(stringProvider, enumValues, enumToStringWithIdConverter)
         }
     }
 }

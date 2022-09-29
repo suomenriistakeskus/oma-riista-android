@@ -1,25 +1,38 @@
 package fi.riista.common.network
 
-import fi.riista.common.dto.HunterNumberDTO
-import fi.riista.common.dto.PersonWithHunterNumberDTO
-import fi.riista.common.dto.UserInfoDTO
-import fi.riista.common.groupHunting.dto.*
-import fi.riista.common.groupHunting.model.HuntingGroupId
-import fi.riista.common.groupHunting.network.*
-import fi.riista.common.huntingclub.dto.HuntingClubMemberInvitationsDTO
-import fi.riista.common.huntingclub.dto.HuntingClubMembershipsDTO
-import fi.riista.common.huntingclub.model.HuntingClubMemberInvitationId
-import fi.riista.common.huntingclub.network.FetchHuntingClubMemberInvitations
-import fi.riista.common.huntingclub.network.FetchHuntingClubMemberships
-import fi.riista.common.huntingclub.network.HuntingClubMemberInvitationRequest
+import fi.riista.common.authentication.LoginService
+import fi.riista.common.domain.dto.HunterNumberDTO
+import fi.riista.common.domain.dto.PersonWithHunterNumberDTO
+import fi.riista.common.domain.dto.UserInfoDTO
+import fi.riista.common.domain.groupHunting.dto.*
+import fi.riista.common.domain.groupHunting.model.HuntingGroupId
+import fi.riista.common.domain.groupHunting.network.*
+import fi.riista.common.domain.huntingControl.sync.dto.HuntingControlEventCreateDTO
+import fi.riista.common.domain.huntingControl.sync.dto.HuntingControlEventDTO
+import fi.riista.common.domain.huntingControl.sync.dto.LoadRhysAndHuntingControlEventsDTO
+import fi.riista.common.domain.huntingControl.sync.network.*
+import fi.riista.common.domain.huntingclub.dto.HuntingClubMemberInvitationsDTO
+import fi.riista.common.domain.huntingclub.dto.HuntingClubMembershipsDTO
+import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingclub.network.FetchHuntingClubMemberInvitations
+import fi.riista.common.domain.huntingclub.network.FetchHuntingClubMemberships
+import fi.riista.common.domain.huntingclub.network.HuntingClubMemberInvitationRequest
+import fi.riista.common.domain.model.OrganizationId
+import fi.riista.common.domain.observation.metadata.dto.ObservationMetadataDTO
+import fi.riista.common.domain.observation.metadata.network.FetchObservationMetadata
+import fi.riista.common.domain.poi.dto.PoiLocationGroupsDTO
+import fi.riista.common.domain.poi.network.FetchPoiLocationGroups
+import fi.riista.common.domain.srva.metadata.dto.SrvaMetadataDTO
+import fi.riista.common.domain.srva.metadata.network.FetchSrvaMetadata
+import fi.riista.common.domain.training.dto.TrainingsDTO
+import fi.riista.common.domain.training.network.FetchTrainings
+import fi.riista.common.io.CommonFile
 import fi.riista.common.logging.getLogger
-import fi.riista.common.network.calls.FetchGroupHuntingClubsAndGroups
+import fi.riista.common.model.LocalDateTime
 import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
-import fi.riista.common.network.calls.SearchPersonByHunterNumber
 import fi.riista.common.network.cookies.CookieData
-import fi.riista.common.poi.dto.PoiLocationGroupsDTO
-import fi.riista.common.poi.network.FetchPoiLocationGroups
+
 
 class AuthenticationAwareBackendAPI internal constructor(
     internal val loginService: LoginService,
@@ -28,6 +41,10 @@ class AuthenticationAwareBackendAPI internal constructor(
 
     override fun getAllNetworkCookies(): List<CookieData> {
         return networkClient.cookiesStorage.addedCookies
+    }
+
+    override fun getNetworkCookies(requestUrl: String): List<CookieData> {
+        return networkClient.cookiesStorage.getCookies(requestUrl)
     }
 
     override suspend fun login(username: String, password: String) : NetworkResponse<UserInfoDTO> {
@@ -106,6 +123,10 @@ class AuthenticationAwareBackendAPI internal constructor(
         return performRequest(FetchPoiLocationGroups(externalId))
     }
 
+    override suspend fun fetchTrainings(): NetworkResponse<TrainingsDTO> {
+        return performRequest(FetchTrainings())
+    }
+
     override suspend fun fetchHuntingClubMemberships(): NetworkResponse<HuntingClubMembershipsDTO> {
         return performRequest(FetchHuntingClubMemberships())
     }
@@ -124,6 +145,58 @@ class AuthenticationAwareBackendAPI internal constructor(
         invitationId: HuntingClubMemberInvitationId
     ): NetworkResponse<Unit> {
         return performRequest(HuntingClubMemberInvitationRequest.Reject(invitationId))
+    }
+
+    override suspend fun fetchHuntingControlRhys(modifiedAfter: LocalDateTime?): NetworkResponse<LoadRhysAndHuntingControlEventsDTO> {
+        return performRequest(FetchRhysAndHuntingControlEvents(modifiedAfter))
+    }
+
+    override suspend fun fetchHuntingControlAttachmentThumbnail(attachmentId: Long): NetworkResponse<ByteArray> {
+        return performRequest(FetchAttachmentThumbnail(attachmentId))
+    }
+
+    override suspend fun createHuntingControlEvent(
+        rhyId: OrganizationId,
+        event: HuntingControlEventCreateDTO
+    ): NetworkResponse<HuntingControlEventDTO> {
+        return performRequest(CreateHuntingControlEvent(rhyId, event))
+    }
+
+    override suspend fun updateHuntingControlEvent(
+        rhyId: OrganizationId,
+        event: HuntingControlEventDTO
+    ): NetworkResponse<HuntingControlEventDTO> {
+        return performRequest(UpdateHuntingControlEvent(rhyId, event))
+    }
+
+    override suspend fun deleteHuntingControlEventAttachment(attachmentId: Long): NetworkResponse<Unit> {
+        return performRequest(DeleteHuntingControlEventAttachment(attachmentId))
+    }
+
+    override suspend fun uploadHuntingControlEventAttachment(
+        eventRemoteId: Long,
+        uuid: String,
+        fileName: String,
+        contentType: String,
+        file: CommonFile,
+    ): NetworkResponse<Long> {
+        return performRequest(
+            UploadHuntingControlEventAttachment(
+                eventId = eventRemoteId,
+                uuid = uuid,
+                fileName = fileName,
+                contentType = contentType,
+                file = file
+            )
+        )
+    }
+
+    override suspend fun fetchSrvaMetadata(): NetworkResponse<SrvaMetadataDTO> {
+        return performRequest(FetchSrvaMetadata())
+    }
+
+    override suspend fun fetchObservationMetadata(): NetworkResponse<ObservationMetadataDTO> {
+        return performRequest(FetchObservationMetadata())
     }
 
     /**

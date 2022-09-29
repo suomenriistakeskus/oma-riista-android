@@ -7,6 +7,8 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.util.SparseArray;
 
+import androidx.core.content.res.ResourcesCompat;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,13 +19,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import fi.riista.mobile.R;
 import fi.riista.mobile.RiistaApplication;
 import fi.riista.mobile.SpeciesMapping;
 import fi.riista.mobile.models.Species;
 import fi.riista.mobile.models.SpeciesCategory;
-import fi.riista.mobile.models.srva.SrvaSpecies;
 import fi.riista.mobile.srva.SrvaParametersHelper;
 import fi.riista.mobile.utils.Utils;
 
@@ -76,8 +78,8 @@ public abstract class SpeciesInformation {
 
     private static final String TAG = "SpeciesInformation";
 
-    private static SparseArray<SpeciesCategory> mSpeciesCategories = new SparseArray<>();
-    private static SparseArray<Species> mSpecies = new SparseArray<>();
+    private static final SparseArray<SpeciesCategory> mSpeciesCategories = new SparseArray<>();
+    private static final SparseArray<Species> mSpecies = new SparseArray<>();
 
     public static boolean isPermitBasedMooselike(final int speciesCode) {
         return speciesCode == SpeciesInformation.MOOSE_ID
@@ -94,7 +96,7 @@ public abstract class SpeciesInformation {
         final String language = Utils.getLanguage().getLanguage();
 
         try (final InputStream inputStream = context.getAssets().open(SPECIES_FILE_NAME)) {
-            final JSONObject jObject = new JSONObject(Utils.parseJSONStream(inputStream));
+            final JSONObject jObject = new JSONObject(Objects.requireNonNull(Utils.parseJSONStream(inputStream)));
 
             loadSpeciesCategories(jObject, language);
             loadSpecies(jObject, language);
@@ -184,7 +186,7 @@ public abstract class SpeciesInformation {
     }
 
     public static void sortSpeciesList(final List<Species> speciesList) {
-        final Comparator<Species> comparator = (species1, species2) -> species1.mName.compareTo(species2.mName);
+        final Comparator<Species> comparator = Comparator.comparing(species -> species.mName);
         Collections.sort(speciesList, comparator);
     }
 
@@ -192,25 +194,34 @@ public abstract class SpeciesInformation {
         if (speciesId != null) {
             final int drawableId = SpeciesMapping.species.get(speciesId);
             if (drawableId > 0) {
-                return context.getResources().getDrawable(drawableId);
+                return ResourcesCompat.getDrawable(context.getResources(), drawableId, null);
             }
         }
 
-        final Drawable unknown = context.getResources().getDrawable(R.drawable.ic_question_mark).mutate();
+        final Drawable unknown = Objects.requireNonNull(
+                ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_question_mark, null)
+        ).mutate();
         unknown.setColorFilter(Color.BLACK, PorterDuff.Mode.MULTIPLY);
         return unknown;
     }
 
     public static boolean isMooseOrDeerRequiringPermitForHunting(final int gameSpeciesCode) {
-        // TODO: Missing implementation
-        return false;
+        switch (gameSpeciesCode) {
+            case SpeciesInformation.MOOSE_ID:
+            case SpeciesInformation.FALLOW_DEER_ID:
+            case SpeciesInformation.WHITE_TAILED_DEER_ID:
+            case SpeciesInformation.WILD_FOREST_DEER_ID:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public static ArrayList<Species> srvaSupportedSpecies(final boolean includeOther) {
         final ArrayList<Species> speciesList = new ArrayList<>();
 
-        for (final SrvaSpecies species : SrvaParametersHelper.getInstance().getParameters().species) {
-            speciesList.add(SpeciesInformation.getSpecies(species.code));
+        for (final int speciesCode : SrvaParametersHelper.getInstance().getSpeciesCodes()) {
+            speciesList.add(SpeciesInformation.getSpecies(speciesCode));
         }
         if (includeOther) {
             final Species other = new Species();

@@ -1,22 +1,29 @@
 package fi.riista.mobile.adapter
 
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import fi.riista.mobile.R
+import fi.riista.mobile.utils.toVisibility
 
 typealias AreaMapItemClickListener = (MapAreaAdapter.AreaListItem) -> Unit
+typealias AreaRemoveListener = (String) -> Unit
 
-class MapAreaAdapter(dataSet: Array<AreaListItem>, clickListener: AreaMapItemClickListener) :
-        RecyclerView.Adapter<MapAreaAdapter.ViewHolder>() {
+class MapAreaAdapter(
+    dataSet: Array<AreaListItem>,
+    clickListener: AreaMapItemClickListener,
+    val areaRemoveListener: AreaRemoveListener
+) : RecyclerView.Adapter<MapAreaAdapter.ViewHolder>() {
 
     data class AreaListItem(
         val areaId: String,
         val titleText: String,
         val nameText: String,
-        val idText: String?
+        val idText: String?,
+        val manuallyAdded: Boolean,
     )
 
     private var dataset: Array<AreaListItem>
@@ -31,11 +38,12 @@ class MapAreaAdapter(dataSet: Array<AreaListItem>, clickListener: AreaMapItemCli
         val itemTitle: TextView = view.findViewById(R.id.item_title_text)
         val itemName: TextView = view.findViewById(R.id.item_name_text)
         val itemId: TextView = view.findViewById(R.id.item_id_text)
+        val removeButton: MaterialButton = view.findViewById(R.id.btn_remove_area)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.view_area_map_list_item, parent, false)
+            .inflate(R.layout.view_area_map_list_item, parent, false)
 
         return ViewHolder(view)
     }
@@ -51,9 +59,13 @@ class MapAreaAdapter(dataSet: Array<AreaListItem>, clickListener: AreaMapItemCli
         } else {
             holder.itemId.visibility = View.GONE
         }
+        holder.removeButton.visibility = item.manuallyAdded.toVisibility()
 
         holder.itemView.setOnClickListener { _ ->
             onClickListener.invoke(item)
+        }
+        holder.removeButton.setOnClickListener { _ ->
+            areaRemoveListener(item.areaId)
         }
     }
 

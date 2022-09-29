@@ -9,14 +9,18 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import fi.riista.common.util.letWith
 import fi.riista.mobile.R
 import fi.riista.mobile.RiistaApplication
-import fi.riista.mobile.activity.EditActivity
 import fi.riista.mobile.activity.HarvestActivity
 import fi.riista.mobile.database.HarvestDatabase
+import fi.riista.mobile.feature.observation.ObservationActivity
+import fi.riista.mobile.feature.srva.SrvaActivity
 import fi.riista.mobile.models.GameLog
 import fi.riista.mobile.models.GameLogImage
 import fi.riista.mobile.observation.ObservationDatabase
+import fi.riista.mobile.riistaSdkHelpers.toCommonObservation
+import fi.riista.mobile.riistaSdkHelpers.toCommonSrvaEvent
 import fi.riista.mobile.srva.SrvaDatabase
 import fi.riista.mobile.ui.FullScreenImageDialog
 import fi.riista.mobile.utils.DiaryImageUtil
@@ -92,17 +96,21 @@ class GalleryAdapter(private var context: Context?,
                 context?.startActivity(intent)
             }
             GameLog.TYPE_OBSERVATION -> {
-                observationDatabase.loadObservation(item.id) { observation ->
-                    val intent = Intent(context, EditActivity::class.java)
-                    intent.putExtra(EditActivity.EXTRA_OBSERVATION, observation)
-                    context?.startActivity(intent)
+                observationDatabase.loadObservation(item.id) { appObservation ->
+                    appObservation.toCommonObservation()
+                        ?.letWith(context) { observation, context ->
+                            val intent = ObservationActivity.getLaunchIntentForViewing(context, observation)
+                            context.startActivity(intent)
+                        }
                 }
             }
             GameLog.TYPE_SRVA -> {
                 SrvaDatabase.getInstance().loadEvent(item.id) { srvaEvent ->
-                    val intent = Intent(context, EditActivity::class.java)
-                    intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, srvaEvent)
-                    context?.startActivity(intent)
+                    srvaEvent.toCommonSrvaEvent()
+                        ?.letWith(context) { event, context ->
+                            val intent = SrvaActivity.getLaunchIntentForViewing(context, event)
+                            context.startActivity(intent)
+                        }
                 }
             }
         }

@@ -1,10 +1,10 @@
 package fi.riista.common.domain.season
 
+import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.constants.SpeciesCodes
 import fi.riista.common.domain.season.model.HuntingSeason
 import fi.riista.common.model.Date
 import fi.riista.common.model.DatePeriod
-import fi.riista.common.model.SpeciesCode
-import fi.riista.common.model.SpeciesCodes
 
 class HardCodedHarvestSeasonProvider : HarvestSeasonProvider {
     private val hardcodedSeasons: Map<SpeciesCode, List<HuntingSeason>> = mapOf(

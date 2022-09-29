@@ -160,7 +160,7 @@ public class HarvestDataSource {
         location.setAltitude(cursor.getFloat(cursor.getColumnIndex(HarvestDbHelper.COLUMN_ALTITUDE)));
 
         final String pointOfTimeStr = cursor.getString(cursor.getColumnIndex(HarvestDbHelper.COLUMN_POINTOFTIME));
-        final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr, true);
+        final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr);
 
         final GameHarvest harvest = new GameHarvest(
                 cursor.getInt(cursor.getColumnIndex(HarvestDbHelper.COLUMN_SPEC_VERSION)),

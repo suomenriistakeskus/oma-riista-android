@@ -1,11 +1,11 @@
 package fi.riista.mobile.sync
 
 import android.util.Log
+import fi.riista.mobile.AppConfig
 import fi.riista.mobile.database.HarvestDatabase
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
 import fi.riista.mobile.event.HarvestChangeEvent
 import fi.riista.mobile.event.HarvestChangeListener
-import fi.riista.mobile.gamelog.HarvestSpecVersionResolver
 import fi.riista.mobile.models.GameHarvest
 import fi.riista.mobile.network.FetchHarvestsTask
 import fi.riista.mobile.service.harvest.PostHarvestService
@@ -22,8 +22,7 @@ typealias HarvestEventsConsumer = Consumer<Collection<HarvestChangeEvent>>
 class HarvestSync @Inject constructor(
         @Named(APPLICATION_WORK_CONTEXT_NAME) private val syncWorkContext: WorkContext,
         private val harvestDatabase: HarvestDatabase,
-        private val postHarvestService: PostHarvestService,
-        private val specVersionResolver: HarvestSpecVersionResolver) {
+        private val postHarvestService: PostHarvestService) {
 
     fun sync(harvestYears: List<Int>, emitEvents: HarvestEventsConsumer) {
 
@@ -57,7 +56,7 @@ class HarvestSync @Inject constructor(
         } else {
             val huntingYear = years[0]
             val remainingYears = years.drop(1)
-            val specVersion = specVersionResolver.resolveHarvestSpecVersion()
+            val specVersion = AppConfig.HARVEST_SPEC_VERSION
 
             val harvestTask: FetchHarvestsTask = object : FetchHarvestsTask(syncWorkContext, harvestDatabase, huntingYear, specVersion) {
 

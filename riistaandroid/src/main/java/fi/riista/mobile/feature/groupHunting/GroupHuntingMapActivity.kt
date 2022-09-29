@@ -14,8 +14,8 @@ import com.google.android.material.button.MaterialButton
 import fi.riista.common.RiistaSDK
 import fi.riista.common.extensions.loadHuntingGroupTarget
 import fi.riista.common.extensions.saveToBundle
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.diary.*
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.diary.*
 import fi.riista.common.model.LocalDate
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy

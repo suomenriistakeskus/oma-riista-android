@@ -8,12 +8,10 @@ import fi.riista.common.util.JsonHelper
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 
 class NetworkClient internal constructor(
     private val sdkConfiguration: RiistaSdkConfiguration
@@ -29,7 +27,7 @@ class NetworkClient internal constructor(
      */
     val cookiesStorage = CustomCookiesStorage()
 
-    private val httpClient: HttpClient by lazy {
+    val httpClient: HttpClient by lazy {
         HttpClientProvider().getConfiguredHttpClient(sdkConfiguration, cookiesStorage)
     }
 

@@ -4,11 +4,31 @@
     <!-- Don't change. Required in this format by the RiistaSDK -->
     <string name="language_code">en</string>
 
-    <string name="login_description">Login with username and password created in oma.riista.fi</string>
     <string name="logo">Logo</string>
     <string name="username">Email</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
+    <string name="login_tab_title">Login</string>
+    <string name="register_tab_title">Register</string>
+    <string name="password_forgotten">Forgot password?</string>
+    <string name="send_password_reset_title">Forgot your password?</string>
+    <string name="send_password_reset_message">Enter the email address that was used when registering the account.</string>
+    <string name="send_password_reset_action">Send reset link</string>
+    <string name="password_reset_sent_message">We have sent instructions for resetting your password to the email address provided. Please check your spam folder if the email does not arrive within a few minutes.</string>
+    <string name="authentication_link_sent_title">Link sent</string>
+    <string name="authentication_link_sent_back_to_login">Back to login</string>
+    <string name="login_failed">Login failed</string>
+    <string name="login_connect_failed">Cannot access Oma riista service. Please try again later.</string>
+    <string name="login_incorrect_credentials">Wrong username or password. Please try again.</string>
+    <string name="login_outdated_version">Update the application to newer version to continue to use it.</string>
+    <string name="send_registration_link_title">Registration to portal</string>
+    <string name="send_registration_link_message">In order to register to oma.riista.fi-portal you\'ll need a functioning and personal email address. As part of the registration process we\'ll send a registration link to your email address and you\'ll verify your identity (bank-account codes / Suomi.fi service in Finland).</string>
+    <string name="send_registration_link_action">Start registration</string>
+    <string name="registration_link_sent_message">We have sent instructions for account creation to the email address provided. Please check your spam folder if the email does not arrive within a few minutes.</string>
+    <string name="login_username_changed">Email address changed?</string>
+    <string name="change_username_title">Changing email address</string>
+    <string name="change_username_message">You can change the email address you use as your Oma riista username by re-registering to the service.\n\nAll information previously entered into the service will be retained upon re-registration.</string>
+    <string name="change_username_action">Create an account</string>
 
     <string name="add">Add</string>
     <string name="edit">Edit</string>
@@ -26,6 +46,7 @@
     <string name="menu_settings">Settings</string>
     <string name="menu_shooting_test_list">Shooting tests</string>
     <string name="menu_hunting_group_leader">@string/group_hunting_main_page_title</string>
+    <string name="menu_hunting_control">@string/hunting_control_main_page_title</string>
     <string name="menu_event_search">Event search</string>
     <string name="menu_contact_details">Contacts</string>
     <string name="menu_show_magazine">Read latest Metsästäjä magazine</string>
@@ -68,6 +89,9 @@
     <string name="poi_filter_type_other">@string/poi_location_group_type_other</string>
     <string name="poi_select_external_id">Select Oma Riista area from map settings in order to see connected POIs.</string>
     <string name="poi_no_pois">No points of interest</string>
+    <string name="poi_center_and_return_to_map">Center and return to map</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
 
     <string name="amount_format">%1$d&#160;pcs</string>
     <string name="minutes_format">%1$d&#160;min</string>
@@ -149,6 +173,10 @@
     <string name="my_details_hunting_ban">Hunting ban</string>
     <string name="my_details_assignments_title">Assignments</string>
     <string name="my_details_hunting_group_memberships_title">Club memberships</string>
+    <string name="my_details_trainings_title">Trainings</string>
+    <string name="my_details_trainings_training_date">Date:</string>
+    <string name="my_details_trainings_training_place">Location:</string>
+    <string name="my_details_no_trainings">No trainings</string>
     <string name="my_details_shooting_tests_title">Shooting tests completed</string>
     <string name="my_details_no_shooting_test_attempts">No valid shooting tests</string>
     <string name="my_details_mh_permits_title">Metsähallitus permits</string>
@@ -158,7 +186,7 @@
     <string name="my_details_mh_permit_name">Permit type</string>
     <string name="my_details_mh_permit_period">Time</string>
     <string name="my_details_mh_permit_harvest_feedback">Submit harvest feedback</string>
-    <string name="my_details_mh_permit_harvest_feedback_confirmation">You are navigating from Oma riista to Metsähallitus hunting feedback service.\n\nIf you encounter any issues submitting feedback or want additional information, contact Metsähallitus Wilderness permits service, p. 020 69 2424 (weekdays 9-16) or email eraluvat@metsa.fi.</string>
+    <string name="my_details_mh_permit_harvest_feedback_confirmation">You are navigating from Oma riista to Metsähallitus hunting feedback service.\n\nIf you encounter any issues submitting feedback or want additional information, contact Metsähallitus Wilderness permits service, p. 020 69 2424 (weekdays 9–16) or email eraluvat@metsa.fi.</string>
     <string name="my_details_duration">Duration</string>
     <string name="duration_indefinite">Indefinitely</string>
     <string name="my_details_hunting_club_membership_invitations">Club Invitations</string>
@@ -169,10 +197,22 @@
     <string name="my_details_hunting_club_memberships">Club memberships</string>
     <string name="my_details_customer_number">Customer number: %1$s</string>
 
+    <string name="training_type_lahi">On site</string>
+    <string name="training_type_sahkoinen">Online</string>
+
+    <string name="occupation_type_metsastyksenvalvoja">Game warden</string>
+    <string name="occupation_type_metsastajatutkinnon_vastaanottaja">Hunter exam supervisor</string>
+    <string name="occupation_type_ampumakokeen_vastaanottaja">Shooting test supervisor</string>
+    <string name="occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa">GMA representative in wildlife damage field survey</string>
+    <string name="occupation_type_petoyhdyshenkilo">Large carnivore contact person</string>
+
     <!-- New diary entry page -->
     <string name="species">Species</string>
+    <string name="species_other">Other species</string>
+    <string name="species_unknown">Unknown species</string>
     <string name="species_prompt">Select species</string>
     <string name="dismiss">Discard</string>
+    <string name="description">Description</string>
     <string name="add_description">Add description</string>
     <string name="save">Save</string>
     <string name="select">Select</string>
@@ -190,7 +230,8 @@
     <string name="gps_bad">Fair GPS signal</string>
     <string name="gps_none">No GPS signal</string>
     <string name="go_to_current_location">Go to current GPS position</string>
-    <string name="set_location">Set new position on the map</string>
+    <string name="set_location_on_map">Set position on the map</string>
+    <string name="set_new_location_on_map">Set new position on the map</string>
     <string name="map_coordinates">N %1$s  E %2$s   (ETRS-TM35FIN)</string>
     <string name="select_preferred_intent">Select preferred sharing option</string>
     <string name="ok">OK</string>
@@ -232,9 +273,6 @@
     <string name="permit_list_help_text">You don\'t need to enter license number for cervidae animals</string>
     <string name="permit_list_not_available">Permit not available</string>
 
-    <string name="connecting_failed">Cannot access Oma riista service. Please try again later.</string>
-    <string name="login_failed">Wrong username or password. Please try again.</string>
-
     <string name="imageViewTemplate">Image %1$s/%2$s</string>
 
     <string name="error">Error</string>
@@ -273,6 +311,12 @@
     <string name="map_settings_valtionmaat">State-owned lands</string>
     <string name="map_settings_rhy_rajat">GMA-borders</string>
     <string name="map_settings_game_triangles">Game triangles</string>
+    <string name="map_settings_moose_restrictions">Moose restriction areas</string>
+    <string name="map_settings_moose_restrictions_link">Check: https://retkikartta.fi</string>
+    <string name="map_settings_small_game_restrictions">Small game restriction areas</string>
+    <string name="map_settings_small_game_restrictions_link">Check: https://retkikartta.fi</string>
+    <string name="map_settings_avi_hunting_ban">Avi hunting ban areas</string>
+    <string name="map_settings_avi_hunting_ban_link">Check: https://avi.fi/tiedotteet</string>
     <string name="map_settings_offline_map_settings">Offline maps</string>
     <string name="offline_map_settings_background_map">Background map</string>
     <string name="offline_map_settings_map_layers">Map layers</string>
@@ -285,9 +329,12 @@
     <string name="map_settings_add_hirvialue">Metsähallitus moose</string>
     <string name="map_settings_add_with_area_code">Area code</string>
     <string name="map_settings_select_area">Select area</string>
+    <string name="map_settings_remove_area_confirm">Are you sure you want to remove the area?</string>
     <string name="map_settings_general_title">General</string>
     <string name="map_club_areas_title">Selected areas</string>
-    <string name="map_display_pins">Show log events</string>
+    <string name="map_hide_markers">Hide markers</string>
+    <string name="map_show_markers">Show markers</string>
+    <string name="copied">Copied</string>
 
     <string name="species_category_birds">Game birds</string>
     <string name="species_category_mammals">Game mammals</string>
@@ -316,7 +363,7 @@
     <string name="age_adult">Adult</string>
     <string name="age_young">Less than 1 year</string>
     <string name="age_less_than_year">Under 1 years</string>
-    <string name="age_year_or_two">1-2 years</string>
+    <string name="age_year_or_two">1–2 years</string>
     <string name="age_eraus">Yearling cub</string>
     <string name="age_unknown">Unknown</string>
 
@@ -356,6 +403,11 @@
     <string name="observation_marked">Tag</string>
     <string name="within_moose_hunting">During moose hunt</string>
     <string name="within_deer_hunting">During deer hunt</string>
+
+    <string name="observation_category">Observation context</string>
+    <string name="observation_category_normal">Normal</string>
+    <string name="observation_category_within_moose_hunting">@string/within_moose_hunting</string>
+    <string name="observation_category_within_deer_hunting">@string/within_deer_hunting</string>
 
     <!-- Antler instructions page -->
     <string name="instructions">Instructions</string>
@@ -461,12 +513,17 @@
     <string name="tassu_pack">Pack (automatically derived)</string>
 
     <!-- SRVA -->
-    <string name="srva_other_species_description">Other species</string>
+    <string name="srva_other_species_description">@string/species_other</string>
+    <string name="srva_specimen_amount">@string/harvest_amount</string>
     <string name="srva_event">Event</string>
+    <string name="srva_event_label_deportation_order_number">Deportation order number</string>
     <string name="srva_type">Type</string>
     <string name="srva_type_description">Type description</string>
+    <string name="srva_event_label_event_type_detail">Type detail</string>
+    <string name="srva_event_label_other_event_type_detail_description">Detail description</string>
 
     <string name="srva_result">Result</string>
+    <string name="srva_event_label_event_result_detail">Result detail</string>
     <string name="srva_method">Method</string>
     <string name="srva_method_description">Method description</string>
     <string name="srva_person_count">Participants</string>
@@ -479,6 +536,15 @@
     <string name="srva_traffic_accident">Traffic accident</string>
     <string name="srva_railway_accident">Railway accident</string>
     <string name="srva_other">Other</string>
+
+    <string name="srva_event_type_detail_cared_house_area">Cared house area</string>
+    <string name="srva_event_type_detail_farm_animal_building">Farm animal building</string>
+    <string name="srva_event_type_detail_urban_area">Urban area</string>
+    <string name="srva_event_type_detail_carcass_at_forest">Carcass at forest</string>
+    <string name="srva_event_type_detail_carcass_near_houses_area">Carcass near houses area</string>
+    <string name="srva_event_type_detail_garbage_can">Garbage can</string>
+    <string name="srva_event_type_detail_beehive">Bee hive</string>
+    <string name="srva_event_type_detail_other">@string/srva_other</string>
 
     <string name="srva_animal_near_houses">Animal near houses area</string>
     <string name="srva_animal_at_food_destination">Animal at the food destination</string>
@@ -493,6 +559,10 @@
     <string name="srva_animal_not_found">Animal was not found</string>
     <string name="srva_undue_alarm">Undue alarm</string>
 
+    <string name="srva_event_result_detail_animal_contacted_and_deported">Animal contacted and deported</string>
+    <string name="srva_event_result_detail_animal_contacted">Animal contacted</string>
+    <string name="srva_event_result_detail_uncertain_result">Uncertain result</string>
+
     <string name="srva_animal_terminated">Animal was put to death</string>
     <string name="srva_animal_deported">Animal was deported</string>
 
@@ -501,13 +571,15 @@
     <string name="srva_method_traced_without_dog">Traced without dog</string>
     <string name="srva_method_pain_equipment">Pain equipment</string>
     <string name="srva_method_sound_equipment">Sound equipment</string>
+    <string name="srva_method_vehicle">Deportation with a vehicle</string>
+    <string name="srva_method_chasing_with_people">Chasing with people</string>
 
     <string name="srva_approved">Approved</string>
     <string name="srva_rejected">Rejected</string>
     <string name="srva_approver">Approver</string>
     <string name="srva_rejecter">Rejecter</string>
 
-    <string name="display_all">Show all</string>
+    <string name="display_all">Show full announcement</string>
     <string name="announcements_none">No announcements</string>
     <string name="announcements_fetch_failed">Retrieving announcements failed</string>
 
@@ -589,6 +661,7 @@
     <string name="group_hunting_species">Species</string>
     <string name="group_hunting_group">Group</string>
     <string name="group_hunting_permit">Permit: %s</string>
+    <string name="group_hunting_error_hunting_has_finished">Hunting has finished</string>
     <string name="group_hunting_new_harvest">@string/home_new_harvest</string>
     <string name="group_hunting_new_observation">@string/home_new_observation</string>
     <string name="group_hunting_entries_on_map">Entries on map</string>
@@ -638,6 +711,7 @@
     <string name="group_hunting_other_observer">@string/group_hunting_other_hunter</string>
 
     <string name="group_hunting_create_observation_from_harvest">Have you created an observation for this harvest entry?</string>
+
     <string name="group_hunting_hunting_days_title">Hunting days</string>
     <string name="group_hunting_loading_hunting_days">Loading hunting days..</string>
     <string name="group_hunting_failed_to_load_hunting_days">Failed to load hunting days.</string>
@@ -699,4 +773,55 @@
     <string name="group_member_selection_search_name">Search with name</string>
     <string name="group_member_selection_enter_name">Name</string>
 
+    <!-- Hunting control -->
+    <string name="hunting_control_main_page_title">Hunting control</string>
+    <string name="hunting_control_add_event">Create an event</string>
+    <string name="hunting_control_my_events">My events</string>
+    <string name="hunting_control_no_events">No events</string>
+    <string name="hunting_control_select_rhy_to_display_events">Select hunting association to see events</string>
+    <string name="huntint_control_rhy">Hunting association</string>
+    <string name="hunting_control_view_page_title">Event</string>
+    <string name="hunting_control_start_time">Start time</string>
+    <string name="hunting_control_end_time">End time</string>
+    <string name="hunting_control_duration">Duration</string>
+    <string name="hunting_control_event_type">Hunting control event</string>
+    <string name="hunting_control_number_of_inspectors">Number of inspectors</string>
+    <string name="hunting_control_cooperation_type">Cooperation</string>
+    <string name="hunting_control_wolf_territory">Wolf territory</string>
+    <string name="hunting_control_inspectors">Inspectors</string>
+    <string name="hunting_control_location_description">Location description</string>
+    <string name="hunting_control_event_description">Event description</string>
+    <string name="hunting_control_number_of_customers">Number of customers</string>
+    <string name="hunting_control_number_of_proof_orders">Number of proof orders</string>
+    <string name="hunting_control_date">Date</string>
+    <string name="hunting_control_other_participants">Other participants</string>
+    <string name="hunting_control_duration_zero">0</string>
+    <string name="hunting_control_choose_inspectors">Select inspectors</string>
+    <string name="hunting_control_choose_cooperation">Select cooperation</string>
+    <string name="hunting_control_attachments">Attachments</string>
+    <string name="hunting_control_inspector_selection_search_by_name">@string/group_member_selection_search_name</string>
+    <string name="hunting_control_inspector_selection_name_hint">@string/group_member_selection_enter_name</string>
+    <string name="hunting_control_error_no_inspectors_for_selected_date">There are no inspectors for the selected date</string>
+    <string name="hunting_control_event_save_failed_generic">Saving hunting control event failed</string>
+    <string name="hunting_control_download_attachment_question">Download file from the server?</string>
+    <string name="hunting_control_delete_attachment_question">Delete attachment %1$s?</string>
+    <string name="hunting_control_add_attachment">Add attachment</string>
+    <string name="hunting_control_select_attachment">Select attachment</string>
+
+    <string name="download_manager_downloading_file">File is being downloaded</string>
+    <string name="download_manager_download_complete">You can find downloaded file %1$s from notifications</string>
+    <string name="download_manager_download_failed">Downloading file %1$s failed</string>
+    <string name="download_manager_download_title">Oma riista: %1$s</string>
+
+    <string name="hunting_control_cooperation_type_poliisi">Police</string>
+    <string name="hunting_control_cooperation_type_rajavartiosto">Border guard</string>
+    <string name="hunting_control_cooperation_type_mh">Forest Management Agency</string>
+    <string name="hunting_control_cooperation_type_oma">Own</string>
+
+    <string name="hunting_control_event_type_mooselike">Hunting control of mooselike</string>
+    <string name="hunting_control_event_type_large_carnivore">Hunting control of large carnivore</string>
+    <string name="hunting_control_event_type_grouse">Hunting control of grouse</string>
+    <string name="hunting_control_event_type_waterfowl">Hunting control of waterfowl</string>
+    <string name="hunting_control_event_type_dog_discipline">Hunting control of dog discipline</string>
+    <string name="hunting_control_event_type_other">Other hunting control</string>
 </resources>

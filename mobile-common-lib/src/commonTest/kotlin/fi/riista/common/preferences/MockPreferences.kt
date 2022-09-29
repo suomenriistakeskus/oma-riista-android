@@ -45,6 +45,11 @@ class MockPreferences: Preferences {
         }
     }
 
+    override fun remove(key: String) {
+        logger.v { "Removed key $key" }
+        container.remove(key)
+    }
+
     companion object {
         private val logger by getLogger(MockPreferences::class)
     }

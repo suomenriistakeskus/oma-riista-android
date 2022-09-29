@@ -22,6 +22,7 @@ public class AppPreferences {
 
     private static final String MAP_SOURCE_KEY = "mapTileSource";
     private static final MapTileSource MAP_SOURCE_DEFAULT = MapTileSource.MML_TOPOGRAPHIC;
+    private static final String MAP_SHOW_MARKERS = "mapShowMarkers";
 
     private static final String LANGUAGE_SETTING_KEY = "userLanguage";
     private static final String LANGUAGE_SETTING_DEFAULT = LANGUAGE_CODE_EN;
@@ -33,6 +34,10 @@ public class AppPreferences {
     private static final String SHOW_RHY_BORDERS_KEY = "showRhyBorders";
     private static final String SHOW_VALTIONMAAT_KEY = "showValtionmaat";
     private static final String SHOW_GAME_TRIANGLES_KEY = "showGameTriangles";
+
+    private static final String SHOW_MOOSE_RESTRICTIONS = "showMooseRestrictions";
+    private static final String SHOW_SMALL_GAME_RESTRICTIONS = "showSmallGameRestrictions";
+    private static final String SHOW_AVI_HUNTING_BAN = "showAviHuntingBan";
 
     private static final String SHOW_USER_LOCATION_SETTING_KEY = "showUserLocation";
     private static final String INVERT_MAP_COLORS_SETTING_KEY = "invertMapColors";
@@ -98,6 +103,23 @@ public class AppPreferences {
         }
 
         return mapTileSource;
+    }
+
+    public static void setShowMapMarkers(final Context context, final boolean showMapMarkers) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean(MAP_SHOW_MARKERS, showMapMarkers);
+            editor.apply();
+        }
+    }
+
+    public static boolean getShowMapMarkers(final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null && prefs.contains(MAP_SHOW_MARKERS)) {
+            return prefs.getBoolean(MAP_SHOW_MARKERS, true);
+        }
+        return true;
     }
 
     public static void setLanguageCodeSetting(final Context context, final String languageTwoLetter) {
@@ -219,6 +241,51 @@ public class AppPreferences {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs != null) {
             return prefs.getBoolean(SHOW_GAME_TRIANGLES_KEY, false);
+        }
+        return false;
+    }
+
+    public static void setShowMooseRestrictions(Context context, boolean show) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            prefs.edit().putBoolean(SHOW_MOOSE_RESTRICTIONS, show).apply();
+        }
+    }
+
+    public static boolean getShowMooseRestrictions(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            return prefs.getBoolean(SHOW_MOOSE_RESTRICTIONS, false);
+        }
+        return false;
+    }
+
+    public static void setShowSmallGameRestrictions(Context context, boolean show) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            prefs.edit().putBoolean(SHOW_SMALL_GAME_RESTRICTIONS, show).apply();
+        }
+    }
+
+    public static boolean getShowSmallGameRestrictions(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            return prefs.getBoolean(SHOW_SMALL_GAME_RESTRICTIONS, false);
+        }
+        return false;
+    }
+
+    public static void setShowAviHuntingBan(Context context, boolean show) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            prefs.edit().putBoolean(SHOW_AVI_HUNTING_BAN, show).apply();
+        }
+    }
+
+    public static boolean getShowAviHuntingBan(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            return prefs.getBoolean(SHOW_AVI_HUNTING_BAN, false);
         }
         return false;
     }

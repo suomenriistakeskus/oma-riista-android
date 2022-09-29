@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="false" android:color="@color/colorPrimary">
+        <shape>
+            <corners
+                android:bottomLeftRadius="0dp"
+                android:bottomRightRadius="0dp"
+                android:topLeftRadius="@dimen/button_corner_radius"
+                android:topRightRadius="@dimen/button_corner_radius"
+                />
+            <solid android:color="@color/colorPrimary" />
+        </shape>
+    </item>
+    <item android:state_selected="true" android:color="@color/login_selected_tab_button">
+        <shape>
+            <corners
+                android:bottomLeftRadius="0dp"
+                android:bottomRightRadius="0dp"
+                android:topLeftRadius="@dimen/button_corner_radius"
+                android:topRightRadius="@dimen/button_corner_radius" />
+            <solid android:color="@color/login_selected_tab_button" />
+            <padding
+                android:left="10dp"
+                android:top="10dp"
+                android:right="10dp"
+                android:bottom="10dp" />
+        </shape>
+    </item>
+</selector>

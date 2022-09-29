@@ -1,7 +1,12 @@
 package fi.riista.common.domain.season
 
+import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.model.getHuntingYear
 import fi.riista.common.domain.season.model.HuntingSeason
-import fi.riista.common.model.*
+import fi.riista.common.model.LocalDate
+import fi.riista.common.model.LocalDatePeriod
+import fi.riista.common.model.isWithinPeriods
+import fi.riista.common.model.toLocalDatePeriodsWithinHuntingYear
 
 class HarvestSeasons {
     private val fallbackProvider: HarvestSeasonProvider = HardCodedHarvestSeasonProvider()

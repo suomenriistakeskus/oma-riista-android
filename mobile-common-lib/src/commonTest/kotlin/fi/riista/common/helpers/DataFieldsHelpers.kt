@@ -35,13 +35,23 @@ internal fun <FieldId: DataFieldId> DataFields<FieldId>.getDateTimeField(expecte
     return getField(expectedIndex, id)
 }
 
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getDateField(expectedIndex: Int, id: FieldId):
+        DateField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getTimespanField(expectedIndex: Int, id: FieldId):
+        TimespanField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
 internal fun <FieldId: DataFieldId> DataFields<FieldId>.getLocationField(expectedIndex: Int, id: FieldId):
         LocationField<FieldId> {
     return getField(expectedIndex, id)
 }
 
-internal fun <FieldId: DataFieldId> DataFields<FieldId>.getSpeciesCodeField(expectedIndex: Int, id: FieldId):
-        SpeciesCodeField<FieldId> {
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getSpeciesField(expectedIndex: Int, id: FieldId):
+        SpeciesField<FieldId> {
     return getField(expectedIndex, id)
 }
 
@@ -62,6 +72,26 @@ internal fun <FieldId: DataFieldId> DataFields<FieldId>.getSelectDurationField(e
 
 internal fun <FieldId: DataFieldId> DataFields<FieldId>.getHuntingDayAndTimeField(expectedIndex: Int, id: FieldId):
         HuntingDayAndTimeField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getSpecimenField(expectedIndex: Int, id: FieldId):
+        SpecimenField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getAttachmentField(expectedIndex: Int, id: FieldId):
+        AttachmentField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getButtonField(expectedIndex: Int, id: FieldId):
+        ButtonField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getChipField(expectedIndex: Int, id: FieldId):
+        ChipField<FieldId> {
     return getField(expectedIndex, id)
 }
 

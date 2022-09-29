@@ -1,20 +1,19 @@
 package fi.riista.common.ui.controller
 
+import fi.riista.common.RiistaSDK
 import fi.riista.common.reactive.Observable
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlin.coroutines.coroutineContext
 
 abstract class ControllerWithLoadableModel<ViewModelType: Any> {
     val viewModelLoadStatus: Observable<ViewModelLoadStatus<ViewModelType>> =
         Observable(ViewModelLoadStatus.NotLoaded)
 
     suspend fun loadViewModel(refresh: Boolean = false) {
-        val createLoadHuntingDaysFlow = createLoadViewModelFlow(refresh)
+        val loadViewModelFlow = createLoadViewModelFlow(refresh)
 
-        createLoadHuntingDaysFlow.collect {
+        loadViewModelFlow.collect {
             updateViewModel(it)
         }
     }
@@ -30,7 +29,7 @@ abstract class ControllerWithLoadableModel<ViewModelType: Any> {
     }
 
     protected fun updateViewModelSuspended(updateOperation: suspend () -> Unit) {
-        MainScope().launch {
+        RiistaSDK.mainScopeProvider.scope.launch {
             updateOperation()
         }
     }

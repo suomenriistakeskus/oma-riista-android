@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.joda.time.DateTime;
 
@@ -74,7 +75,10 @@ public class SrvaDatabase extends BaseDatabase {
         event.canEdit = cursor.getInt("canEdit", 0) != 0;
         event.imageIds = JsonUtils.jsonToList(cursor.getString("imageIds"), String.class);
         event.eventName = cursor.getString("eventName");
+        event.deportationOrderNumber = cursor.getString("deportationOrderNumber");
         event.eventType = cursor.getString("eventType");
+        event.eventTypeDetail = cursor.getString("eventTypeDetail");
+        event.otherEventTypeDetailDescription = cursor.getString("otherEventTypeDetailDescription");
         event.totalSpecimenAmount = cursor.getInt("totalSpecimenAmount");
         event.otherMethodDescription = cursor.getString("otherMethodDescription");
         event.otherTypeDescription = cursor.getString("otherTypeDescription");
@@ -82,6 +86,7 @@ public class SrvaDatabase extends BaseDatabase {
         event.personCount = cursor.getInt("personCount");
         event.timeSpent = cursor.getInt("timeSpent");
         event.eventResult = cursor.getString("eventResult");
+        event.eventResultDetail = cursor.getString("eventResultDetail");
         event.authorInfo = JsonUtils.jsonToObject(cursor.getString("authorInfo"), SrvaAuthorInfo.class, true);
         event.specimens = JsonUtils.jsonToList(cursor.getString("specimens"), SrvaSpecimen.class);
         event.rhyId = cursor.getInt("rhyId");
@@ -115,7 +120,10 @@ public class SrvaDatabase extends BaseDatabase {
         values.put("canEdit", event.canEdit);
         values.put("imageIds", JsonUtils.objectToJson(event.imageIds));
         values.put("eventName", event.eventName);
+        values.put("deportationOrderNumber", event.deportationOrderNumber);
         values.put("eventType", event.eventType);
+        values.put("eventTypeDetail", event.eventTypeDetail);
+        values.put("otherEventTypeDetailDescription", event.otherEventTypeDetailDescription);
         values.put("totalSpecimenAmount", event.totalSpecimenAmount);
         values.put("otherMethodDescription", event.otherMethodDescription);
         values.put("otherTypeDescription", event.otherTypeDescription);
@@ -123,6 +131,7 @@ public class SrvaDatabase extends BaseDatabase {
         values.put("personCount", event.personCount);
         values.put("timeSpent", event.timeSpent);
         values.put("eventResult", event.eventResult);
+        values.put("eventResultDetail", event.eventResultDetail);
         values.put("authorInfo", JsonUtils.objectToJson(event.authorInfo));
         values.put("specimens", JsonUtils.objectToJson(event.specimens));
         values.put("rhyId", event.rhyId);
@@ -203,7 +212,7 @@ public class SrvaDatabase extends BaseDatabase {
             protected void onAsyncQuery(final AsyncCursor cursor) {
                 while (cursor.moveToNext()) {
                     final String pointOfTime = cursor.getString(0);
-                    final DateTime dateTime = DateTimeUtils.parseDateTime(pointOfTime, false);
+                    final DateTime dateTime = DateTimeUtils.parseDateTime(pointOfTime);
 
                     mYears.add(dateTime.getYear());
                 }
@@ -221,9 +230,18 @@ public class SrvaDatabase extends BaseDatabase {
         });
     }
 
-    public void deleteEvent(@NonNull final SrvaEvent event, final boolean force, @NonNull final DeleteListener listener) {
+    public void deleteEvent(@NonNull final SrvaEvent event,
+                            final boolean force,
+                            @NonNull final DeleteListener listener) {
+        deleteEvent(event.localId, event.remoteId, force, listener);
+    }
+
+    public void deleteEvent(@Nullable final Long localEventId,
+                            @Nullable final Long remoteEventId,
+                            final boolean force,
+                            @NonNull final DeleteListener listener) {
         deleteEntry(SrvaDatabaseHelper.getInstance(), "event",
-                event.localId, event.remoteId, force, listener);
+                localEventId, remoteEventId, force, listener);
     }
 
     public void loadLatestEvents(@NonNull final SrvaEventsListener listener) {

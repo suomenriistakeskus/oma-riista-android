@@ -3,7 +3,6 @@ package fi.riista.mobile.pages
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,12 +17,13 @@ import androidx.lifecycle.Observer
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
-import fi.riista.common.huntingclub.ui.HuntingClubController
+import fi.riista.common.domain.huntingclub.ui.HuntingClubController
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.mobile.R
 import fi.riista.mobile.feature.myDetails.MyDetailsHuntingClubMembershipsFragment
+import fi.riista.mobile.feature.myDetails.MyDetailsTrainingsFragment
 import fi.riista.mobile.models.user.UserInfo
 import fi.riista.mobile.repository.MetsahallitusPermitRepository
 import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
@@ -63,6 +63,7 @@ class MyDetailsFragment : PageFragment() {
     private lateinit var mShootingTestsButton: Button
     private lateinit var mOccupationsButton: Button
     private lateinit var mHuntingGroupMembershipsButton: MaterialButton
+    private lateinit var mTrainingsButton: MaterialButton
 
     // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     override fun onAttach(context: Context) {
@@ -101,6 +102,9 @@ class MyDetailsFragment : PageFragment() {
 
         mHuntingGroupMembershipsButton = view.findViewById(R.id.my_details_hunting_group_memberships_button)
         mHuntingGroupMembershipsButton.setOnClickListener { onHuntingGroupMembershipsClick() }
+
+        mTrainingsButton = view.findViewById(R.id.my_details_trainings_button)
+        mTrainingsButton.setOnClickListener { onTrainingsClick() }
 
         mUserInfo?.username?.let { username ->
             mMHPermitRepository.findMetsahallitusPermits(username).observe(viewLifecycleOwner, Observer { list ->
@@ -241,7 +245,13 @@ class MyDetailsFragment : PageFragment() {
                     activity?.supportFragmentManager?.unregisterFragmentLifecycleCallbacks(this)
                 }
             }, false)
+        }
+    }
 
+    private fun onTrainingsClick() {
+        val fragment = MyDetailsTrainingsFragment()
+        activity?.supportFragmentManager?.let { fragmentManager ->
+            fragment.show(fragmentManager, MyDetailsTrainingsFragment.TAG)
         }
     }
 

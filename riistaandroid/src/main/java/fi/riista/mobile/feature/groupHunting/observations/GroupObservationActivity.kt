@@ -9,10 +9,10 @@ import fi.riista.common.extensions.loadGroupHuntingHarvestTarget
 import fi.riista.common.extensions.loadGroupHuntingObservationTarget
 import fi.riista.common.extensions.loadHuntingGroupTarget
 import fi.riista.common.extensions.saveToBundle
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.groupObservation.modify.CreateGroupObservationController
-import fi.riista.common.groupHunting.ui.groupObservation.modify.EditGroupObservationController
-import fi.riista.common.groupHunting.ui.groupObservation.view.ViewGroupObservationController
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.groupObservation.modify.CreateGroupObservationController
+import fi.riista.common.domain.groupHunting.ui.groupObservation.modify.EditGroupObservationController
+import fi.riista.common.domain.groupHunting.ui.groupObservation.view.ViewGroupObservationController
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
 import fi.riista.mobile.pages.PageFragment

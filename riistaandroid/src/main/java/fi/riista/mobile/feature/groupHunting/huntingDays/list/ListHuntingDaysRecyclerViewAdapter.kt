@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.groupHunting.ui.huntingDays.HuntingDayViewModel
+import fi.riista.common.domain.groupHunting.ui.huntingDays.HuntingDayViewModel
 
 class ListHuntingDaysRecyclerViewAdapter(
     private val layoutInflater: LayoutInflater,

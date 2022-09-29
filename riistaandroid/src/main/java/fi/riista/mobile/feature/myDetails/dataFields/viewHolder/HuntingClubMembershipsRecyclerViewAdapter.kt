@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.huntingclub.ui.HuntingClubViewModel
+import fi.riista.common.domain.huntingclub.ui.HuntingClubViewModel
 
 class HuntingClubMembershipsRecyclerViewAdapter(
     private val layoutInflater: LayoutInflater,

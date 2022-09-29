@@ -12,9 +12,9 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.groupHunting.model.AcceptStatus
-import fi.riista.common.groupHunting.model.DiaryEntryType
-import fi.riista.common.groupHunting.ui.diary.GroupDiaryEntryViewModel
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.DiaryEntryType
+import fi.riista.common.domain.groupHunting.ui.diary.GroupDiaryEntryViewModel
 import fi.riista.mobile.R
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime

@@ -5,7 +5,6 @@ import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.util.serializeToJson
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
 import io.ktor.http.*
 
 internal class RequestStartRegistration(

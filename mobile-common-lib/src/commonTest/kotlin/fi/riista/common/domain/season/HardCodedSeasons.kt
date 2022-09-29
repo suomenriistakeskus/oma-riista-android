@@ -1,6 +1,9 @@
 package fi.riista.common.domain.season
 
-import fi.riista.common.model.*
+import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.constants.SpeciesCodes
+import fi.riista.common.domain.model.*
+import fi.riista.common.model.LocalDate
 
 /**
  * Copied from application side + converted to kotlin.

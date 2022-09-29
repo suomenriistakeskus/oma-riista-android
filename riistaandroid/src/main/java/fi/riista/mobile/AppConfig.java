@@ -34,12 +34,9 @@ public class AppConfig {
     // overwritten. Sent with API calls since some operations require up-to-date client (permit numbers etc.)
     // Increment version when new fields have been added to data received from server.
 
-    public static final int HARVEST_SPEC_VERSION = 7;
-
-    // TODO Remove this constant when deer pilot 2020 is over.
-    public static final int HARVEST_SPEC_VERSION_IN_DEER_PILOT = 8;
+    public static final int HARVEST_SPEC_VERSION = 9;
 
     public static final int OBSERVATION_SPEC_VERSION = 4;
-    public static final int SRVA_SPEC_VERSION = 1;
+    public static final int SRVA_SPEC_VERSION = 2;
 
 }

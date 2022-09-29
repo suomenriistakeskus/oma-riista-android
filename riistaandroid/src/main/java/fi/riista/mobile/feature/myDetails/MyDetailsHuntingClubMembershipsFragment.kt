@@ -11,9 +11,9 @@ import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
 import fi.riista.common.RiistaSDK
-import fi.riista.common.huntingclub.HuntingClubMemberInvitationOperationResponse
-import fi.riista.common.huntingclub.model.HuntingClubMemberInvitationId
-import fi.riista.common.huntingclub.ui.HuntingClubController
+import fi.riista.common.domain.huntingclub.HuntingClubMemberInvitationOperationResponse
+import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingclub.ui.HuntingClubController
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus

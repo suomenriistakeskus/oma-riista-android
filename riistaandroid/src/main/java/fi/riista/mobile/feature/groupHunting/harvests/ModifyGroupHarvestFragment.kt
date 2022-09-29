@@ -12,10 +12,10 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.GroupHarvestField
-import fi.riista.common.groupHunting.ui.groupHarvest.modify.ModifyGroupHarvestController
-import fi.riista.common.groupHunting.ui.groupHarvest.modify.ModifyGroupHarvestViewModel
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.ModifyGroupHarvestController
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.ModifyGroupHarvestViewModel
 import fi.riista.common.model.*
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
@@ -25,18 +25,20 @@ import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.common.ui.dataField.*
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.MapViewerActivity
+import fi.riista.mobile.activity.SelectStringWithIdActivity
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
-import fi.riista.mobile.feature.groupHunting.SelectStringWithIdActivity
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
 import fi.riista.mobile.feature.groupHunting.huntingDays.select.SelectGroupHuntingDayActivity
+import fi.riista.mobile.pages.MapExternalIdProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.fromJodaDateTime
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
 import fi.riista.mobile.ui.DateTimePickerFragment
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.dataFields.viewHolder.*
 import fi.riista.mobile.ui.showDatePickerFragment
 import fi.riista.mobile.utils.MapUtils
 import kotlinx.coroutines.*
@@ -53,6 +55,7 @@ abstract class ModifyGroupHarvestFragment<
     : DataFieldPageFragment<GroupHarvestField>()
     , DataFieldViewHolderTypeResolver<GroupHarvestField>
     , MapOpener
+    , MapExternalIdProvider
     , SelectHuntingDayLauncher<GroupHarvestField>
     , DateTimePickerFragmentLauncher<GroupHarvestField>
     , DateTimePickerFragment.Listener
@@ -158,7 +161,7 @@ abstract class ModifyGroupHarvestFragment<
                 true -> DataFieldViewHolderType.READONLY_TEXT
                 false -> DataFieldViewHolderType.EDITABLE_TEXT
             }
-            is SpeciesCodeField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
+            is SpeciesField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
             is GenderField -> DataFieldViewHolderType.EDITABLE_GENDER
             is DateAndTimeField -> DataFieldViewHolderType.EDITABLE_DATE_AND_TIME
             is HuntingDayAndTimeField -> DataFieldViewHolderType.SELECT_HUNTING_DAY_AND_TIME
@@ -179,37 +182,47 @@ abstract class ModifyGroupHarvestFragment<
         adapter.apply {
             registerLabelFieldViewHolderFactories()
             registerViewHolderFactory(SpeciesNameAndIconViewHolder.Factory(speciesResolver))
-            registerViewHolderFactory(LocationOnMapViewHolder.Factory(
-                this@ModifyGroupHarvestFragment
+            registerViewHolderFactory(
+                LocationOnMapViewHolder.Factory(
+                this@ModifyGroupHarvestFragment,
+                mapExternalIdProvider = this@ModifyGroupHarvestFragment,
             ))
-            registerViewHolderFactory(EditableTextViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableTextViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.stringEventDispatcher
             ))
-            registerViewHolderFactory(EditableGenderViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableGenderViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.genderEventDispatcher
             ))
-            registerViewHolderFactory(EditableDateAndTimeViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableDateAndTimeViewHolder.Factory(
                 pickerLauncher = this@ModifyGroupHarvestFragment
             ))
             registerViewHolderFactory(SelectHuntingDayAndTimeViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.localTimeEventDispatcher,
                 selectHuntingDayLauncher = this@ModifyGroupHarvestFragment
             ))
-            registerViewHolderFactory(EditableAgeViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableAgeViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.ageEventDispatcher
             ))
             registerViewHolderFactory(ReadOnlyTextViewHolder.Factory())
-            registerViewHolderFactory(EditableBooleanAsRadioToggleViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableBooleanAsRadioToggleViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.booleanEventDispatcher
             ))
-            registerViewHolderFactory(EditableDoubleViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableDoubleViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.doubleEventDispatcher
             ))
-            registerViewHolderFactory(ChoiceViewHolder.Factory(
+            registerViewHolderFactory(
+                ChoiceViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.stringWithIdEventDispatcher,
                 choiceViewLauncher = this@ModifyGroupHarvestFragment
             ))
-            registerViewHolderFactory(IntFieldViewHolder.Factory(
+            registerViewHolderFactory(
+                IntFieldViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.intEventDispatcher
             ))
             registerViewHolderFactory(InstructionsViewHolder.Factory())
@@ -266,15 +279,17 @@ abstract class ModifyGroupHarvestFragment<
 
     override fun displayChoicesInSeparateView(
         fieldId: GroupHarvestField,
+        mode: StringListField.Mode,
         choices: List<StringWithId>,
-        selectedChoice: StringId?,
+        selectedChoices: List<StringId>?,
         viewConfiguration: StringListField.ExternalViewConfiguration,
     ) {
         val intent = SelectStringWithIdActivity.getLaunchIntent(
             packageContext = requireContext(),
             fieldId = fieldId,
+            mode = mode,
             possibleValues = choices,
-            selectedValueId = selectedChoice,
+            selectedValueIds = selectedChoices,
             configuration = viewConfiguration
         )
 
@@ -311,7 +326,12 @@ abstract class ModifyGroupHarvestFragment<
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, true)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_EXTERNAL_ID, getMapExternalId())
         locationRequestActivityResultLaunch.launch(intent)
+    }
+
+    override fun getMapExternalId(): String? {
+        return controller.getLoadedViewModelOrNull()?.huntingGroupArea?.externalId
     }
 
     override fun launchHuntingDaySelection(
@@ -344,9 +364,9 @@ abstract class ModifyGroupHarvestFragment<
         val fieldId = GroupHarvestField.fromInt(
             SelectStringWithIdActivity.getFieldIdFromIntent(data)
         )
-        val selectedValue = SelectStringWithIdActivity.getStringWithIdResultFromIntent(data)
+        val selectedValue = SelectStringWithIdActivity.getStringWithIdResulListFromIntent(data)
 
-        if (fieldId != null && selectedValue != null) {
+        if (fieldId != null && !selectedValue.isNullOrEmpty()) {
             controller.eventDispatchers.stringWithIdEventDispatcher
                 .dispatchStringWithIdChanged(fieldId, selectedValue)
         }

@@ -28,14 +28,17 @@
     <color name="bottomBar">#FF354935</color>
 
     <color name="color_background_transparent_white">#C3FFFFFF</color>
+    <color name="color_background_transparent_black">#60000000</color>
     <color name="color_background_error">#22E34256</color>
-    <color name="color_background_busy">#60000000</color>
+    <color name="color_background_busy">@color/color_background_transparent_black</color>
 
     <color name="colorUndefined">#FFC72525</color>
     <color name="colorWarning">#FFC72525</color>
     <color name="colorProposedEntry">#FFC72525</color>
 
     <color name="secondaryButton">@color/colorLightGrey</color>
+
+    <color name="colorLink">#2776D2</color>
 
     <!-- LEGACY -->
 
@@ -92,4 +95,8 @@
     <color name="poi_mineral_lick_color">#454540</color>
     <color name="poi_other_color">#B800D8</color>
     <color name="poi_text_color">#FFFFFF</color>
+
+    <color name="login_area_color">#AA000000</color>
+    <color name="login_selected_tab_button">#99000000</color>
+    <color name="login_secondary_button_background">@android:color/transparent</color>
 </resources>

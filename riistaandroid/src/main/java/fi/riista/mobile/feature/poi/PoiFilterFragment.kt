@@ -8,7 +8,7 @@ import android.widget.RadioButton
 import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
-import fi.riista.common.poi.ui.PoiFilter
+import fi.riista.common.domain.poi.ui.PoiFilter
 import fi.riista.mobile.R
 
 class PoiFilterFragment : DialogFragment() {

@@ -7,11 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
-import fi.riista.common.groupHunting.GroupHuntingDayUpdateResponse
-import fi.riista.common.groupHunting.model.GroupHuntingDay
-import fi.riista.common.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayViewModel
-import fi.riista.common.groupHunting.ui.huntingDays.modify.GroupHuntingDayField
-import fi.riista.common.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.GroupHuntingDayUpdateResponse
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayViewModel
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.GroupHuntingDayField
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayController
 import fi.riista.common.model.HoursAndMinutes
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.reactive.DisposeBag
@@ -22,14 +22,14 @@ import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.common.ui.dataField.*
 import fi.riista.mobile.R
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.feature.groupHunting.huntingDays.ViewOrEditGroupHuntingDayFragmentManager
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.fromJodaDateTime
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
 import fi.riista.mobile.ui.*
+import fi.riista.mobile.ui.dataFields.viewHolder.*
 import kotlinx.coroutines.*
 import org.joda.time.DateTime
 
@@ -167,12 +167,14 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<GroupHuntingDayField>) {
         adapter.apply {
             registerLabelFieldViewHolderFactories()
-            registerViewHolderFactory(EditableDateAndTimeViewHolder.Factory(
+            registerViewHolderFactory(
+                EditableDateAndTimeViewHolder.Factory(
                     pickerLauncher = this@ModifyGroupHuntingDayFragment
             ))
             registerViewHolderFactory(ChoiceViewHolder.Factory(controller.eventDispatchers.stringWithIdDispatcher))
             registerViewHolderFactory(IntFieldViewHolder.Factory(controller.eventDispatchers.intEventDispatcher))
-            registerViewHolderFactory(SelectDurationViewHolder.Factory(
+            registerViewHolderFactory(
+                SelectDurationViewHolder.Factory(
                     pickerLauncher = this@ModifyGroupHuntingDayFragment
             ))
         }

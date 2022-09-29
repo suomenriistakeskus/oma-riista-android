@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".feature.login.LoginFragment">
+
+    <LinearLayout
+        android:id="@+id/tab_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="vertical" >
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.5" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tab_login"
+                style="@style/LoginTabButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/guideline"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginEnd="@dimen/padding_tiny"
+                android:text="@string/login_tab_title" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tab_create_account"
+                style="@style/LoginTabButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toEndOf="@id/guideline"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_marginStart="@dimen/padding_tiny"
+                android:text="@string/register_tab_title" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/login_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="0dp"
+            android:layout_weight="4"
+            android:background="@color/login_area_color"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/page_padding_horizontal"
+            android:paddingRight="@dimen/page_padding_horizontal">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/username"
+                style="@style/LoginTextInput"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/text_input_height"
+                android:layout_marginTop="@dimen/page_padding_vertical"
+                android:hint="@string/username"
+                android:inputType="textEmailAddress"
+                android:nextFocusDown="@+id/password" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/password"
+                style="@style/LoginTextInput"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/text_input_height"
+                android:layout_marginTop="@dimen/page_padding_vertical"
+                android:hint="@string/password"
+                android:inputType="textPassword" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_login"
+                style="@style/LoginPrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:layout_marginTop="@dimen/page_padding_vertical"
+                android:text="@string/login" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_email_changed"
+                style="@style/LoginSecondaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:layout_marginTop="@dimen/page_padding_vertical"
+                android:text="@string/login_username_changed" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_reset_password"
+                style="@style/LoginSecondaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:layout_marginTop="@dimen/page_padding_vertical"
+                android:layout_marginBottom="@dimen/page_padding_vertical"
+                android:text="@string/password_forgotten" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/create_account_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:fillViewport="true"
+            android:paddingLeft="@dimen/page_padding_vertical"
+            android:paddingRight="@dimen/page_padding_vertical"
+            android:background="@color/login_area_color"
+            android:visibility="gone">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/create_account_layout2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/create_account_title"
+                    style="@style/LoginTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginTop="@dimen/page_padding_vertical"
+                    android:text="@string/send_registration_link_title" />
+
+                <TextView
+                    android:id="@+id/create_account_message"
+                    style="@style/LoginText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/create_account_title"
+                    android:layout_marginTop="@dimen/page_padding_vertical"
+                    android:text="@string/send_registration_link_message" />
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/new_email"
+                    style="@style/LoginTextInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/text_input_height"
+                    app:layout_constraintTop_toBottomOf="@id/create_account_message"
+                    android:layout_marginTop="@dimen/page_padding_vertical"
+                    android:hint="@string/username"
+                    android:inputType="textEmailAddress"
+                    android:nextFocusDown="@+id/password" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_create_account"
+                    style="@style/LoginPrimaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/default_button_height"
+                    app:layout_constraintTop_toBottomOf="@id/new_email"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintVertical_bias="1.0"
+                    android:layout_marginTop="@dimen/page_padding_vertical"
+                    android:layout_marginBottom="@dimen/page_padding_vertical"
+                    android:text="@string/send_registration_link_action" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/create_account_requested_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="@color/login_area_color"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/page_padding_vertical"
+            android:paddingRight="@dimen/page_padding_vertical"
+            android:visibility="gone">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/create_account_requested_title"
+                    style="@style/LoginTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"
+                    android:layout_marginTop="@dimen/page_padding_vertical"
+                    android:text="@string/authentication_link_sent_title" />
+
+                <TextView
+                    android:id="@+id/create_account_requested_message"
+                    style="@style/LoginText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toBottomOf="@id/create_account_requested_title"
+                    android:layout_marginTop="@dimen/page_padding_vertical"
+                    android:text="@string/registration_link_sent_message" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_return_to_login"
+                    style="@style/LoginPrimaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/default_button_height"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:layout_marginBottom="@dimen/page_padding_vertical"
+                    android:text="@string/authentication_link_sent_back_to_login" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

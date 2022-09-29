@@ -1,0 +1,26 @@
+CREATE TABLE DbHuntingControlRhy (
+    username TEXT NOT NULL,
+    remote_id INTEGER NOT NULL,
+    name_fi TEXT,
+    name_sv TEXT,
+    name_en TEXT,
+    official_code TEXT NOT NULL,
+
+    CONSTRAINT pk_constraint_DbRhy PRIMARY KEY (remote_id, username)
+);
+
+selectByUser:
+SELECT * FROM DbHuntingControlRhy WHERE username = ?;
+
+rhyExists:
+SELECT EXISTS(SELECT 1 FROM DbHuntingControlRhy WHERE username = ? AND remote_id = ?);
+
+insertRhy:
+INSERT INTO DbHuntingControlRhy(username, remote_id, name_fi, name_sv, name_en, official_code)
+VALUES (?, ?, ?, ?, ?, ?);
+
+updateRhy:
+UPDATE DbHuntingControlRhy SET name_fi=?, name_sv=?, name_en=?, official_code=? WHERE username = ? AND remote_id = ?;
+
+deleteRhy:
+DELETE FROM DbHuntingControlRhy WHERE username = ? AND remote_id = ?;

@@ -2,11 +2,12 @@ package fi.riista.common.resources
 
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.RepresentsBackendEnum
+import fi.riista.common.model.StringId
 import fi.riista.common.model.StringWithId
 import fi.riista.common.ui.dataField.StringListField
 
-private const val EMPTY_BACKEND_ENUM_VALUE_ID = -1L
-private const val RAW_BACKEND_VALUE_ID = -2L
+internal const val EMPTY_BACKEND_ENUM_VALUE_ID = -1L
+internal const val RAW_BACKEND_VALUE_ID = -2L
 
 /**
  * A helper for localizing [Enum] values that can be localized (i.e implement
@@ -15,11 +16,30 @@ private const val RAW_BACKEND_VALUE_ID = -2L
 internal fun <E> E.toLocalizedStringWithId(
     stringProvider: StringProvider
 ): StringWithId where E : Enum<E>, E : LocalizableEnum {
+    return toLocalizedStringWithId { enumValue ->
+        stringProvider.getString(enumValue.resourcesStringId)
+    }
+}
+
+/**
+ * A helper for localizing [Enum] values that don't implement [LocalizableEnum] interface
+ */
+internal fun <E> E.toLocalizedStringWithId(
+    localizationProvider: (E) -> String,
+): StringWithId where E : Enum<E> {
     return StringWithId(
-            string = stringProvider.getString(resourcesStringId),
-            id = ordinal.toLong()
+        string = localizationProvider(this),
+        id = stringId
     )
 }
+
+/**
+ * A helper for getting stringId for this [Enum] value.
+ */
+internal val <E> E.stringId: StringId where E : Enum<E>
+    get() {
+        return ordinal.toLong()
+    }
 
 /**
  * A helper for treating [StringWithId.id] as an [Enum] ordinal and getting
@@ -50,20 +70,37 @@ internal inline fun <reified E : Enum<E>> StringWithId.toEnum(): E? {
 internal fun <E> BackendEnum<E>.toLocalizedStringWithId(
     stringProvider: StringProvider
 ): StringWithId where E : Enum<E>, E : RepresentsBackendEnum, E : LocalizableEnum {
-    val enumValue = value
-
-    @Suppress("FoldInitializerAndIfToElvis")
-    if (enumValue == null) {
-        return if (!rawBackendEnumValue.isNullOrBlank()) {
-            StringWithId(rawBackendEnumValue, RAW_BACKEND_VALUE_ID)
-        } else {
-            StringWithId.emptyBackendEnumValue
-        }
-    }
-
-    return enumValue.toLocalizedStringWithId(stringProvider)
+    return value?.toLocalizedStringWithId(stringProvider)
+        ?: toFallbackStringWithId()
 }
 
+/**
+ * A helper for localizing [BackendEnum] values that don't implement [LocalizableEnum] interface.
+ *
+ * NOTE: Will use hard coded ids to represent cases where the [BackendEnum.value] is null. The
+ * id of the returned [StringWithId] will be:
+ *      -1 if [BackendEnum.rawBackendEnumValue] is null
+ *      -2 if [BackendEnum.rawBackendEnumValue] is not null
+ *
+ * This should be taken into account when e.g. storing enum values in list of [StringWithId]s
+ * (which is the case e.g. with [StringListField]). In those cases there should be at maximum
+ * one [StringWithId] for which the enum value is unknown (value == null, rawBackendEnumValue != null)
+ */
+internal fun <E> BackendEnum<E>.toLocalizedStringWithId(
+    localizationProvider: (E) -> String,
+): StringWithId where E : Enum<E>, E : RepresentsBackendEnum {
+    return value?.toLocalizedStringWithId(localizationProvider)
+        ?: toFallbackStringWithId()
+}
+
+private fun <E> BackendEnum<E>.toFallbackStringWithId():
+        StringWithId where E : Enum<E>, E : RepresentsBackendEnum {
+    return if (!rawBackendEnumValue.isNullOrBlank()) {
+        StringWithId(rawBackendEnumValue, RAW_BACKEND_VALUE_ID)
+    } else {
+        StringWithId.emptyBackendEnumValue
+    }
+}
 
 /**
  * A helper for treating [StringWithId.id] as an [Enum] (of type [E]) ordinal and getting
@@ -96,3 +133,17 @@ internal fun StringWithId.isEmptyBackendEnumValue(): Boolean {
 
 internal val StringWithId.Companion.emptyBackendEnumValue: StringWithId
     get() = StringWithId("", EMPTY_BACKEND_ENUM_VALUE_ID)
+
+
+/**
+ * A helper for localizing [BackendEnum] values that can be localized (i.e implement
+ * [LocalizableEnum] interface).
+ */
+fun <E> BackendEnum<E>.localized(stringProvider: StringProvider): String where
+        E : Enum<E>, E : RepresentsBackendEnum, E : LocalizableEnum {
+    return value?.let {
+        stringProvider.getString(it.resourcesStringId)
+    }
+        ?: this.rawBackendEnumValue
+        ?: ""
+}

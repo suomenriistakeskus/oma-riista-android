@@ -78,6 +78,12 @@ actual class PlatformPreferences actual constructor(): Preferences {
         }
     }
 
+    actual override fun remove(key: String) {
+        sharedPrefs?.edit()
+            ?.remove(key)
+            ?.apply()
+    }
+
     /**
      * SharedPreferences get-functions will throw ClassCastException if the contained data is not
      * of correct type. Catches those, logs the issue and returns defaultValue in those cases.

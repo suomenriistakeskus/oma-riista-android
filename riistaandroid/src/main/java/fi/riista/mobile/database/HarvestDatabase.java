@@ -86,7 +86,7 @@ public class HarvestDatabase {
                     final String dateTimeStr = (String) entry.getValue();
 
                     if (dateTimeStr != null) {
-                        calendar = DateTimeUtils.parseCalendar(dateTimeStr, true);
+                        calendar = DateTimeUtils.parseCalendar(dateTimeStr);
                     }
                 } catch (final Exception e) {
                     // Will re-init Calendar instance.
@@ -230,7 +230,7 @@ public class HarvestDatabase {
                         }
 
                         final String pointOfTimeStr = object.getString("pointOfTime");
-                        final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr, true);
+                        final Calendar pointOfTime = DateTimeUtils.parseCalendar(pointOfTimeStr);
 
                         final GameHarvest harvest = new GameHarvest(
                                 object.getInt("harvestSpecVersion"),

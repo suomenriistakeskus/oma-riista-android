@@ -8,18 +8,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.google.android.gms.location.LocationListener
-import fi.riista.common.groupHunting.GroupHuntingHarvestOperationResponse
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.GroupHarvestField
-import fi.riista.common.groupHunting.ui.groupHarvest.modify.CreateGroupHarvestController
+import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.CreateGroupHarvestController
 import fi.riista.common.model.GeoLocationSource
-import fi.riista.common.model.HunterNumber
-import fi.riista.common.ui.dataField.*
 import fi.riista.common.util.toETRMSGeoLocation
 import fi.riista.mobile.LocationClientProvider
 import fi.riista.mobile.R
 import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
 import fi.riista.mobile.ui.DateTimePickerFragment
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.DateTimePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.MapOpener
 import kotlinx.coroutines.*
 
 /**
@@ -71,11 +72,7 @@ class CreateGroupHarvestFragment
         saveScope?.cancel()
     }
 
-    override fun onLocationChanged(location: Location?) {
-        if (location == null) {
-            return
-        }
-
+    override fun onLocationChanged(location: Location) {
         val harvestLocationChanged = controller.tryMoveHarvestToCurrentUserLocation(
                 location = location.toETRMSGeoLocation(GeoLocationSource.GPS_DEVICE)
         )

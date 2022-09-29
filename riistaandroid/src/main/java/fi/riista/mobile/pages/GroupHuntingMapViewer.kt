@@ -23,8 +23,8 @@ import com.google.maps.android.clustering.Cluster
 import com.google.maps.android.clustering.algo.NonHierarchicalDistanceBasedAlgorithm
 import com.google.maps.android.clustering.algo.PreCachingAlgorithmDecorator
 import com.google.maps.android.clustering.algo.ScreenBasedAlgorithmAdapter
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.diary.DiaryFilter
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.diary.DiaryFilter
 import fi.riista.mobile.EntryMapView
 import fi.riista.mobile.LocationClient
 import fi.riista.mobile.R
@@ -205,6 +205,9 @@ class GroupHuntingMapViewer()
         mapView.setShowRhyBordersLayer(AppPreferences.getShowRhyBorders(context))
         mapView.setShowValtionmaatLayer(AppPreferences.getShowValtionmaat(context))
         mapView.setShowGameTrianglesLayer(AppPreferences.getShowGameTriangles(context))
+        mapView.setShowMooseRestrictionsLayer(AppPreferences.getShowMooseRestrictions(context))
+        mapView.setShowSmallGameRestrictionsLayer(AppPreferences.getShowSmallGameRestrictions(context))
+        mapView.setShowAviHuntingBanLayer(AppPreferences.getShowAviHuntingBan(context))
         overlay.updateMhMooseAreaVisibility()
         overlay.updateMhPienriistaAreaVisibility()
         super.onResume()
@@ -269,6 +272,9 @@ class GroupHuntingMapViewer()
         mapView.setShowRhyBordersLayer(AppPreferences.getShowRhyBorders(context))
         mapView.setShowValtionmaatLayer(AppPreferences.getShowValtionmaat(context))
         mapView.setShowGameTrianglesLayer(AppPreferences.getShowGameTriangles(context))
+        mapView.setShowMooseRestrictionsLayer(AppPreferences.getShowMooseRestrictions(context))
+        mapView.setShowSmallGameRestrictionsLayer(AppPreferences.getShowSmallGameRestrictions(context))
+        mapView.setShowAviHuntingBanLayer(AppPreferences.getShowAviHuntingBan(context))
         overlay.updateMhMooseAreaVisibility()
         overlay.updateMhPienriistaAreaVisibility()
         val markers = setupClusterMarkers()

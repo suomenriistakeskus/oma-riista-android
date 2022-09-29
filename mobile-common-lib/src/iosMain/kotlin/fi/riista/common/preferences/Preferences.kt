@@ -57,6 +57,10 @@ actual class PlatformPreferences actual constructor(): Preferences {
         userDefaults.setBool(value, forKey = key)
     }
 
+    actual override fun remove(key: String) {
+        userDefaults.removeObjectForKey(key)
+    }
+
     actual override fun getBoolean(key: String, defaultValue: Boolean?): Boolean? {
         // userDefaults boolForKey will return NO (= false) if key doesn't exist.
         // -> guard with contains check

@@ -1,0 +1,9 @@
+CREATE TABLE DbMetadata (
+    metadata_type TEXT NOT NULL,
+    metadata_spec_version INTEGER NOT NULL,
+    metadata_format_version INTEGER NOT NULL,
+    metadata_json TEXT,
+
+    CONSTRAINT pk_constraint_DbMetadata PRIMARY KEY (metadata_type, metadata_spec_version, metadata_format_version)
+);
+

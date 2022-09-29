@@ -1,5 +1,6 @@
 package fi.riista.mobile.pages
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -24,9 +25,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.maps.android.clustering.Cluster
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
-import fi.riista.common.poi.ui.PoiController
-import fi.riista.common.poi.ui.PoiFilter
-import fi.riista.common.poi.ui.PoiViewModel
+import fi.riista.common.domain.poi.ui.PoiController
+import fi.riista.common.domain.poi.ui.PoiFilter
+import fi.riista.common.domain.poi.ui.PoiViewModel
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.resources.StringProvider
@@ -38,13 +39,17 @@ import fi.riista.mobile.LocationClient
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.*
 import fi.riista.mobile.database.HarvestDatabase
+import fi.riista.mobile.feature.observation.ObservationActivity
 import fi.riista.mobile.feature.poi.PoiFilterFragment
 import fi.riista.mobile.feature.poi.PoiLocationActivity
+import fi.riista.mobile.feature.srva.SrvaActivity
 import fi.riista.mobile.models.GameLog
 import fi.riista.mobile.models.observation.GameObservation
 import fi.riista.mobile.models.srva.SrvaEvent
 import fi.riista.mobile.observation.ObservationDatabase
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
+import fi.riista.mobile.riistaSdkHelpers.toCommonObservation
+import fi.riista.mobile.riistaSdkHelpers.toCommonSrvaEvent
 import fi.riista.mobile.srva.SrvaDatabase
 import fi.riista.mobile.ui.GameLogFilterView
 import fi.riista.mobile.ui.GameLogFilterView.GameLogFilterListener
@@ -59,12 +64,11 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
-import kotlin.collections.HashMap
 import kotlin.math.cos
 import kotlin.math.sin
 
 class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, GameLogFilterListener,
-    MapViewerInterface {
+    MapViewerInterface, PoiLocationActivity.CenterMapListener {
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
@@ -77,8 +81,12 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     @Inject
     lateinit var observationDatabase: ObservationDatabase
 
+    lateinit var displayMarkersButton: AppCompatImageButton
+    lateinit var displayMarkersTitle: TextView
+
     private var isExpanded = false
     private var editMode = false
+    private var mapExternalId: String? = null
     private var startLocation: Location? = null
     private var newItem = false
     private var locationSource: String? = null
@@ -92,10 +100,10 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     private var overlayMode = false
     private var clusterManager: MapMarkerClusterManager<MapMarkerItem>? = null
     private lateinit var filterView: GameLogFilterView
-    private var displayPins = false
+    private var displayMarkers = true
     private var isMeasuring = false
     private lateinit var model: GameLogViewModel
-    private var enablePins = false
+    private var enableMarkers = false
     private val markerItemsCache: MutableMap<String, MutableList<MapMarkerItem>> = HashMap()
 
     private var enablePois = false
@@ -105,6 +113,10 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     private val disposeBag = DisposeBag()
     private var poiViewModel: PoiViewModel? = null
     private lateinit var stringProvider: StringProvider
+
+    private val resultLauncher = PoiLocationActivity.registerForActivityResult(this) { location ->
+        centerMapTo(location)
+    }
 
     /**
      * Toggle map view fullscreen mode
@@ -138,6 +150,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         startLocation = arguments.getParcelable(MapViewerActivity.EXTRA_START_LOCATION)
         newItem = arguments.getBoolean(MapViewerActivity.EXTRA_NEW, false)
         locationSource = arguments.getString(MapViewerActivity.EXTRA_LOCATION_SOURCE, GameLog.LOCATION_SOURCE_MANUAL)
+        mapExternalId = arguments.getString(MapViewerActivity.EXTRA_EXTERNAL_ID)
         if (overlayMode) {
             val loc = AppPreferences.getLastMapLocation(context)
             if (loc != null) {
@@ -171,6 +184,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         overlay.fragment = this
         filterView = view.findViewById(R.id.map_filter_view)
         filterView.listener = this
+        filterView.centerMapListener = this
         stringProvider = ContextStringProviderFactory.createForContext(requireContext())
         poiFilterButton = view.findViewById(R.id.poiFilterButton)
         poiFilterButtonText = view.findViewById(R.id.poiFilterButtonText)
@@ -183,7 +197,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         model = ViewModelProvider(requireActivity(), viewModelFactory).get(
             GameLogViewModel::class.java
         )
-        if (enablePins) {
+        if (enableMarkers) {
             model.refreshSeasons()
             filterView.setupTypes(
                 UiUtils.isSrvaVisible(userInfoStore.getUserInfo()),
@@ -224,28 +238,35 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         actionBar.setDisplayShowTitleEnabled(false)
         actionBar.setDisplayShowCustomEnabled(true)
         actionBar.setCustomView(R.layout.actionbar_map_viewer)
-        val displayPinsButton: AppCompatImageButton =
-            actionBar.customView.findViewById(R.id.toolbar_display_pins_button)
-        val displayPinsTitle = actionBar.customView.findViewById<View>(R.id.toolbar_display_pins_title)
-        if (enablePins) {
+
+        displayMarkersButton = actionBar.customView.findViewById(R.id.toolbar_display_markers_button)
+        displayMarkersTitle = actionBar.customView.findViewById(R.id.toolbar_display_markers_title)
+
+        if (enableMarkers) {
             val onClickListener = View.OnClickListener {
-                displayPins = !displayPins
-                if (displayPins) {
-                    filterView.visibility = View.VISIBLE
-                    displayPinsButton.setImageResource(R.drawable.ic_pin_enabled_white)
-                } else {
-                    filterView.visibility = View.GONE
-                    displayPinsButton.setImageResource(R.drawable.ic_pin_disabled_white)
-                }
+                displayMarkers = !displayMarkers
+                setupMarkerButton()
                 populateMarkerItems()
             }
-            displayPinsButton.setOnClickListener(onClickListener)
-            displayPinsTitle.setOnClickListener(onClickListener)
+            displayMarkersButton.setOnClickListener(onClickListener)
+            displayMarkersTitle.setOnClickListener(onClickListener)
         } else {
-            displayPinsButton.visibility = View.GONE
-            displayPinsTitle.visibility = View.GONE
+            displayMarkersButton.visibility = View.GONE
+            displayMarkersTitle.visibility = View.GONE
         }
         setHasOptionsMenu(true)
+    }
+
+    private fun setupMarkerButton() {
+        if (displayMarkers) {
+            displayMarkersTitle.text = getString(R.string.map_hide_markers)
+            filterView.visibility = View.VISIBLE
+            displayMarkersButton.setImageResource(R.drawable.ic_pin_disabled_white)
+        } else {
+            displayMarkersTitle.text = getString(R.string.map_show_markers)
+            filterView.visibility = View.GONE
+            displayMarkersButton.setImageResource(R.drawable.ic_pin_enabled_white)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -307,15 +328,21 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             overlay.updateMapSettings()
         }
         mapView?.setMapExternalId(
-            AppPreferences.getSelectedClubAreaMapId(context), AppPreferences.getInvertMapColors(
-                context
-            )
+            AppPreferences.getSelectedClubAreaMapId(context),
+            AppPreferences.getInvertMapColors(context)
         )
         mapView?.setShowRhyBordersLayer(AppPreferences.getShowRhyBorders(context))
         mapView?.setShowValtionmaatLayer(AppPreferences.getShowValtionmaat(context))
         mapView?.setShowGameTrianglesLayer(AppPreferences.getShowGameTriangles(context))
+        mapView?.setShowMooseRestrictionsLayer(AppPreferences.getShowMooseRestrictions(context))
+        mapView?.setShowSmallGameRestrictionsLayer(AppPreferences.getShowSmallGameRestrictions(context))
+        mapView?.setShowAviHuntingBanLayer(AppPreferences.getShowAviHuntingBan(context))
         overlay.updateMhMooseAreaVisibility()
         overlay.updateMhPienriistaAreaVisibility()
+        if (enableMarkers) {
+            displayMarkers = AppPreferences.getShowMapMarkers(context)
+            setupMarkerButton()
+        }
 
         poiController?.externalId = AppPreferences.getSelectedClubAreaMapId(context)
         poiController?.viewModelLoadStatus?.bindAndNotify { viewModelLoadStatus ->
@@ -380,6 +407,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 AppPreferences.setLastMapLocation(context, loc)
             }
         }
+        AppPreferences.setShowMapMarkers(context, displayMarkers)
         locationClient?.removeListener(this)
         mapView?.onPause()
 
@@ -429,7 +457,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         mapView?.setShowInfoWindow(newItem)
         mapView?.setShowAccuracy(true)
         map.setOnCameraMoveListener {
-            if (enablePins) {
+            if (enableMarkers) {
                 val maxZoomLevel = mapView?.map?.maxZoomLevel
                 val zoom = mapView?.map?.cameraPosition?.zoom
                 if (maxZoomLevel != null && zoom != null && zoom < maxZoomLevel) {
@@ -443,9 +471,18 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             AppPreferences.getSelectedClubAreaMapId(context),
             AppPreferences.getInvertMapColors(context)
         )
+        if (mapExternalId != null) {
+            mapView?.setMapExternalId2(
+                mapExternalId,
+                true,
+            )
+        }
         mapView?.setShowRhyBordersLayer(AppPreferences.getShowRhyBorders(context))
         mapView?.setShowValtionmaatLayer(AppPreferences.getShowValtionmaat(context))
         mapView?.setShowGameTrianglesLayer(AppPreferences.getShowGameTriangles(context))
+        mapView?.setShowMooseRestrictionsLayer(AppPreferences.getShowMooseRestrictions(context))
+        mapView?.setShowSmallGameRestrictionsLayer(AppPreferences.getShowSmallGameRestrictions(context))
+        mapView?.setShowAviHuntingBanLayer(AppPreferences.getShowAviHuntingBan(context))
         overlay.updateMhMooseAreaVisibility()
         overlay.updateMhPienriistaAreaVisibility()
         setupClusterMarkers()
@@ -492,6 +529,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         setPositionButton.visibility = if (canEditLocation()) View.VISIBLE else View.GONE
     }
 
+    @SuppressLint("PotentialBehaviorOverride")
     private fun setupClusterMarkers() {
         val map = mapView?.map ?: return
         clusterManager = MapMarkerClusterManager(requireActivity(), map)
@@ -556,22 +594,32 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 startActivity(intent)
             }
             GameLog.TYPE_OBSERVATION -> observationDatabase.loadObservation(mapMarkerItem.localId) { observation: GameObservation? ->
-                val intent1 = Intent(context, EditActivity::class.java)
-                intent1.putExtra(EditActivity.EXTRA_OBSERVATION, observation)
-                startActivity(intent1)
+                observation?.toCommonObservation()
+                    ?.let {
+                        val intent = ObservationActivity.getLaunchIntentForViewing(requireActivity(), it)
+                        startActivity(intent)
+                    }
             }
             GameLog.TYPE_SRVA -> SrvaDatabase.getInstance().loadEvent(mapMarkerItem.localId) { srvaEvent: SrvaEvent? ->
-                val intent1 = Intent(context, EditActivity::class.java)
-                intent1.putExtra(EditActivity.EXTRA_SRVA_EVENT, srvaEvent)
-                startActivity(intent1)
+                srvaEvent?.toCommonSrvaEvent()
+                    ?.let {
+                        val intent = SrvaActivity.getLaunchIntentForViewing(requireActivity(), it)
+                        startActivity(intent)
+                    }
             }
             GameLog.TYPE_POI -> {
                 val poiGroupAndLocation = poiController?.findPoiLocationAndItsGroup(mapMarkerItem.localId)
                 poiGroupAndLocation?.let { poi ->
+                    val context = requireContext()
                     val poiLocationGroup = poi.first
                     val poiLocation = poi.second
-                    val intent = PoiLocationActivity.getIntent(requireContext(), poiLocationGroup, poiLocation)
-                    startActivity(intent)
+                    val intent = PoiLocationActivity.getIntent(
+                        context = context,
+                        externalId = AppPreferences.getSelectedClubAreaMapId(requireContext()),
+                        poiLocationGroup = poiLocationGroup,
+                        poiLocation = poiLocation,
+                    )
+                    resultLauncher.launch(intent)
                 }
             }
             else -> {
@@ -582,7 +630,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     private fun populateMarkerItems() {
         if (clusterManager == null) {
             return
-        } else if (!displayPins) {
+        } else if (!displayMarkers) {
             clusterManager?.clearItems()
             clusterManager?.cluster()
             return
@@ -686,6 +734,10 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         model.selectSpeciesCategory(categoryId)
     }
 
+    override fun centerMapTo(location: Location) {
+        mapView?.moveCameraTo(location)
+    }
+
     interface FullScreenExpand {
         fun setFullscreenMode(fullscreen: Boolean)
     }
@@ -714,8 +766,9 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             instance.enablePois = enablePois
             instance.markerItemsCache[MARKER_ADDED_LIST] = ArrayList()
             instance.markerItemsCache[MARKER_DELETE_LIST] = ArrayList()
-            instance.enablePins = true
+            instance.enableMarkers = true
             return instance
+
         }
     }
 }

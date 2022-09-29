@@ -79,7 +79,7 @@ object DiaryImageUtil {
         imageView.visibility = View.VISIBLE
     }
 
-    private fun getImageUri(imageUuid: String, reqWidth: Int, reqHeight: Int, keepRatio: Boolean, affix: String?): String {
+    internal fun getImageUri(imageUuid: String, reqWidth: Int, reqHeight: Int, keepRatio: Boolean, affix: String?): String {
         val imageUri = String.format(IMAGE_PATH_FORMAT, AppConfig.getBaseUrl(), imageUuid, reqWidth, reqHeight, if (keepRatio) IMAGE_SCALING_KEEP_RATIO else IMAGE_SCALING_CROP)
 
         return if (affix == null) imageUri else "$imageUri?$affix"

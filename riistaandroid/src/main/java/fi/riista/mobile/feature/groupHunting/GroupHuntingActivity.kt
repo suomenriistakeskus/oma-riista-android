@@ -8,12 +8,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.RiistaSDK
-import fi.riista.common.groupHunting.model.HuntingGroupTarget
-import fi.riista.common.groupHunting.ui.groupSelection.SelectHuntingGroupController
-import fi.riista.common.groupHunting.ui.groupSelection.SelectHuntingGroupField
-import fi.riista.common.groupHunting.ui.groupSelection.SelectHuntingGroupViewModel
-import fi.riista.common.model.SpeciesCode
-import fi.riista.common.model.isDeer
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.ui.groupSelection.SelectHuntingGroupController
+import fi.riista.common.domain.groupHunting.ui.groupSelection.SelectHuntingGroupField
+import fi.riista.common.domain.groupHunting.ui.groupSelection.SelectHuntingGroupViewModel
+import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.constants.isDeer
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
@@ -22,15 +22,16 @@ import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.common.ui.dataField.*
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.ChoiceViewHolder
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.DataFieldViewHolderType
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.DataFieldViewHolderTypeResolver
 import fi.riista.mobile.feature.groupHunting.harvests.GroupHarvestActivity
 import fi.riista.mobile.feature.groupHunting.huntingDays.list.ListGroupHuntingDaysActivity
 import fi.riista.mobile.feature.groupHunting.observations.GroupObservationActivity
 import fi.riista.mobile.riistaSdkHelpers.*
 import fi.riista.mobile.ui.MessageDialogFragment
+import fi.riista.mobile.ui.NotificationButton
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
 import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -43,11 +44,11 @@ class GroupHuntingActivity
     private lateinit var adapter: DataFieldRecyclerViewAdapter<SelectHuntingGroupField>
 
     private lateinit var layoutGroupHuntingAvailable: View
-    private lateinit var newHarvestBtn: GroupHuntingButton
-    private lateinit var bigNewHarvestBtn: GroupHuntingButton
-    private lateinit var newObservationBtn: GroupHuntingButton
-    private lateinit var diaryOnMapBtn: GroupHuntingButton
-    private lateinit var huntingDaysBtn: GroupHuntingButton
+    private lateinit var newHarvestBtn: NotificationButton
+    private lateinit var bigNewHarvestBtn: NotificationButton
+    private lateinit var newObservationBtn: NotificationButton
+    private lateinit var diaryOnMapBtn: NotificationButton
+    private lateinit var huntingDaysBtn: NotificationButton
 
     private lateinit var layoutGroupHuntingNotAvailable: View
     private lateinit var textViewGroupHuntingLoadMessage: TextView
@@ -79,7 +80,8 @@ class GroupHuntingActivity
         layoutGroupHuntingAvailable = findViewById(R.id.layout_group_hunting_available)
         filters = findViewById(R.id.rv_hunting_group_filters)
         filters.adapter = DataFieldRecyclerViewAdapter(viewHolderTypeResolver = this).apply {
-            registerViewHolderFactory(ChoiceViewHolder.Factory(
+            registerViewHolderFactory(
+                ChoiceViewHolder.Factory(
                     eventDispatcher = controller.eventDispatcher
             ))
             registerLabelFieldViewHolderFactories()
@@ -255,49 +257,58 @@ class GroupHuntingActivity
         return when (dataField) {
             is StringListField -> DataFieldViewHolderType.SELECTABLE_STRING
             is LabelField -> dataField.determineViewHolderType()
+            is SpecimenField,
             is InstructionsField,
             is StringField,
             is IntField,
             is DoubleField,
             is BooleanField,
-            is SpeciesCodeField,
+            is SpeciesField,
             is DateAndTimeField,
             is LocationField,
             is GenderField,
             is AgeField,
             is SelectDurationField,
-            is HuntingDayAndTimeField -> {
+            is HuntingDayAndTimeField,
+            is HarvestField,
+            is ObservationField,
+            is DateField,
+            is TimespanField,
+            is AttachmentField,
+            is ButtonField,
+            is ChipField,
+            is CustomUserInterfaceField -> {
                 throw RuntimeException("Unexpected type!")
             }
         }
     }
 
     private fun setupButtons() {
-        newHarvestBtn = findViewById<GroupHuntingButton>(R.id.group_hunting_new_harvest).also {
+        newHarvestBtn = findViewById<NotificationButton>(R.id.group_hunting_new_harvest).also {
             it.findViewById<View>(R.id.button_content).setOnClickListener {
                 onNewHarvestClicked()
             }
         }
 
-        bigNewHarvestBtn = findViewById<GroupHuntingButton>(R.id.group_hunting_new_harvest_big).also {
+        bigNewHarvestBtn = findViewById<NotificationButton>(R.id.group_hunting_new_harvest_big).also {
             it.findViewById<View>(R.id.button_content).setOnClickListener {
                 onNewHarvestClicked()
             }
         }
 
-        newObservationBtn = findViewById<GroupHuntingButton>(R.id.group_hunting_new_observation).also {
+        newObservationBtn = findViewById<NotificationButton>(R.id.group_hunting_new_observation).also {
             it.findViewById<View>(R.id.button_content).setOnClickListener {
                 onNewObservationClicked()
             }
         }
 
-        diaryOnMapBtn = findViewById<GroupHuntingButton>(R.id.group_hunting_diary_on_map).also {
+        diaryOnMapBtn = findViewById<NotificationButton>(R.id.group_hunting_diary_on_map).also {
             it.findViewById<View>(R.id.button_content).setOnClickListener {
                 onMapClicked()
             }
         }
 
-        huntingDaysBtn = findViewById<GroupHuntingButton>(R.id.group_hunting_hunting_days).also {
+        huntingDaysBtn = findViewById<NotificationButton>(R.id.group_hunting_hunting_days).also {
             it.findViewById<View>(R.id.button_content).setOnClickListener {
                 onHuntingDaysClicked()
             }

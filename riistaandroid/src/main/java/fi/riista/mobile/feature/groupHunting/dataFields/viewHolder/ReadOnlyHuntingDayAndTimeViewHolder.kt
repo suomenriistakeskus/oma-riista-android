@@ -5,12 +5,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import fi.riista.common.ui.dataField.DataFieldId
-import fi.riista.common.ui.dataField.DateAndTimeField
 import fi.riista.common.ui.dataField.HuntingDayAndTimeField
 import fi.riista.mobile.R
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldViewHolder
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
-import fi.riista.mobile.riistaSdkHelpers.toJodaLocalDate
+import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderFactory
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
 import fi.riista.mobile.utils.DateTimeUtils
 
 class ReadOnlyHuntingDayAndTimeViewHolder<FieldId : DataFieldId>(view: View)

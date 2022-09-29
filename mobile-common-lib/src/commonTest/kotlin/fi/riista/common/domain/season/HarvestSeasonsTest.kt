@@ -1,8 +1,8 @@
 package fi.riista.common.domain.season
 
 import fi.riista.common.model.LocalDate
-import fi.riista.common.model.SpeciesCode
-import fi.riista.common.model.SpeciesCodes
+import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.constants.SpeciesCodes
 import fi.riista.common.model.toKotlinxLocalDate
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
@@ -65,13 +65,17 @@ class HarvestSeasonsTest {
         assertMatchesHardcoded(harvestSeasons, SpeciesCodes.COOT_ID)
 
         assertFalse(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 19)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 19)
+        ))
         assertTrue(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)
+        ))
         assertTrue(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)
+        ))
         assertFalse(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2021, 1, 1)))
+                SpeciesCodes.COOT_ID, LocalDate(2021, 1, 1)
+        ))
 
         harvestSeasons.overridesProvider.parseOverridesFromJson(
                 """
@@ -92,17 +96,22 @@ class HarvestSeasonsTest {
         )
 
         assertFalse(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)
+        ))
         assertTrue(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 21)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 21)
+        ))
         assertTrue(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 30)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 30)
+        ))
         assertFalse(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)))
+                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)
+        ))
     }
 
     private fun assertMatchesHardcoded(
-        harvestSeasons: HarvestSeasons, speciesCode: SpeciesCode) {
+        harvestSeasons: HarvestSeasons, speciesCode: SpeciesCode
+    ) {
         var date = firstDate
         while (date <= lastDate) {
             assertMatchesHardcoded(
@@ -117,7 +126,8 @@ class HarvestSeasonsTest {
 
     private fun assertMatchesHardcoded(harvestSeasons: HarvestSeasons,
                                        speciesCode: Int,
-                                       date: LocalDate) {
+                                       date: LocalDate
+    ) {
         val harvestSeasonUtilResult = HardCodedSeasons.isInsideHuntingSeason(date, speciesCode)
         val harvestSeasonsResult = harvestSeasons.isDuringHuntingSeason(speciesCode, date)
 

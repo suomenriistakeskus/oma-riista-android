@@ -34,7 +34,7 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.5"/>
 
-            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+            <fi.riista.mobile.ui.NotificationButton
                 android:id="@+id/group_hunting_hunting_days"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -48,7 +48,7 @@
                 app:buttonText="@string/group_hunting_hunting_days"
                 app:notificationVisibility="gone" />
 
-            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+            <fi.riista.mobile.ui.NotificationButton
                 android:id="@+id/group_hunting_diary_on_map"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -62,7 +62,7 @@
                 app:buttonText="@string/group_hunting_entries_on_map"
                 app:notificationVisibility="gone" />
 
-            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+            <fi.riista.mobile.ui.NotificationButton
                 android:id="@+id/group_hunting_new_harvest"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -76,7 +76,7 @@
                 app:buttonText="@string/group_hunting_new_harvest"
                 app:notificationVisibility="gone" />
 
-            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+            <fi.riista.mobile.ui.NotificationButton
                 android:id="@+id/group_hunting_new_observation"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -90,7 +90,7 @@
                 app:buttonText="@string/group_hunting_new_observation"
                 app:notificationVisibility="gone" />
 
-            <fi.riista.mobile.feature.groupHunting.GroupHuntingButton
+            <fi.riista.mobile.ui.NotificationButton
                 android:id="@+id/group_hunting_new_harvest_big"
                 android:layout_width="0dp"
                 android:layout_height="0dp"

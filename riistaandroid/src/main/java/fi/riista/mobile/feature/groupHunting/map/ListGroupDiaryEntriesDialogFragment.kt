@@ -10,9 +10,9 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.diary.GroupDiaryEntryViewModel
-import fi.riista.common.groupHunting.ui.diary.ListGroupDiaryEntriesController
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.diary.GroupDiaryEntryViewModel
+import fi.riista.common.domain.groupHunting.ui.diary.ListGroupDiaryEntriesController
 import fi.riista.common.logging.getLogger
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy

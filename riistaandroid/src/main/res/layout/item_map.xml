@@ -31,4 +31,30 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:text="P 6816699  I 332824   (ETRS-TM35FIN))" />
 
+    <RelativeLayout
+        android:id="@+id/unknown_location_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/color_background_transparent_black"
+        android:paddingStart="@dimen/padding_small"
+        android:paddingEnd="@dimen/padding_small"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@id/mapView"
+        app:layout_constraintEnd_toEndOf="@id/mapView"
+        app:layout_constraintTop_toTopOf="@id/mapView"
+        app:layout_constraintBottom_toBottomOf="@id/mapView"
+        tools:visibility="visible"
+        >
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_setup_location_on_map"
+            style="@style/PrimaryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/default_button_height"
+            android:layout_centerInParent="true"
+            android:text="@string/set_location_on_map"
+            app:icon="@drawable/ic_pin"
+            />
+    </RelativeLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

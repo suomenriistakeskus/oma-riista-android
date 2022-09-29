@@ -2,6 +2,8 @@ package fi.riista.mobile.models.srva;
 
 import android.location.Location;
 
+import androidx.annotation.Nullable;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,20 +11,18 @@ import org.joda.time.DateTime;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import fi.riista.mobile.AppConfig;
-import fi.riista.mobile.models.GameLog;
 import fi.riista.mobile.models.GameLogImage;
 import fi.riista.mobile.models.GeoLocation;
 import fi.riista.mobile.models.LocalImage;
-import fi.riista.mobile.utils.ConstantsKt;
 import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.ModelUtils;
 
 public class SrvaEvent implements Serializable {
 
-    public static final String STATE_UNFINISHED = "UNFINISHED";
+    //public static final String STATE_UNFINISHED = "UNFINISHED";
     public static final String STATE_APPROVED = "APPROVED";
     public static final String STATE_REJECTED = "REJECTED";
 
@@ -56,8 +56,20 @@ public class SrvaEvent implements Serializable {
     @JsonProperty("eventName")
     public String eventName;
 
+    @Nullable
+    @JsonProperty("deportationOrderNumber")
+    public String deportationOrderNumber;
+
     @JsonProperty("eventType")
     public String eventType;
+
+    @Nullable
+    @JsonProperty("eventTypeDetail")
+    public String eventTypeDetail;
+
+    @Nullable
+    @JsonProperty("otherEventTypeDetailDescription")
+    public String otherEventTypeDetailDescription;
 
     @JsonProperty("totalSpecimenAmount")
     public int totalSpecimenAmount;
@@ -79,6 +91,10 @@ public class SrvaEvent implements Serializable {
 
     @JsonProperty("eventResult")
     public String eventResult;
+
+    @Nullable
+    @JsonProperty("eventResultDetail")
+    public String eventResultDetail;
 
     @JsonProperty("authorInfo")
     public SrvaAuthorInfo authorInfo;
@@ -120,11 +136,7 @@ public class SrvaEvent implements Serializable {
     public String username;
 
     public DateTime toDateTime() {
-        return DateTimeUtils.parseDateTime(pointOfTime, false);
-    }
-
-    public void setPointOfTime(DateTime dateTime) {
-        pointOfTime = dateTime.toString(ConstantsKt.ISO_8601);
+        return DateTimeUtils.parseDateTime(pointOfTime);
     }
 
     public Location toLocation() {
@@ -135,15 +147,15 @@ public class SrvaEvent implements Serializable {
     }
 
     public List<GameLogImage> getImages() {
-        return ModelUtils.combineImages(imageIds, localImages);
-    }
+        // todo: change the order of image ids if backend implementation ever changes so that
+        //       last image no longer is the first item
 
-    public void setLocalImages(List<GameLogImage> images) {
-        localImages.clear();
-
-        for (GameLogImage image : images) {
-            localImages.add(LocalImage.fromGameLogImage(image));
-        }
+        // For SRVA the imageIds seem to be ordered so that the image that was last added
+        // is actually the first one in the list. Reverse the list so that combineImages
+        // organizes images correctly
+        List<String> reversedImageIds = new ArrayList<>(imageIds);
+        Collections.reverse(reversedImageIds);
+        return ModelUtils.combineImages(reversedImageIds, localImages);
     }
 
     public void copyLocalAttributes(SrvaEvent from) {
@@ -152,17 +164,5 @@ public class SrvaEvent implements Serializable {
         modified = from.modified;
         localImages = new ArrayList<>(from.localImages);
         username = from.username;
-    }
-
-    public static SrvaEvent createNew() {
-        SrvaEvent event = new SrvaEvent();
-        event.setPointOfTime(DateTime.now());
-        event.type = GameLog.TYPE_SRVA;
-        event.srvaEventSpecVersion = AppConfig.SRVA_SPEC_VERSION;
-        event.mobileClientRefId = GameLog.generateMobileRefId();
-        event.state = STATE_UNFINISHED;
-        event.canEdit = true;
-        event.modified = true;
-        return event;
     }
 }

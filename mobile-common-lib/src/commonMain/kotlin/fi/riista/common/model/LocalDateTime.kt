@@ -39,6 +39,10 @@ data class LocalDateTime constructor(
     }
 
     fun toStringISO8601(): String {
+        if (second == 0) {
+            // toKotlinxLocalDateTime doesn't return seconds if seconds are 0
+            return "${toKotlinxLocalDateTime()}:00"
+        }
         return toKotlinxLocalDateTime().toString()
     }
 

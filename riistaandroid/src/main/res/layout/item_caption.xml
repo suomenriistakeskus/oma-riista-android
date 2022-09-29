@@ -12,4 +12,13 @@
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textAppearance="?attr/textAppearanceListItem" />
+
+    <TextView
+        android:id="@+id/tv_text_caps"
+        style="@style/GroupHuntingText14.Bold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorText"
+        android:textAllCaps="true"
+        android:visibility="gone" />
 </LinearLayout>

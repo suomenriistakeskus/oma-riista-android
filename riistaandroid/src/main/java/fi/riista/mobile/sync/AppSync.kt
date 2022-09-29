@@ -3,7 +3,7 @@ package fi.riista.mobile.sync
 import android.os.Handler
 import android.util.Log
 import fi.riista.common.RiistaSDK
-import fi.riista.common.userInfo.LoginStatus
+import fi.riista.common.domain.userInfo.LoginStatus
 import fi.riista.mobile.AppConfig
 import fi.riista.mobile.AppLifecycleHandler
 import fi.riista.mobile.database.HarvestDatabase
@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -248,6 +249,10 @@ class AppSync @Inject constructor(
     private suspend fun syncAll(username: String,
                                 harvestYears: List<Int>,
                                 observationYears: List<Int>) = withContext(Main) {
+
+        MainScope().launch {
+            RiistaSDK.synchronizeAllDataPieces()
+        }
 
         announcementSync.sync {
             observationSync.sync(observationYears) {

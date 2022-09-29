@@ -1,5 +1,7 @@
 package fi.riista.common.model
 
+import fi.riista.common.domain.constants.Constants
+import fi.riista.common.domain.model.HuntingYear
 import kotlinx.serialization.Serializable
 
 /**

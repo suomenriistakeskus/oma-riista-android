@@ -9,10 +9,10 @@ import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.groupHunting.GroupHuntingObservationOperationResponse
-import fi.riista.common.groupHunting.model.AcceptStatus
-import fi.riista.common.groupHunting.ui.GroupObservationField
-import fi.riista.common.groupHunting.ui.groupObservation.view.ViewGroupObservationController
+import fi.riista.common.domain.groupHunting.GroupHuntingObservationOperationResponse
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.ui.GroupObservationField
+import fi.riista.common.domain.groupHunting.ui.groupObservation.view.ViewGroupObservationController
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
@@ -21,10 +21,11 @@ import fi.riista.mobile.R
 import fi.riista.mobile.activity.MapViewerActivity
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
+import fi.riista.mobile.pages.MapExternalIdProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.dataFields.viewHolder.*
 import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -33,7 +34,8 @@ import javax.inject.Inject
 class ViewGroupObservationFragment
     : DataFieldPageFragment<GroupObservationField>()
     , DataFieldViewHolderTypeResolver<GroupObservationField>
-    , MapOpener {
+    , MapOpener
+    , MapExternalIdProvider {
 
     interface InteractionManager {
         val viewGroupObservationController: ViewGroupObservationController
@@ -113,7 +115,7 @@ class ViewGroupObservationFragment
     override fun resolveViewHolderType(dataField: DataField<GroupObservationField>): DataFieldViewHolderType {
         return when (dataField) {
             is LabelField -> dataField.determineViewHolderType()
-            is SpeciesCodeField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
+            is SpeciesField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
             is DateAndTimeField -> DataFieldViewHolderType.READONLY_DATE_AND_TIME
             is LocationField -> DataFieldViewHolderType.LOCATION_ON_MAP
             is StringField -> {
@@ -123,6 +125,7 @@ class ViewGroupObservationFragment
                     throw IllegalStateException("Non-singleline StringField not supported: ${dataField.id}")
                 }
             }
+            is SpecimenField,
             is InstructionsField,
             is HuntingDayAndTimeField,
             is GenderField,
@@ -131,7 +134,15 @@ class ViewGroupObservationFragment
             is DoubleField,
             is StringListField,
             is SelectDurationField,
-            is IntField -> {
+            is IntField,
+            is HarvestField,
+            is ObservationField,
+            is DateField,
+            is TimespanField,
+            is AttachmentField,
+            is ButtonField,
+            is ChipField,
+            is CustomUserInterfaceField -> {
                 throw IllegalStateException("Not supported ${dataField.id}")
             }
         }
@@ -141,7 +152,9 @@ class ViewGroupObservationFragment
         adapter.apply {
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(
-                mapOpener = this@ViewGroupObservationFragment)
+                    mapOpener = this@ViewGroupObservationFragment,
+                    mapExternalIdProvider = this@ViewGroupObservationFragment,
+                ),
             )
             registerLabelFieldViewHolderFactories()
             registerViewHolderFactory(SpeciesNameAndIconViewHolder.Factory(speciesResolver))
@@ -253,7 +266,12 @@ class ViewGroupObservationFragment
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, false)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_EXTERNAL_ID, getMapExternalId())
         startActivity(intent)
+    }
+
+    override fun getMapExternalId(): String? {
+        return controller.getLoadedViewModelOrNull()?.huntingGroupArea?.externalId
     }
 
     companion object {

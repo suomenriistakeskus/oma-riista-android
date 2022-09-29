@@ -1,0 +1,19 @@
+CREATE TABLE DbMetadata (
+    metadata_type TEXT NOT NULL,
+    metadata_spec_version INTEGER NOT NULL,
+    metadata_format_version INTEGER NOT NULL,
+    metadata_json TEXT,
+
+    CONSTRAINT pk_constraint_DbMetadata PRIMARY KEY (metadata_type, metadata_spec_version, metadata_format_version)
+);
+
+selectMetadata:
+SELECT * FROM DbMetadata WHERE metadata_type = ? AND metadata_spec_version = ? AND metadata_format_version = ?;
+
+insertMetadata:
+INSERT INTO DbMetadata(metadata_type, metadata_spec_version, metadata_format_version, metadata_json)
+VALUES (?, ?, ?, ?);
+
+updateMetadata:
+UPDATE DbMetadata SET metadata_json=? WHERE metadata_type = ? AND metadata_spec_version = ? AND metadata_format_version = ?;
+

@@ -14,6 +14,7 @@ public class MapViewerActivity extends BaseActivity implements MapViewer.FullScr
     public static final String EXTRA_START_LOCATION = "start_location";
     public static final String EXTRA_NEW = "new";
     public static final String EXTRA_LOCATION_SOURCE = "location_source";
+    static public final String EXTRA_EXTERNAL_ID = "map_external_id";
 
     public static final String RESULT_LOCATION = "result_location";
     public static final String RESULT_LOCATION_SOURCE = "result_location_source";

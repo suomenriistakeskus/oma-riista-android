@@ -11,6 +11,8 @@ interface Preferences {
 
     fun putBoolean(key: String, value: Boolean)
     fun getBoolean(key: String, defaultValue: Boolean? = null): Boolean?
+
+    fun remove(key: String)
 }
 
 expect class PlatformPreferences(): Preferences {
@@ -21,4 +23,5 @@ expect class PlatformPreferences(): Preferences {
     override fun getInt(key: String, defaultValue: Int?): Int?
     override fun putBoolean(key: String, value: Boolean)
     override fun getBoolean(key: String, defaultValue: Boolean?): Boolean?
+    override fun remove(key: String)
 }

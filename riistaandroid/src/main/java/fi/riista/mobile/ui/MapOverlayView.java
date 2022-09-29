@@ -1,5 +1,8 @@
 package fi.riista.mobile.ui;
 
+import static fi.riista.mobile.EntryMapView.MAP_ZOOM_LEVEL_MAX;
+import static fi.riista.mobile.EntryMapView.MAP_ZOOM_LEVEL_MIN;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -13,6 +16,8 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.res.ResourcesCompat;
+
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -25,7 +30,6 @@ import java.util.Set;
 import fi.riista.mobile.EntryMapView;
 import fi.riista.mobile.R;
 import fi.riista.mobile.models.AreaMap;
-import fi.riista.mobile.pages.MapViewer;
 import fi.riista.mobile.utils.AppPreferences;
 import fi.riista.mobile.utils.UiUtils;
 
@@ -58,6 +62,8 @@ public class MapOverlayView extends LinearLayout {
     private ImageButton mShowMapControlsButton;
     private ImageButton mFullscreenButton;
     private View mMapControlsContainer;
+    private ImageButton mZoomInButton;
+    private ImageButton mZoomOutButton;
     private boolean isControlsVisible;
 
     public MapOverlayView(final Context context, final AttributeSet attrs) {
@@ -107,15 +113,21 @@ public class MapOverlayView extends LinearLayout {
                 mMapView.animateCameraTo(mCurrentGpsLocation);
             }
         });
-        findViewById(R.id.btn_zoom_in).setOnClickListener(view -> mMapView.zoomBy(1.0f));
-        findViewById(R.id.btn_zoom_out).setOnClickListener(view -> mMapView.zoomBy(-1.0f));
+        mZoomInButton = findViewById(R.id.btn_zoom_in);
+        mZoomInButton.setOnClickListener(view -> mMapView.zoomBy(1.0f));
+        mZoomOutButton = findViewById(R.id.btn_zoom_out);
+        mZoomOutButton.setOnClickListener(view -> mMapView.zoomBy(-1.0f));
 
         mFullscreenButton = findViewById(R.id.btn_full_screen);
         mFullscreenButton.setOnClickListener(view -> {
             if (fragment.onExpandCollapse()) {
-                mFullscreenButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_collapse));
+                mFullscreenButton.setImageDrawable(
+                        ResourcesCompat.getDrawable(getResources(), R.drawable.ic_collapse, null)
+                );
             } else {
-                mFullscreenButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_expand));
+                mFullscreenButton.setImageDrawable(
+                        ResourcesCompat.getDrawable(getResources(), R.drawable.ic_expand, null)
+                );
             }
         });
 
@@ -147,6 +159,12 @@ public class MapOverlayView extends LinearLayout {
 
     public void setCurrentGpsLocation(final Location location) {
         mCurrentGpsLocation = location;
+    }
+
+    private void updateZoomButtonStatuses() {
+        float zoomLevel = mMapView.getCameraZoomLevel();
+        mZoomInButton.setEnabled(zoomLevel < MAP_ZOOM_LEVEL_MAX);
+        mZoomOutButton.setEnabled(zoomLevel > MAP_ZOOM_LEVEL_MIN);
     }
 
     private void startMeasuring() {
@@ -193,6 +211,7 @@ public class MapOverlayView extends LinearLayout {
     public void updateCameraMoved() {
         updateMeasureUi();
         updateMapScaleText();
+        updateZoomButtonStatuses();
     }
 
     private void updateMeasureUi() {

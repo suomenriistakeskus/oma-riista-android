@@ -18,11 +18,10 @@ import fi.riista.common.RiistaSdkBuilderKt;
 import fi.riista.common.remoteSettings.RemoteSettingsDTO;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.di.AppInjector;
-import fi.riista.mobile.utils.BuildInfo;
 import fi.riista.mobile.srva.SrvaDatabase;
-import fi.riista.mobile.srva.SrvaParametersHelper;
 import fi.riista.mobile.storage.StorageDatabase;
 import fi.riista.mobile.utils.AppPreferences;
+import fi.riista.mobile.utils.BuildInfo;
 import fi.riista.mobile.utils.Credentials;
 import fi.riista.mobile.utils.CredentialsStore;
 import fi.riista.mobile.utils.JsonUtils;
@@ -106,8 +105,6 @@ public class RiistaApplication extends WorkApplication implements HasAndroidInje
 
         SrvaDatabase.init(this, userInfoStore);
         StorageDatabase.init(this, userInfoStore);
-
-        SrvaParametersHelper.init(getWorkContext());
     }
 
     private void initializeRiistaSDK() {
@@ -139,6 +136,8 @@ public class RiistaApplication extends WorkApplication implements HasAndroidInje
                     .parseOverridesFromJson(RemoteConfig.getHarvestSeasonOverrides());
             RiistaSDK.groupHuntingIntroMessageHandler()
                     .parseMessageFromJson(RemoteConfig.getGroupHuntingIntroMessage());
+
+            RiistaSDK.getCommonFileProvider().removeTemporaryFiles();
         });
     }
 

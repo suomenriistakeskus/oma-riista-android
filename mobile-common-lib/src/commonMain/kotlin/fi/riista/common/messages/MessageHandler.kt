@@ -2,8 +2,8 @@ package fi.riista.common.messages
 
 import co.touchlab.stately.concurrency.AtomicReference
 import fi.riista.common.PlatformName
-import fi.riista.common.dto.MessageDTO
-import fi.riista.common.dto.toMessage
+import fi.riista.common.domain.dto.MessageDTO
+import fi.riista.common.domain.dto.toMessage
 import fi.riista.common.logging.getLogger
 import fi.riista.common.messages.Message.Companion.DISPLAY_COUNT_NOT_LIMITED
 import fi.riista.common.preferences.Preferences

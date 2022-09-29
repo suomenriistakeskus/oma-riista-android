@@ -3,7 +3,7 @@ package fi.riista.common.domain.season
 import fi.riista.common.domain.season.model.HuntingSeason
 import fi.riista.common.model.Date
 import fi.riista.common.model.DatePeriod
-import fi.riista.common.model.SpeciesCodes
+import fi.riista.common.domain.constants.SpeciesCodes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

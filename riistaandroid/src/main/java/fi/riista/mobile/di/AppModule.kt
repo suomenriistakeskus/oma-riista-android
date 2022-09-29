@@ -15,8 +15,16 @@ import fi.riista.mobile.database.room.RiistaDatabase
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_CONTEXT_NAME
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
 import fi.riista.mobile.gamelog.DeerHuntingFeatureAvailability
-import fi.riista.mobile.observation.ObservationMetadataHelper
-import fi.riista.mobile.utils.*
+import fi.riista.mobile.network.AppDownloadManager
+import fi.riista.mobile.utils.Authenticator
+import fi.riista.mobile.utils.AuthenticatorImpl
+import fi.riista.mobile.utils.CookieStoreSingleton
+import fi.riista.mobile.utils.CredentialsStore
+import fi.riista.mobile.utils.CredentialsStoreImpl
+import fi.riista.mobile.utils.ROOM_DATABASE_NAME
+import fi.riista.mobile.utils.UserInfoConverter
+import fi.riista.mobile.utils.UserInfoStore
+import fi.riista.mobile.utils.UserInfoStoreImpl
 import fi.vincit.androidutilslib.application.WorkApplication
 import fi.vincit.androidutilslib.context.WorkContext
 import fi.vincit.androidutilslib.network.SynchronizedCookieStore
@@ -94,19 +102,26 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun authenticator(@Named(APPLICATION_WORK_CONTEXT_NAME) appWorkContext: WorkContext,
-                      credentialsStore: CredentialsStore,
-                      userInfoStore: UserInfoStore,
-                      userInfoConverter: UserInfoConverter,
-                      deerHuntingFeatureAvailability: DeerHuntingFeatureAvailability,
-                      observationMetadataHelper: ObservationMetadataHelper): Authenticator {
+    fun authenticator(
+        @Named(APPLICATION_WORK_CONTEXT_NAME) appWorkContext: WorkContext,
+        credentialsStore: CredentialsStore,
+        userInfoStore: UserInfoStore,
+        userInfoConverter: UserInfoConverter,
+        deerHuntingFeatureAvailability: DeerHuntingFeatureAvailability,
+    ): Authenticator {
 
         return AuthenticatorImpl(
-                appWorkContext,
-                credentialsStore,
-                userInfoStore,
-                userInfoConverter,
-                deerHuntingFeatureAvailability,
-                observationMetadataHelper)
+            appWorkContext,
+            credentialsStore,
+            userInfoStore,
+            userInfoConverter,
+            deerHuntingFeatureAvailability
+        )
+    }
+
+    @Singleton
+    @Provides
+    fun appDownloadManager(@Named(APPLICATION_CONTEXT_NAME) appContext: Context): AppDownloadManager {
+        return AppDownloadManager(appContext)
     }
 }

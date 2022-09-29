@@ -1,6 +1,7 @@
 package fi.riista.common.helpers
 
 import fi.riista.common.database.DatabaseDriverFactory
+import fi.riista.common.util.coroutines.MainScopeProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
 
@@ -13,3 +14,7 @@ import kotlin.coroutines.CoroutineContext
 expect fun runBlockingTest(block: suspend CoroutineScope.() -> Unit)
 expect val testCoroutineContext: CoroutineContext
 internal expect fun createDatabaseDriverFactory(): DatabaseDriverFactory
+
+class MockMainScopeProvider : MainScopeProvider {
+    override val scope: CoroutineScope = CoroutineScope(testCoroutineContext)
+}

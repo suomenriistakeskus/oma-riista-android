@@ -195,7 +195,7 @@ public class GameObservation implements Serializable {
     }
 
     public DateTime toDateTime() {
-        return DateTimeUtils.parseDateTime(pointOfTime, false);
+        return DateTimeUtils.parseDateTime(pointOfTime);
     }
 
     public void setPointOfTime(DateTime dateTime) {

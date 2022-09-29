@@ -58,7 +58,7 @@ public class ChooseSpecies extends PageFragment {
             public View getView(int position, View convertView, @NonNull ViewGroup parent) {
                 Species species = mSpeciesList.get(position);
 
-                LayoutInflater inflater = getActivity().getLayoutInflater();
+                LayoutInflater inflater = requireActivity().getLayoutInflater();
                 View view = convertView;
                 if (convertView == null) {
                     view = inflater.inflate(R.layout.view_species_item, parent, false);
@@ -79,12 +79,23 @@ public class ChooseSpecies extends PageFragment {
 
                 Intent results = new Intent();
                 results.putExtra(ChooseSpeciesActivity.RESULT_SPECIES, species);
+                putFieldId(results);
 
-                Activity activity = getActivity();
+                Activity activity = requireActivity();
                 activity.setResult(Activity.RESULT_OK, results);
                 activity.finish();
             }
         });
         return view;
+    }
+
+    private void putFieldId(@NonNull Intent results) {
+        final Bundle arguments = getArguments();
+        if (arguments != null) {
+            results.putExtra(
+                    ChooseSpeciesActivity.EXTRA_FIELD_ID,
+                    getArguments().getInt(ChooseSpeciesActivity.EXTRA_FIELD_ID, ChooseSpeciesActivity.INVALID_FIELD_ID)
+            );
+        }
     }
 }

@@ -7,6 +7,8 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import fi.riista.common.ui.dataField.DataFieldId
+import fi.riista.common.ui.dataField.SpeciesField
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.ChooseSpeciesActivity
 import fi.riista.mobile.database.SpeciesInformation
@@ -66,7 +68,58 @@ class EditUtils {
         }
 
         @JvmStatic
+        fun <FieldId : DataFieldId> startSpeciesSelection(
+            parentFragment: Fragment,
+            activityResultLauncher: ActivityResultLauncher<Intent>,
+            fieldId: FieldId,
+            selectableSpecies: SpeciesField.SelectableSpecies,
+        ) {
+            when (selectableSpecies) {
+                SpeciesField.SelectableSpecies.All -> showSpeciesCategoryDialog(
+                    parent = parentFragment,
+                    fieldId = fieldId.toInt(),
+                    activityResultLauncher = activityResultLauncher,
+                )
+                is SpeciesField.SelectableSpecies.Listed -> {
+                    var showOtherSpecies = false
+                    val species: ArrayList<Species> = selectableSpecies.species.mapNotNullTo(
+                        destination = ArrayList<Species>()
+                    ) { species ->
+                        when (species) {
+                            is fi.riista.common.domain.model.Species.Known ->
+                                SpeciesInformation.getSpecies(species.speciesCode)
+                            fi.riista.common.domain.model.Species.Other -> {
+                                showOtherSpecies = true
+                                null
+                            }
+                            fi.riista.common.domain.model.Species.Unknown -> null
+                        }
+                    }
+
+                    startSpeciesActivity(
+                        fragment = parentFragment,
+                        categoryCode = 2, // todo: remove hard coded category
+                        speciesValues = species,
+                        showOtherSpecies = showOtherSpecies,
+                        fieldId = fieldId.toInt(),
+                        activityResultLauncher = activityResultLauncher
+                    )
+                }
+            }
+
+        }
+
+        @JvmStatic
         fun showSpeciesCategoryDialog(parent: Fragment, activityResultLauncher: ActivityResultLauncher<Intent>) {
+            showSpeciesCategoryDialog(parent, fieldId = ChooseSpeciesActivity.INVALID_FIELD_ID, activityResultLauncher)
+        }
+
+        @JvmStatic
+        fun showSpeciesCategoryDialog(
+            parent: Fragment,
+            fieldId: Int,
+            activityResultLauncher: ActivityResultLauncher<Intent>
+        ) {
             val speciesCategories = SpeciesInformation.getSpeciesCategories()
 
             val availableCategories = ArrayList<SpeciesCategory>()
@@ -90,6 +143,7 @@ class EditUtils {
                             categoryCode = categoryCode,
                             speciesValues = speciesInCategory,
                             showOtherSpecies = false,
+                            fieldId = fieldId,
                             activityResultLauncher = activityResultLauncher
                         )
                     }
@@ -105,10 +159,23 @@ class EditUtils {
             showOtherSpecies: Boolean,
             activityResultLauncher: ActivityResultLauncher<Intent>
         ) {
+            startSpeciesActivity(fragment, categoryCode, speciesValues, showOtherSpecies, fieldId = ChooseSpeciesActivity.INVALID_FIELD_ID, activityResultLauncher)
+        }
+
+        @JvmStatic
+        fun startSpeciesActivity(
+            fragment: Fragment,
+            categoryCode: Int,
+            speciesValues: ArrayList<Species>,
+            showOtherSpecies: Boolean,
+            fieldId: Int,
+            activityResultLauncher: ActivityResultLauncher<Intent>
+        ) {
             val intent = Intent(fragment.context, ChooseSpeciesActivity::class.java)
             intent.putExtra(ChooseSpeciesActivity.EXTRA_SPECIES_CATEGORY, categoryCode)
             intent.putExtra(ChooseSpeciesActivity.EXTRA_SPECIES_LIST, speciesValues)
             intent.putExtra(ChooseSpeciesActivity.EXTRA_SHOW_OTHER, showOtherSpecies)
+            intent.putExtra(ChooseSpeciesActivity.EXTRA_FIELD_ID, fieldId)
             activityResultLauncher.launch(intent)
         }
     }

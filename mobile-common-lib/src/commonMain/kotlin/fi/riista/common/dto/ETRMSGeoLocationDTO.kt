@@ -1,7 +1,6 @@
 package fi.riista.common.dto
 
 import fi.riista.common.model.ETRMSGeoLocation
-import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.model.toBackendEnum
 import kotlinx.serialization.Serializable
 

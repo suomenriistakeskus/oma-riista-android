@@ -14,11 +14,11 @@ import androidx.core.view.updatePadding
 import androidx.core.widget.ImageViewCompat
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.huntingDays.HuntingDayDiaryEntryViewModel
-import fi.riista.common.groupHunting.ui.huntingDays.HuntingDayViewModel
-import fi.riista.common.groupHunting.ui.huntingDays.ViewGroupHuntingDayController
-import fi.riista.common.model.DeerHuntingType
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.huntingDays.HuntingDayDiaryEntryViewModel
+import fi.riista.common.domain.groupHunting.ui.huntingDays.HuntingDayViewModel
+import fi.riista.common.domain.groupHunting.ui.huntingDays.view.ViewGroupHuntingDayController
+import fi.riista.common.domain.model.DeerHuntingType
 import fi.riista.common.model.HoursAndMinutes
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy

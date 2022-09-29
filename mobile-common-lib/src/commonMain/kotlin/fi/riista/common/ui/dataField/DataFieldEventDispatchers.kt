@@ -1,6 +1,12 @@
 package fi.riista.common.ui.dataField
 
-import fi.riista.common.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.huntingControl.model.HuntingControlAttachment
+import fi.riista.common.domain.model.EntityImage
+import fi.riista.common.domain.model.GameAge
+import fi.riista.common.domain.model.Gender
+import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.specimens.ui.SpecimenFieldDataContainer
 import fi.riista.common.model.*
 import fi.riista.common.ui.intent.IntentHandler
 
@@ -34,11 +40,19 @@ fun interface StringEventDispatcher<FieldId> {
 }
 
 fun interface StringWithIdEventDispatcher<FieldId> {
-    fun dispatchStringWithIdChanged(fieldId: FieldId, value: StringWithId)
+    fun dispatchStringWithIdChanged(fieldId: FieldId, value: List<StringWithId>)
+}
+
+interface StringWithIdClickEventDispatcher<FieldId> {
+    fun dispatchStringWithIdClicked(fieldId: FieldId, value: StringWithId)
 }
 
 fun interface LocalDateTimeEventDispatcher<FieldId> {
     fun dispatchLocalDateTimeChanged(fieldId: FieldId, value: LocalDateTime)
+}
+
+fun interface LocalDateEventDispatcher<FieldId> {
+    fun dispatchLocalDateChanged(fieldId: FieldId, value: LocalDate)
 }
 
 fun interface LocalTimeEventDispatcher<FieldId> {
@@ -54,13 +68,33 @@ fun interface HuntingDayIdEventDispatcher<FieldId> {
 }
 
 fun interface GenderEventDispatcher<FieldId> {
-    fun dispatchGenderChanged(fieldId: FieldId, value: Gender)
+    fun dispatchGenderChanged(fieldId: FieldId, value: Gender?)
 }
 
 fun interface AgeEventDispatcher<FieldId> {
-    fun dispatchAgeChanged(fieldId: FieldId, value: GameAge)
+    fun dispatchAgeChanged(fieldId: FieldId, value: GameAge?)
 }
 
 fun interface LocationEventDispatcher<FieldId> {
     fun dispatchLocationChanged(fieldId: FieldId, value: ETRMSGeoLocation)
+}
+
+fun interface SpeciesEventDispatcher<FieldId> {
+    fun dispatchSpeciesChanged(fieldId: FieldId, value: Species)
+}
+
+fun interface EntityImageDispatcher {
+    fun setEntityImage(image: EntityImage)
+}
+
+fun interface SpecimenDataEventDispatcher<FieldId> {
+    fun dispatchSpecimenDataChanged(fieldId: FieldId, value: SpecimenFieldDataContainer)
+}
+
+fun interface ActionEventDispatcher<FieldId> {
+    fun dispatchEvent(fieldId: FieldId)
+}
+
+fun interface AttachmentEventDispatcher<FieldId> {
+    fun addAttachment(attachment: HuntingControlAttachment)
 }

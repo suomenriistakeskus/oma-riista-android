@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ProgressBar
+        android:id="@+id/progress_horizontal"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:indeterminate="true"
+        android:scaleY="3"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible"
+        />
+
+    <ScrollView
+        android:id="@+id/layout_hunting_control_available"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".feature.huntingControl.HuntingControlActivity">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <fi.riista.mobile.ui.NotificationButton
+                android:id="@+id/btn_add_event"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintDimensionRatio="2:1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginStart="@dimen/padding_medium"
+                android:layout_marginEnd="@dimen/padding_medium"
+                app:buttonImage="@drawable/ic_calendar_plus"
+                app:buttonText="@string/hunting_control_add_event"
+                app:notificationVisibility="gone" />
+
+            <fi.riista.mobile.ui.StringWithIdChoiceView
+                android:id="@+id/cv_rhy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/btn_add_event"
+                android:layout_marginStart="0dp"
+                android:layout_marginEnd="0dp" />
+
+            <TextView
+                style="@style/HeaderText.Bold"
+                android:id="@+id/tv_my_events"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:layout_marginStart="@dimen/padding_medium"
+                android:layout_marginEnd="@dimen/padding_medium"
+                android:layout_marginTop="@dimen/item_spacing_normal"
+                android:paddingBottom="@dimen/item_spacing_normal"
+                android:text="@string/hunting_control_my_events"
+                app:layout_constraintTop_toBottomOf="@id/cv_rhy" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_hunting_control_events"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/padding_medium"
+                android:layout_marginEnd="@dimen/padding_medium"
+                app:layoutManager="LinearLayoutManager"
+                app:layout_constraintTop_toBottomOf="@id/tv_my_events"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                style="@style/HeaderText"
+                android:id="@+id/tv_no_events"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/padding_medium"
+                android:layout_marginEnd="@dimen/padding_medium"
+                android:text="@string/hunting_control_no_events"
+                app:layout_constraintTop_toBottomOf="@id/tv_my_events"
+                android:visibility="gone" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <!-- The layout to be displayed when hunting control is not available -->
+    <LinearLayout
+        android:id="@+id/layout_hunting_control_not_available"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_margin="@dimen/page_padding_horizontal"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            style="@style/TextBase"
+            android:id="@+id/tv_group_hunting_not_available_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingBottom="@dimen/item_spacing_normal"
+            android:text="@string/content_loading_failed" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,5 +1,7 @@
 package fi.riista.mobile.utils
 
+import android.location.Location
+
 const val ROOM_DATABASE_NAME = "riista_room.db"
 const val TIMEZONE_ID_FINLAND = "Europe/Helsinki"
 
@@ -14,3 +16,13 @@ const val TIME_FORMAT = "HH:mm"
 
 const val IMAGE_CACHE_SIZE: Long = 1024 * 1024 * 128 // 128 MB
 const val VECTOR_CACHE_SIZE: Long = 1024 * 1024 * 128 // 128 MB
+
+// center point of Finland
+object Constants {
+    val DEFAULT_MAP_LOCATION = Location("").apply {
+        // center point of Finland
+        latitude = 64.10
+        longitude = 25.48
+    }
+    const val DEFAULT_MAP_ZOOM_LEVEL: Float = 5.5F
+}

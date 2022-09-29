@@ -228,15 +228,17 @@ public class RequiredHarvestFields {
         }
 
         public Required getAge() {
-            if (isMooseOrDeerRequiringPermitForHunting) {
-                return associatedToHuntingDay ? Required.YES : Required.VOLUNTARY;
+            if (isMooseOrDeerRequiringPermitForHunting &&
+                    (associatedToHuntingDay || reportingType == HarvestReportingType.BASIC)) {
+                return Required.YES;
             }
             return getRequirement(PERMIT_MANDATORY_AGE, gameSpeciesCode);
         }
 
         public Required getGender() {
-            if (isMooseOrDeerRequiringPermitForHunting) {
-                return associatedToHuntingDay ? Required.YES : Required.VOLUNTARY;
+            if (isMooseOrDeerRequiringPermitForHunting &&
+                    (associatedToHuntingDay || reportingType == HarvestReportingType.BASIC)) {
+                return Required.YES;
             }
             return getRequirement(PERMIT_MANDATORY_GENDER, gameSpeciesCode);
         }

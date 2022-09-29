@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.poi.ui.PoiListItem
+import fi.riista.common.domain.poi.ui.PoiListItem
 
 /**
  * [RecyclerView.Adapter] that can display a POI.

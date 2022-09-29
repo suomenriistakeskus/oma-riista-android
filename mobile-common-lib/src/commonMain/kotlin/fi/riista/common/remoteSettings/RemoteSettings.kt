@@ -1,9 +1,9 @@
 package fi.riista.common.remoteSettings
 
 import co.touchlab.stately.concurrency.AtomicReference
-import fi.riista.common.groupHunting.GroupHuntingAvailabilityResolver
+import fi.riista.common.domain.groupHunting.GroupHuntingAvailabilityResolver
+import fi.riista.common.domain.model.HunterNumber
 import fi.riista.common.logging.getLogger
-import fi.riista.common.model.HunterNumber
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.deserializeFromJson
 import fi.riista.common.util.getJson

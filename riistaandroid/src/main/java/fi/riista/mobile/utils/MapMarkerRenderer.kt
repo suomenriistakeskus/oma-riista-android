@@ -14,7 +14,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import com.google.maps.android.ui.IconGenerator
-import fi.riista.common.poi.model.PointOfInterestType
+import fi.riista.common.domain.poi.model.PointOfInterestType
 import fi.riista.mobile.R
 import fi.riista.mobile.models.GameLog
 

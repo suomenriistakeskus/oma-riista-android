@@ -5,7 +5,7 @@ import android.app.Dialog
 import android.view.Window
 import android.widget.Button
 import android.widget.RadioButton
-import fi.riista.common.groupHunting.ui.diary.DiaryFilter
+import fi.riista.common.domain.groupHunting.ui.diary.DiaryFilter
 import fi.riista.mobile.R
 
 class DiaryFilterDialog private constructor(

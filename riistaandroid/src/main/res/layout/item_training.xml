@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="@dimen/padding_medium"
+    android:layout_marginBottom="@dimen/padding_medium">
+
+    <TextView
+        android:id="@+id/tv_training_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/HeaderText.Bold"
+        tools:text="RHY:n edustaja riistavahinkojen maastokatselmuksessa (Lähikoulutus)"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingBottom="@dimen/padding_medium" />
+
+    <TextView
+        android:id="@+id/tv_training_date_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/PrimaryTextBody"
+        android:text="@string/my_details_trainings_training_date"
+        app:layout_constraintTop_toBottomOf="@id/tv_training_type"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <TextView
+        android:id="@+id/tv_training_place_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/PrimaryTextBody"
+        android:text="@string/my_details_trainings_training_place"
+        app:layout_constraintTop_toBottomOf="@id/tv_training_date_title"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/background_title_barrier"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:barrierDirection="right"
+        app:constraint_referenced_ids="tv_training_date_title, tv_training_place_title" />
+
+    <TextView
+        android:id="@+id/tv_training_date"
+        style="@style/PrimaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/background_title_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_training_date_title"
+        android:layout_marginStart="@dimen/padding_large"
+        tools:text="12.8.2021" />
+
+
+    <TextView
+        android:id="@+id/tv_training_place"
+        style="@style/PrimaryTextBody"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/background_title_barrier"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_training_place_title"
+        android:layout_marginStart="@dimen/padding_large"
+        tools:text="Kokemäki" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

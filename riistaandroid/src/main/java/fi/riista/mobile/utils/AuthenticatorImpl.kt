@@ -9,7 +9,7 @@ import cz.msebera.android.httpclient.impl.cookie.BasicClientCookie
 import fi.riista.common.RiistaSDK
 import fi.riista.common.network.cookies.CookieData
 import fi.riista.mobile.RiistaApplication
-import fi.riista.mobile.activity.LoginActivity
+import fi.riista.mobile.feature.login.LoginActivity
 import fi.riista.mobile.gamelog.DeerHuntingFeatureAvailability
 import fi.riista.mobile.network.RegisterPushDeviceTask
 import fi.riista.mobile.observation.ObservationMetadataHelper
@@ -19,12 +19,13 @@ import java.util.*
 
 private const val TAG = "AuthenticatorImpl"
 
-class AuthenticatorImpl(private val appWorkContext: WorkContext,
-                        private val credentialsStore: CredentialsStore,
-                        private val userInfoStore: UserInfoStore,
-                        private val userInfoConverter: UserInfoConverter,
-                        private val deerHuntingFeatureAvailability: DeerHuntingFeatureAvailability,
-                        private val observationMetadataHelper: ObservationMetadataHelper) : Authenticator {
+class AuthenticatorImpl(
+    private val appWorkContext: WorkContext,
+    private val credentialsStore: CredentialsStore,
+    private val userInfoStore: UserInfoStore,
+    private val userInfoConverter: UserInfoConverter,
+    private val deerHuntingFeatureAvailability: DeerHuntingFeatureAvailability,
+) : Authenticator {
 
     override suspend fun authenticate(username: String, password: String, callback: Authenticator.AuthCallback?) {
         val loginResponse = RiistaSDK.login(username, password)
@@ -42,7 +43,6 @@ class AuthenticatorImpl(private val appWorkContext: WorkContext,
             loginSync()
         }
         loginResponse.onError { statusCode, exception ->
-            loadFallbackMetadata()
             loginFailed(statusCode, exception?.message)
             callback?.onLoginFailed(statusCode ?: 0)
         }
@@ -95,7 +95,6 @@ class AuthenticatorImpl(private val appWorkContext: WorkContext,
                     context.startActivity(intent)
 
                 } else {
-                    loadFallbackMetadata()
                     callback?.onLoginFailed(statusCode ?: 0)
                 }
             }
@@ -117,8 +116,8 @@ class AuthenticatorImpl(private val appWorkContext: WorkContext,
     private fun loginSync() {
         // When login attempt ends, try to fetch observation metadata and SRVA parameters.
         // TODO Move fetching data to AppSync.
-        observationMetadataHelper.fetchMetadata()
-        SrvaParametersHelper.getInstance().fetchParameters()
+        ObservationMetadataHelper.instance.fetchMetadata()
+        SrvaParametersHelper.instance.fetchParameters()
 
         sendFcmRegistrationToServer()
     }
@@ -137,11 +136,6 @@ class AuthenticatorImpl(private val appWorkContext: WorkContext,
             val registerPushDeviceTask = RegisterPushDeviceTask(workContext, instanceToken)
             registerPushDeviceTask.start()
         }
-    }
-
-    private fun loadFallbackMetadata() {
-        observationMetadataHelper.loadFallbackMetadata()
-        SrvaParametersHelper.getInstance().loadFallbackMetadata()
     }
 
     // TODO: Remove these when Riista SDK login has proven to be working

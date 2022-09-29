@@ -18,9 +18,10 @@ class AnnouncementDialogFragment : DialogFragment() {
 
     lateinit var item: Announcement
 
-    private lateinit var subject: TextView
+    private lateinit var organisation: TextView
     private lateinit var pointOfTime: TextView
     private lateinit var senderTitle: TextView
+    private lateinit var subject: TextView
     private lateinit var message: TextView
 
     @SuppressLint("SimpleDateFormat")
@@ -44,19 +45,20 @@ class AnnouncementDialogFragment : DialogFragment() {
         val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener { dismiss() }
 
-        subject = view.findViewById(R.id.announcement_subject)
+        organisation = view.findViewById(R.id.announcement_sender_organisation)
         pointOfTime = view.findViewById(R.id.announcement_pointoftime)
         senderTitle = view.findViewById(R.id.announcement_sender_title)
+        subject = view.findViewById(R.id.announcement_subject)
         message = view.findViewById(R.id.announcement_message)
 
         val languageCode = AppPreferences.getLanguageCodeSetting(context)
-
         val titleText = item.sender.getTitle(languageCode)
         val organisationText = item.sender.getOrganisation(languageCode)
 
-        subject.text = item.subject
+        organisation.text = organisationText
         pointOfTime.text = sDateFormat.format(Instant.parse(item.pointOfTime).toDate())
-        senderTitle.text = String.format("%s - %s", titleText, organisationText)
+        senderTitle.text = titleText
+        subject.text = item.subject
         message.text = item.body
 
         return view

@@ -1,10 +1,11 @@
 package fi.riista.mobile.pages;
 
+import static java.util.Collections.emptyList;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,18 +24,18 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.android.support.AndroidSupportInjection;
+import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.R;
-import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.HarvestActivity;
 import fi.riista.mobile.activity.MainActivity;
 import fi.riista.mobile.database.HarvestDatabase;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.database.SpeciesResolver;
-import fi.riista.mobile.gamelog.HarvestSpecVersionResolver;
+import fi.riista.mobile.feature.observation.ObservationActivity;
+import fi.riista.mobile.feature.srva.SrvaActivity;
 import fi.riista.mobile.models.GameHarvest;
 import fi.riista.mobile.models.Species;
 import fi.riista.mobile.models.observation.GameObservation;
-import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.observation.ObservationDatabase;
 import fi.riista.mobile.sync.AppSync;
 import fi.riista.mobile.sync.AppSync.AppSyncListener;
@@ -43,8 +44,6 @@ import fi.riista.mobile.ui.HomeButtonView;
 import fi.riista.mobile.utils.UiUtils;
 import fi.riista.mobile.utils.UserInfoStore;
 import fi.vincit.androidutilslib.task.WorkAsyncTask;
-
-import static java.util.Collections.emptyList;
 
 public class HomeViewFragment extends PageFragment implements AppSyncListener {
 
@@ -63,9 +62,6 @@ public class HomeViewFragment extends PageFragment implements AppSyncListener {
 
     @Inject
     SpeciesResolver mSpeciesResolver;
-
-    @Inject
-    HarvestSpecVersionResolver mSpecVersionResolver;
 
     @Inject
     AppSync mAppSync;
@@ -237,7 +233,7 @@ public class HomeViewFragment extends PageFragment implements AppSyncListener {
     }
 
     private void startHarvestEditActivity(final Species species) {
-        final GameHarvest harvest = GameHarvest.createNew(mSpecVersionResolver.resolveHarvestSpecVersion());
+        final GameHarvest harvest = GameHarvest.createNew(AppConfig.HARVEST_SPEC_VERSION);
 
         if (species != null) {
             harvest.mSpeciesID = species.mId;
@@ -249,22 +245,19 @@ public class HomeViewFragment extends PageFragment implements AppSyncListener {
     }
 
     private void startObservationEditActivity(final Species species) {
-        final GameObservation observation = GameObservation.createNew();
-
+        final Integer speciesCode;
         if (species != null) {
-            observation.gameSpeciesCode = species.mId;
+            speciesCode = species.mId;
+        } else {
+            speciesCode = null;
         }
 
-        final Intent intent = new Intent(getActivity(), EditActivity.class);
-        intent.putExtra(EditActivity.EXTRA_OBSERVATION, observation);
-        intent.putExtra(EditActivity.EXTRA_NEW, true);
+        final Intent intent = ObservationActivity.getLaunchIntentForCreating(requireActivity(), speciesCode);
         newEventActivityResultLaunch.launch(intent);
     }
 
     private void startSrvaEditActivity() {
-        final Intent intent = new Intent(getActivity(), EditActivity.class);
-        intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, SrvaEvent.createNew());
-        intent.putExtra(EditActivity.EXTRA_NEW, true);
+        final Intent intent = SrvaActivity.getLaunchIntentForCreating(requireActivity());
         newEventActivityResultLaunch.launch(intent);
     }
 

@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.huntingclub.ui.HuntingClubViewModel
+import fi.riista.common.domain.huntingclub.ui.HuntingClubViewModel
 import fi.riista.mobile.R
 
 class HeaderViewHolder(view: View): RecyclerView.ViewHolder(view) {

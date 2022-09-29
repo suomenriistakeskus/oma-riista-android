@@ -10,29 +10,48 @@
 
     <TextView
         android:id="@+id/item_title_text"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/colorPrimary"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_remove_area"
         android:textSize="16sp"
         tools:text="123456" />
 
     <TextView
         android:id="@+id/item_name_text"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/colorText"
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/item_title_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_remove_area"
         tools:text="Area name" />
 
     <TextView
         android:id="@+id/item_id_text"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/colorText"
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/item_name_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_remove_area"
         tools:text="Area code: 53K135M2KD" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_remove_area"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        android:layout_width="@dimen/default_button_height"
+        android:layout_height="@dimen/default_button_height"
+        app:icon="@drawable/ic_clear"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconTint="@color/colorWarning"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

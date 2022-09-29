@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/datafield_horizontal_margin"
+    android:layout_marginEnd="@dimen/datafield_horizontal_margin">
+
+    <!--
+     Use a transparent background as ripple is positioned incorrectly for
+     right aligned checkboxes -> transparent bg removes the ripple
+    -->
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/checkbox"
+        style="@style/DatafieldCheckBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        tools:text="Here's some checkable content that can extend to multiple lines.."
+        />
+
+</FrameLayout>

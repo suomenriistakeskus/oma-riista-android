@@ -1,9 +1,9 @@
 package fi.riista.common.domain.season.dto
 
+import fi.riista.common.domain.model.HuntingYear
 import fi.riista.common.domain.season.model.HuntingSeason
 import fi.riista.common.dto.DatePeriodDTO
 import fi.riista.common.dto.toDatePeriod
-import fi.riista.common.model.HuntingYear
 import kotlinx.serialization.Serializable
 
 @Serializable

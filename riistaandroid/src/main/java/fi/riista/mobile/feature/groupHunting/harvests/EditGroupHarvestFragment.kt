@@ -6,14 +6,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import fi.riista.common.groupHunting.GroupHuntingHarvestOperationResponse
-import fi.riista.common.groupHunting.model.GroupHuntingHarvest
-import fi.riista.common.groupHunting.model.GroupHuntingHarvestId
-import fi.riista.common.groupHunting.model.GroupHuntingHarvestTarget
-import fi.riista.common.groupHunting.ui.groupHarvest.modify.EditGroupHarvestController
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestTarget
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.EditGroupHarvestController
 import fi.riista.mobile.R
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
 import kotlinx.coroutines.*
 
 /**

@@ -20,7 +20,8 @@ import java.util.*
  */
 class VectorTileProvider(context: Context) : TileProvider {
     enum class AreaType {
-        MOOSE, PIENRIISTA, VALTIONMAA, RHY, GAME_TRIANGLES, SEURA
+        MOOSE, PIENRIISTA, VALTIONMAA, RHY, GAME_TRIANGLES, SEURA,
+        AVI_HUNTING_BAN, MOOSE_RESTRICTIONS, SMALL_GAME_RESTRICTIONS,
     }
 
     private val tileSize = (0.4f * 256.0f * context.resources.displayMetrics.density).toInt()
@@ -39,6 +40,9 @@ class VectorTileProvider(context: Context) : TileProvider {
                 AreaType.VALTIONMAA -> return URL(String.format(VALTIONMAA_PATTERN, zoom, x, y))
                 AreaType.RHY -> return URL(String.format(RHY_PATTERN, zoom, x, y))
                 AreaType.GAME_TRIANGLES -> return URL(String.format(GAME_TRIANGLES_PATTERN, zoom, x, y))
+                AreaType.MOOSE_RESTRICTIONS -> return URL(String.format(MOOSE_RESTRICTIONS_PATTERN, zoom, x, y))
+                AreaType.SMALL_GAME_RESTRICTIONS -> return URL(String.format(SMALL_GAME_RESTRICTIONS_PATTERN, zoom, x, y))
+                AreaType.AVI_HUNTING_BAN -> return URL(String.format(AVI_HUNTING_BAN_PATTERN, zoom, x, y))
                 AreaType.SEURA -> {
                     val base = AppConfig.getBaseUrl()
                     return URL("$base/area/vector/$mapExternalId/$zoom/$x/$y")
@@ -112,6 +116,9 @@ class VectorTileProvider(context: Context) : TileProvider {
                     paint.alpha = 0
                 }
                 AreaType.GAME_TRIANGLES -> paint.color = AREA_GAME_TRIANGLES_COLOR
+                AreaType.MOOSE_RESTRICTIONS,
+                AreaType.SMALL_GAME_RESTRICTIONS,
+                AreaType.AVI_HUNTING_BAN -> paint.color = AREA_RESTRICTION_COLOR
                 else -> paint.color = AREA_COLOR
             }
             return paint
@@ -226,6 +233,9 @@ class VectorTileProvider(context: Context) : TileProvider {
         private const val VALTIONMAA_PATTERN = "https://kartta.riista.fi/vector/metsahallitus/%s/%s/%s"
         private const val RHY_PATTERN = "https://kartta.riista.fi/vector/rhy/%s/%s/%s"
         private const val GAME_TRIANGLES_PATTERN = "https://kartta.riista.fi/vector/riistakolmiot/%s/%s/%s"
+        private const val MOOSE_RESTRICTIONS_PATTERN = "https://kartta.riista.fi/vector/hirvi_rajoitusalueet/%s/%s/%s"
+        private const val SMALL_GAME_RESTRICTIONS_PATTERN = "https://kartta.riista.fi/vector/pienriista_rajoitusalueet/%s/%s/%s"
+        private const val AVI_HUNTING_BAN_PATTERN = "https://kartta.riista.fi/vector/avi_metsastyskieltoalueet/%s/%s/%s"
         private const val AREA_NAME_KEY = "KOHDE_NIMI"
         private const val CMD_MOVE_TO = 1
         private const val CMD_LINE_TO = 2
@@ -237,6 +247,7 @@ class VectorTileProvider(context: Context) : TileProvider {
         private val AREA_MH_PIENRIISTA_COLOR = Color.argb(64, 128, 128, 0)
         private val AREA_VALTIONMAA_COLOR = Color.argb(64, 0, 0, 255)
         private val AREA_GAME_TRIANGLES_COLOR = Color.argb(64, 255, 0, 0)
+        private val AREA_RESTRICTION_COLOR = Color.argb(64, 255, 0, 0)
         private const val RHY_BORDER_COLOR = Color.BLUE
 
         private fun bitmapToImage(bitmap: Bitmap): ByteArray {

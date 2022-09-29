@@ -1,5 +1,8 @@
 package fi.riista.common.ui.dataField
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class FieldRequirement(
     /**
      * The field requirement type.
@@ -43,10 +46,12 @@ data class FieldRequirement(
     companion object {
         fun required() = FieldRequirement(Type.REQUIRED, indicateRequirement = true)
         fun voluntary() = FieldRequirement(Type.VOLUNTARY, indicateRequirement = true)
+        fun noRequirement() = FieldRequirement(Type.NONE, indicateRequirement = true)
     }
 }
 
 
+@Serializable
 data class FieldSpecification<FieldId : DataFieldId>(
     val fieldId: FieldId,
     val requirementStatus: FieldRequirement,

@@ -1,0 +1,44 @@
+CREATE TABLE DbHuntingControlEventAttachment (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_local_id INTEGER NOT NULL,
+    remote_id INTEGER,
+    filename TEXT NOT NULL,
+    is_image INTEGER AS Boolean NOT NULL,
+    thumbnail TEXT,
+    deleted INTEGER AS Boolean NOT NULL DEFAULT 0,
+    uuid TEXT,
+    mime_type TEXT,
+
+    CONSTRAINT fk_DbHuntingControlEventAttachmentToDbHuntingControlEvent
+        FOREIGN KEY (event_local_id)
+        REFERENCES DbHuntingControlEvent (local_id)
+        ON DELETE CASCADE
+);
+
+insert:
+INSERT INTO DbHuntingControlEventAttachment (event_local_id, remote_id, filename, is_image, thumbnail, deleted, uuid, mime_type)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+localAndremoteIdsByEvent:
+SELECT local_id, remote_id FROM DbHuntingControlEventAttachment WHERE event_local_id = ? AND remote_id IS NOT NULL;
+
+selectByEvent:
+SELECT * FROM DbHuntingControlEventAttachment WHERE event_local_id = ?;
+
+deleteByLocalId:
+DELETE FROM DbHuntingControlEventAttachment WHERE local_id = ?;
+
+markDeletedByLocalId:
+UPDATE DbHuntingControlEventAttachment SET deleted = 1 WHERE local_id = ?;
+
+updateRemoteIdByLocalId:
+UPDATE DbHuntingControlEventAttachment SET remote_id = ? WHERE local_id = ?;
+
+listAllUuids:
+SELECT uuid FROM DbHuntingControlEventAttachment WHERE uuid IS NOT NULL;
+
+listAttachmentsMissingThumbnail:
+SELECT remote_id FROM DbHuntingControlEventAttachment WHERE is_image = 1 AND thumbnail IS NULL AND remote_id IS NOT NULL;
+
+setThumbnail:
+UPDATE DbHuntingControlEventAttachment SET thumbnail = ? WHERE remote_id = ?;

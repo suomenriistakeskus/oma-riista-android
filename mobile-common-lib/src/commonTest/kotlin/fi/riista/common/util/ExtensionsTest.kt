@@ -60,6 +60,28 @@ class ExtensionsTest {
     }
 
     @Test
+    fun testHasSameElements() {
+        assertFalse(listOf(1, 2).hasSameElements(listOf()), "empty other")
+        assertFalse(listOf(1, 2).hasSameElements(listOf(1)), "missing other")
+        assertFalse(listOf<Int>().hasSameElements(listOf(1, 2)), "empty this")
+        assertFalse(listOf(1).hasSameElements(listOf(1, 2)), "missing this")
+        assertTrue(listOf<Int>().hasSameElements(listOf()), "both empty")
+        assertTrue(listOf(1, 2).hasSameElements(listOf(1, 2)), "same values")
+    }
+
+    @Test
+    fun testReplaceValidIndex() {
+        assertEquals(listOf(0, 2), listOf(1, 2).replace(0, 0))
+        assertEquals(listOf(1, 3), listOf(1, 2).replace(1, 3))
+    }
+
+    @Test
+    fun testReplaceInvalidIndex() {
+        assertEquals(listOf(1, 2), listOf(1, 2).replace(-1, 0))
+        assertEquals(listOf(1, 2), listOf(1, 2).replace(2, 3))
+    }
+
+    @Test
     fun testLetWithNull() {
         val first = 1
         val second = null
@@ -101,6 +123,75 @@ class ExtensionsTest {
         assertTrue(null.isNullOr(1))
         assertTrue(1.isNullOr(1))
         assertFalse(1.isNullOr(2))
+    }
+
+    @Test
+    fun testNumberOfElementsMatchesCount() {
+        var createCalled = false
+        val initialList = listOf(0, 1, 2)
+
+        var i = 3
+        val result = initialList.withNumberOfElements(3) {
+            createCalled = true
+            i++
+        }
+
+        assertFalse(createCalled, "create called")
+        assertEquals(initialList, result)
+    }
+
+    @Test
+    fun testDroppingElements() {
+        var createCalled = false
+        val initialList = listOf(0, 1, 2)
+
+        var i = 3
+        var result = initialList.withNumberOfElements(2) {
+            createCalled = true
+            i++
+        }
+
+        assertFalse(createCalled, "create called 2")
+        assertEquals(listOf(0, 1), result)
+
+        result = initialList.withNumberOfElements(1) {
+            createCalled = true
+            i++
+        }
+
+        assertFalse(createCalled, "create called 1")
+        assertEquals(listOf(0), result)
+
+        result = initialList.withNumberOfElements(0) {
+            createCalled = true
+            i++
+        }
+
+        assertFalse(createCalled, "create called 0")
+        assertEquals(listOf(), result)
+
+        result = initialList.withNumberOfElements(-1) {
+            createCalled = true
+            i++
+        }
+
+        assertFalse(createCalled, "create called -1")
+        assertEquals(listOf(), result)
+    }
+
+    @Test
+    fun testCreatingElements() {
+        val initialList = listOf(1, 2, 3)
+
+        assertEquals(
+            listOf(1, 2, 3, 4),
+            initialList.withNumberOfElements(4) { 4 }
+        )
+
+        assertEquals(
+            listOf(1, 2, 3, 5, 5),
+            initialList.withNumberOfElements(5) { 5 }
+        )
     }
 }
 

@@ -4,11 +4,31 @@
     <!-- Don't change. Required in this format by the RiistaSDK -->
     <string name="language_code">fi</string>
 
-    <string name="login_description">Kirjaudu sisään oma.riista.fi:ssä luoduilla tunnuksilla</string>
     <string name="logo">Logo</string>
     <string name="username">Sähköposti</string>
     <string name="password">Salasana</string>
     <string name="login">Kirjaudu sisään</string>
+    <string name="login_tab_title">Kirjaudu</string>
+    <string name="register_tab_title">Luo tili</string>
+    <string name="password_forgotten">Unohtuiko salasana?</string>
+    <string name="send_password_reset_title">Unohditko salasanasi?</string>
+    <string name="send_password_reset_message">Syötä kenttään sähköpostiosoite, jota käytettiin tilin rekisteröinnissä.</string>
+    <string name="send_password_reset_action">Lähetä palautuslinkki</string>
+    <string name="password_reset_sent_message">Olemme lähettäneet ohjeet salasanan palauttamiseen annettuun sähkö\u00ADposti\u00ADosoitteeseen. Tarkista roska\u00ADposti\u00ADlaatikkosi, jos sähkö\u00ADposti ei saavu muutaman minuutin kuluessa.</string>
+    <string name="authentication_link_sent_title">Pyyntö lähetetty</string>
+    <string name="authentication_link_sent_back_to_login">Takaisin kirjautumiseen</string>
+    <string name="login_failed">Kirjautuminen epäonnistui</string>
+    <string name="login_connect_failed">Palvelimeen ei saatu yhteyttä. Ole hyvä ja yritä myöhemmin uudelleen.</string>
+    <string name="login_incorrect_credentials">Väärä käyttäjänimi tai salasana. Ole hyvä ja yritä uudelleen.</string>
+    <string name="login_outdated_version">Ohjelmaversio on vanhentunut. Päivitä ohjelma uuteen versioon jatkaaksesi käyttöä.</string>
+    <string name="send_registration_link_title">Tilin luonti</string>
+    <string name="send_registration_link_message">Rekisteröityäksesi oma.riista.fi-palveluun tarvitset toimivan, henkilökohtaisen sähköpostiosoitteen, johon lähetämme linkin tunnuksen luomista varten. Osana tunnuksen luomista tunnistaudut pankkitunnuksillasi Suomi.fi-tunnistuspalvelussa.</string>
+    <string name="send_registration_link_action">Aloita rekisteröityminen</string>
+    <string name="registration_link_sent_message">Olemme lähettäneet rekisteröitymisohjeet annettuun sähkö\u00ADposti\u00ADosoitteeseen. Tarkista roska\u00ADposti\u00ADlaatikkosi, jos sähkö\u00ADposti ei saavu muutaman minuutin kuluessa.</string>
+    <string name="login_username_changed">Sähköposti vaihtunut?</string>
+    <string name="change_username_title">Vaihda sähköposti\u00ADosoitetta</string>
+    <string name="change_username_message">Voit vaihtaa Oma riista -tunnuksena käyttämäsi sähköposti\u00ADosoitteen rekisteröitymällä palveluun uudelleen.\n\nKaikki palveluun syöttämäsi tiedot säilyvät uudelleenrekisteröinnissä.</string>
+    <string name="change_username_action">Siirry rekisteröitymään</string>
 
     <string name="add">Lisää</string>
     <string name="edit">Muokkaa</string>
@@ -26,6 +46,7 @@
     <string name="menu_settings">Asetukset</string>
     <string name="menu_shooting_test_list">Ampumakokeet</string>
     <string name="menu_hunting_group_leader">@string/group_hunting_main_page_title</string>
+    <string name="menu_hunting_control">@string/hunting_control_main_page_title</string>
     <string name="menu_event_search">Tapahtumahaku</string>
     <string name="menu_contact_details">Yhteystiedot</string>
     <string name="menu_show_magazine">Lue viimeisin Metsästäjä-lehti</string>
@@ -68,6 +89,9 @@
     <string name="poi_filter_type_other">@string/poi_location_group_type_other</string>
     <string name="poi_select_external_id">Valitse Oma Riista -alue kartan asetuksista nähdäksesi alueeseen liitetyt paikkapisteet.</string>
     <string name="poi_no_pois">Ei paikkapisteitä</string>
+    <string name="poi_center_and_return_to_map">Keskitä ja palaa kartalle</string>
+    <string name="previous">Edellinen</string>
+    <string name="next">Seuraava</string>
 
     <string name="amount_format">%1$d&#160;kpl</string>
     <string name="minutes_format">%1$d&#160;min</string>
@@ -149,6 +173,10 @@
     <string name="my_details_hunting_ban">Metsästyskielto</string>
     <string name="my_details_assignments_title">Tehtävät</string>
     <string name="my_details_hunting_group_memberships_title">Seurajäsenyydet</string>
+    <string name="my_details_trainings_title">Koulutusmerkinnät</string>
+    <string name="my_details_trainings_training_date">Suorituspäivä:</string>
+    <string name="my_details_trainings_training_place">Suorituspaikka:</string>
+    <string name="my_details_no_trainings">Ei koulutuksia</string>
     <string name="my_details_shooting_tests_title">Ampumakoesuoritukset</string>
     <string name="my_details_no_shooting_test_attempts">Ei voimassaolevia sähköisesti kirjattuja ampumakoesuorituksia</string>
     <string name="my_details_mh_permits_title">Metsähallituksen luvat</string>
@@ -158,7 +186,7 @@
     <string name="my_details_mh_permit_name">Lupatyyppi</string>
     <string name="my_details_mh_permit_period">Aika</string>
     <string name="my_details_mh_permit_harvest_feedback">Lähetä saalispalaute</string>
-    <string name="my_details_mh_permit_harvest_feedback_confirmation">Olet siirtymässä Oma riista -palvelusta Metsähallituksen saalispalautejärjestelmään.\n\nMikäli saalispalautteen antamisessa ilmenee ongelmia tai haluat lisätietoa asiasta, ota yhteys Metsähallituksen Erälupien asiakaspalveluun, p. 020 69 2424 (arkisin klo 9-16) tai sähköpostilla osoitteeseen eraluvat@metsa.fi.</string>
+    <string name="my_details_mh_permit_harvest_feedback_confirmation">Olet siirtymässä Oma riista –palvelusta Metsähallituksen saalispalautejärjestelmään.\n\nMikäli saalispalautteen antamisessa ilmenee ongelmia tai haluat lisätietoa asiasta, ota yhteys Metsähallituksen Erälupien asiakaspalveluun, p. 020 69 2424 (arkisin klo 9–16) tai sähköpostilla osoitteeseen eraluvat@metsa.fi.</string>
     <string name="my_details_duration">Voimassaoloaika</string>
     <string name="duration_indefinite">Toistaiseksi</string>
     <string name="my_details_hunting_club_membership_invitations">Seurakutsut</string>
@@ -169,10 +197,22 @@
     <string name="my_details_hunting_club_memberships">Seurajäsenyydet</string>
     <string name="my_details_customer_number">Asiakasnumero: %1$s</string>
 
+    <string name="training_type_lahi">Lähikoulutus</string>
+    <string name="training_type_sahkoinen">Sähköinen</string>
+
+    <string name="occupation_type_metsastyksenvalvoja">Metsästyksenvalvoja</string>
+    <string name="occupation_type_metsastajatutkinnon_vastaanottaja">Metsästäjätutkinnon vastaanottaja</string>
+    <string name="occupation_type_ampumakokeen_vastaanottaja">Ampumakokeen vastaanottaja</string>
+    <string name="occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa">RHY:n edustaja riistavahinkojen maastokatselmuksessa</string>
+    <string name="occupation_type_petoyhdyshenkilo">Petoyhdyshenkilö</string>
+
     <!-- New diary entry page -->
     <string name="species">Laji</string>
+    <string name="species_other">Muu laji</string>
+    <string name="species_unknown">Tuntematon laji</string>
     <string name="species_prompt">Valitse laji</string>
     <string name="dismiss">Hylkää</string>
+    <string name="description">Muistiinpano</string>
     <string name="add_description">Lisää muistiinpano</string>
     <string name="save">Tallenna</string>
     <string name="select">Valitse</string>
@@ -190,7 +230,8 @@
     <string name="gps_bad">GPS HUONO</string>
     <string name="gps_none">GPS SAAVUTTAMATON</string>
     <string name="go_to_current_location">Vie nykyiseen GPS-sijaintiin</string>
-    <string name="set_location">Aseta uusi sijainti kartalla</string>
+    <string name="set_location_on_map">Aseta sijainti kartalla</string>
+    <string name="set_new_location_on_map">Aseta uusi sijainti kartalla</string>
     <string name="map_coordinates">P %1$s  I %2$s   (ETRS-TM35FIN)</string>
     <string name="select_preferred_intent">Valitse haluttu jakotapa</string>
     <string name="ok">OK</string>
@@ -232,9 +273,6 @@
     <string name="permit_list_help_text">Hirvieläimille ei tarvitse syöttää lupanumeroa</string>
     <string name="permit_list_not_available">Lupa ei ole käytettävissä. Ota yhteyttä luvansaajaan</string>
 
-    <string name="connecting_failed">Palvelimeen ei saatu yhteyttä. Ole hyvä ja yritä myöhemmin uudelleen.</string>
-    <string name="login_failed">Väärä käyttäjänimi tai salasana. Ole hyvä ja yritä uudelleen.</string>
-
     <string name="imageViewTemplate">Kuva %1$s/%2$s</string>
 
     <string name="error">Virhe</string>
@@ -273,6 +311,12 @@
     <string name="map_settings_valtionmaat">Valtionmaat</string>
     <string name="map_settings_rhy_rajat">RHY-rajat</string>
     <string name="map_settings_game_triangles">Riistakolmiot</string>
+    <string name="map_settings_moose_restrictions">Hirvieläin rajoitusalueet</string>
+    <string name="map_settings_moose_restrictions_link">Katso: https://retkikartta.fi</string>
+    <string name="map_settings_small_game_restrictions">Pienriista rajoitusalueet</string>
+    <string name="map_settings_small_game_restrictions_link">Katso: https://retkikartta.fi</string>
+    <string name="map_settings_avi_hunting_ban">Avi metsästyskieltoalueet</string>
+    <string name="map_settings_avi_hunting_ban_link">Katso: https://avi.fi/tiedotteet</string>
     <string name="map_settings_offline_map_settings">Offline-kartat</string>
     <string name="offline_map_settings_background_map">Taustakartta</string>
     <string name="offline_map_settings_map_layers">Karttatasot</string>
@@ -285,9 +329,12 @@
     <string name="map_settings_add_hirvialue">Metsähallitus hirvi</string>
     <string name="map_settings_add_with_area_code">Aluetunnus</string>
     <string name="map_settings_select_area">Valitse alue</string>
+    <string name="map_settings_remove_area_confirm">Haluatko varmasti poistaa alueen?</string>
     <string name="map_settings_general_title">Yleiset</string>
     <string name="map_club_areas_title">Valitut alueet</string>
-    <string name="map_display_pins">Näytä tapahtumat</string>
+    <string name="map_hide_markers">Piilota merkinnät</string>
+    <string name="map_show_markers">Näytä merkinnät</string>
+    <string name="copied">Kopioitu</string>
 
     <string name="species_category_birds">Riistalinnut</string>
     <string name="species_category_mammals">Riistanisäkkäät</string>
@@ -316,7 +363,7 @@
     <string name="age_adult">Aikuinen</string>
     <string name="age_young">Alle 1 v</string>
     <string name="age_less_than_year">Alle 1 v</string>
-    <string name="age_year_or_two">1-2 vuotias</string>
+    <string name="age_year_or_two">1–2 vuotias</string>
     <string name="age_eraus">Eraus</string>
     <string name="age_unknown">Tuntematon</string>
 
@@ -356,6 +403,11 @@
     <string name="observation_marked">Eläin merkitty</string>
     <string name="within_moose_hunting">Hirvenmetsästyksen yhteydessä</string>
     <string name="within_deer_hunting">Peuran metsästyksen yhteydessä</string>
+
+    <string name="observation_category">Havainnon asiayhteys</string>
+    <string name="observation_category_normal">Tavallinen</string>
+    <string name="observation_category_within_moose_hunting">@string/within_moose_hunting</string>
+    <string name="observation_category_within_deer_hunting">@string/within_deer_hunting</string>
 
     <!-- Antlers instructions page -->
     <string name="instructions">Ohje</string>
@@ -461,12 +513,17 @@
     <string name="tassu_pack">Lauma (automaattisesti päätelty)</string>
 
     <!-- SRVA -->
-    <string name="srva_other_species_description">Muu laji</string>
+    <string name="srva_other_species_description">@string/species_other</string>
+    <string name="srva_specimen_amount">@string/harvest_amount</string>
     <string name="srva_event">Tapahtuma</string>
+    <string name="srva_event_label_deportation_order_number">Karkotusmääräyksen numero</string>
     <string name="srva_type">Tyyppi</string>
     <string name="srva_type_description">Tyypin kuvaus</string>
+    <string name="srva_event_label_event_type_detail">Tyypin tarkenne</string>
+    <string name="srva_event_label_other_event_type_detail_description">Tarkenteen kuvaus</string>
 
     <string name="srva_result">Tulos</string>
+    <string name="srva_event_label_event_result_detail">Tuloksen tarkenne</string>
     <string name="srva_method">Menetelmä</string>
     <string name="srva_method_description">Menetelmän kuvaus</string>
     <string name="srva_person_count">Osallistuneita henkilöitä</string>
@@ -479,6 +536,15 @@
     <string name="srva_traffic_accident">Liikenneonnettomuus</string>
     <string name="srva_railway_accident">Onnettomuus rautatiellä</string>
     <string name="srva_other">Muu</string>
+
+    <string name="srva_event_type_detail_cared_house_area">Hoidettu piha-alue</string>
+    <string name="srva_event_type_detail_farm_animal_building">Tuotantoeläinrakennus</string>
+    <string name="srva_event_type_detail_urban_area">Taajama</string>
+    <string name="srva_event_type_detail_carcass_at_forest">Haaska metsässä</string>
+    <string name="srva_event_type_detail_carcass_near_houses_area">Haaska pihapiirissä</string>
+    <string name="srva_event_type_detail_garbage_can">Roska-astia</string>
+    <string name="srva_event_type_detail_beehive">Mehiläispesä</string>
+    <string name="srva_event_type_detail_other">@string/srva_other</string>
 
     <string name="srva_animal_near_houses">Eläin asutuksen tuntumassa</string>
     <string name="srva_animal_at_food_destination">Eläin ravintokohteilla</string>
@@ -493,6 +559,10 @@
     <string name="srva_animal_not_found">Eläintä ei löydetty</string>
     <string name="srva_undue_alarm">Aiheeton hälytys</string>
 
+    <string name="srva_event_result_detail_animal_contacted_and_deported">Välitön yhteys, eläin karkotettiin</string>
+    <string name="srva_event_result_detail_animal_contacted">Eläimeen saatiin yhteys</string>
+    <string name="srva_event_result_detail_uncertain_result">Tulos epävarma</string>
+
     <string name="srva_animal_terminated">Eläin lopetettiin</string>
     <string name="srva_animal_deported">Eläin karkotettiin</string>
 
@@ -501,13 +571,15 @@
     <string name="srva_method_traced_without_dog">Jäljitettiin ilman koiraa</string>
     <string name="srva_method_pain_equipment">Kipua tuottavat laitteet</string>
     <string name="srva_method_sound_equipment">Ääntä tuottavat laitteet</string>
+    <string name="srva_method_vehicle">Ajoneuvolla karkotus</string>
+    <string name="srva_method_chasing_with_people">Henkilöajo</string>
 
     <string name="srva_approved">Hyväksytty</string>
     <string name="srva_rejected">Hylätty</string>
     <string name="srva_approver">Hyväksyjä</string>
     <string name="srva_rejecter">Hylkääjä</string>
 
-    <string name="display_all">Näytä kokonaan</string>
+    <string name="display_all">Näytä koko viesti</string>
     <string name="announcements_none">Ei viestejä</string>
     <string name="announcements_fetch_failed">Viestien hakeminen epäonnistui</string>
 
@@ -589,6 +661,7 @@
     <string name="group_hunting_species">Laji</string>
     <string name="group_hunting_group">Ryhmä</string>
     <string name="group_hunting_permit">Lupa: %s</string>
+    <string name="group_hunting_error_hunting_has_finished">Metsästys on päättynyt</string>
     <string name="group_hunting_new_harvest">Kirjaa saalis</string>
     <string name="group_hunting_new_observation">Kirjaa havainto</string>
     <string name="group_hunting_entries_on_map">Merkinnät kartalla</string>
@@ -699,4 +772,56 @@
     <string name="group_member_selection_select_observer">Valitse havaitsija</string>
     <string name="group_member_selection_search_name">Hae nimellä</string>
     <string name="group_member_selection_enter_name">Nimi</string>
+
+    <!-- Hunting control -->
+    <string name="hunting_control_main_page_title">Metsästyksenvalvonta</string>
+    <string name="hunting_control_add_event">Luo tapahtuma</string>
+    <string name="hunting_control_my_events">Omat tapahtumat</string>
+    <string name="hunting_control_no_events">Ei tapahtumia</string>
+    <string name="hunting_control_select_rhy_to_display_events">Valitse riistanhoitoyhdistys nähdäksesi tapahtumat</string>
+    <string name="huntint_control_rhy">Riistanhoitoyhdistys</string>
+    <string name="hunting_control_view_page_title">Tapahtuma</string>
+    <string name="hunting_control_start_time">Aloitus</string>
+    <string name="hunting_control_end_time">Lopetus</string>
+    <string name="hunting_control_duration">Kesto</string>
+    <string name="hunting_control_event_type">Valvontatapahtuma</string>
+    <string name="hunting_control_number_of_inspectors">Valvojien lukumäärä</string>
+    <string name="hunting_control_cooperation_type">Yhteistyö</string>
+    <string name="hunting_control_wolf_territory">Susireviiri</string>
+    <string name="hunting_control_inspectors">Valvojat</string>
+    <string name="hunting_control_location_description">Paikan kuvaus</string>
+    <string name="hunting_control_event_description">Tapahtuman kuvaus</string>
+    <string name="hunting_control_number_of_customers">Asiakkaita</string>
+    <string name="hunting_control_number_of_proof_orders">Näyttömääräyksiä</string>
+    <string name="hunting_control_date">Päivämäärä</string>
+    <string name="hunting_control_other_participants">Muut osallistujat</string>
+    <string name="hunting_control_duration_zero">0</string>
+    <string name="hunting_control_choose_inspectors">Valitse valvojat</string>
+    <string name="hunting_control_choose_cooperation">Valitse yhteistyö</string>
+    <string name="hunting_control_attachments">Liitteet</string>
+    <string name="hunting_control_inspector_selection_search_by_name">@string/group_member_selection_search_name</string>
+    <string name="hunting_control_inspector_selection_name_hint">@string/group_member_selection_enter_name</string>
+    <string name="hunting_control_error_no_inspectors_for_selected_date">Valitulle päivämäärälle ei ole valvojia</string>
+    <string name="hunting_control_event_save_failed_generic">Valvontatapahtuman tallentaminen epäonnistui</string>
+    <string name="hunting_control_download_attachment_question">Ladataanko liite palvelimelta?</string>
+    <string name="hunting_control_delete_attachment_question">Poistetaanko liite %1$s?</string>
+    <string name="hunting_control_add_attachment">Lisää liite</string>
+    <string name="hunting_control_select_attachment">Valitse liite</string>
+
+    <string name="download_manager_downloading_file">Tiedostoa ladataan</string>
+    <string name="download_manager_download_complete">Löydät ladatun tiedoston %1$s ilmoituksista</string>
+    <string name="download_manager_download_failed">Tiedoston %1$s lataus epäonnistui</string>
+    <string name="download_manager_download_title">Oma riista: %1$s</string>
+
+    <string name="hunting_control_cooperation_type_poliisi">Poliisi</string>
+    <string name="hunting_control_cooperation_type_rajavartiosto">Rajavartiosto</string>
+    <string name="hunting_control_cooperation_type_mh">Metsähallitus</string>
+    <string name="hunting_control_cooperation_type_oma">Oma</string>
+
+    <string name="hunting_control_event_type_mooselike">Hirvieläinten metsästyksen valvonta</string>
+    <string name="hunting_control_event_type_large_carnivore">Suurpetojen metsästyksen valvonta</string>
+    <string name="hunting_control_event_type_grouse">Kanalintujen metsästyksen valvonta</string>
+    <string name="hunting_control_event_type_waterfowl">Vesilintujen metsästyksen valvonta</string>
+    <string name="hunting_control_event_type_dog_discipline">Koirakurin valvonta</string>
+    <string name="hunting_control_event_type_other">Muu valvonta</string>
 </resources>

@@ -1,5 +1,8 @@
 package fi.riista.mobile.sync;
 
+import static java.util.Objects.requireNonNull;
+import static fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -30,9 +33,6 @@ import fi.riista.mobile.utils.BaseDatabase.SaveListener;
 import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.Utils;
 import fi.vincit.androidutilslib.context.WorkContext;
-
-import static fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME;
-import static java.util.Objects.requireNonNull;
 
 @Singleton
 public class ObservationSync {
@@ -271,49 +271,84 @@ public class ObservationSync {
     }
 
     private void sendImages(final ObservationSyncListener listener) {
-        mObservationDatabase.loadObservationsWithLocalImages(observations -> sendImage(observations, listener));
+        mObservationDatabase.loadObservationsWithLocalImages(observations -> sendImages(observations, listener));
     }
 
-    private void sendImage(final List<GameObservation> observations, final ObservationSyncListener listener) {
-        if (observations.isEmpty()) {
+    private void sendImages(final List<GameObservation> remainingObservations, final ObservationSyncListener listener) {
+        if (remainingObservations.isEmpty()) {
             listener.onFinish();
             return;
         }
 
-        final GameObservation observation = observations.get(0);
+        final GameObservation currentObservation = remainingObservations.remove(0);
+        final List<LocalImage> remainingObservationImages = new ArrayList<>(currentObservation.localImages);
+        sendImages(remainingObservations, currentObservation, remainingObservationImages, listener);
+    }
 
-        if (observation.remoteId != null && observation.localImages.size() > 0) {
-            // This server-backed observation has local images
-            final LocalImage image = observation.localImages.remove(0);
-
-            if (!observation.imageIds.contains(image.serverId)) {
-                // This local image has not been sent to the server yet
-                final PostObservationImageTask task = new PostObservationImageTask(mSyncWorkContext, observation, image) {
-                    @Override
-                    protected void onFinishText(final String text) {
-                        Utils.LogMessage("Image sent: " + image.localPath);
-                    }
-
-                    @Override
-                    protected void onError() {
-                        Utils.LogMessage("Image sending failed: " + getHttpStatusCode());
-                    }
-
-                    @Override
-                    protected void onEnd() {
-                        sendImage(observations, listener);
-                    }
-                };
-                task.start();
-            } else {
-                // Try next image or observation
-                sendImage(observations, listener);
-            }
-        } else {
-            // No images for this observation
-            observations.remove(0);
-
-            sendImage(observations, listener);
+    private void sendImages(final List<GameObservation> remainingObservations,
+                            final GameObservation currentObservation,
+                            final List<LocalImage> remainingObservationImages,
+                            final ObservationSyncListener listener) {
+        if (remainingObservationImages.isEmpty()) {
+            sendImages(remainingObservations, listener);
+            return;
         }
+
+        if (currentObservation.remoteId == null) {
+            // observation has not been sent yet, cannot send images for it
+            // -> continue sending images from next available observation
+            sendImages(remainingObservations, listener);
+            return;
+        }
+
+        final LocalImage currentImage = remainingObservationImages.remove(0);
+        if (currentObservation.imageIds.contains(currentImage.serverId)) {
+            // image has already been sent, try next image
+            sendImages(remainingObservations, currentObservation, remainingObservationImages, listener);
+            return;
+        }
+
+        // This local image has not been sent to the server yet
+        final PostObservationImageTask task = new PostObservationImageTask(mSyncWorkContext, currentObservation, currentImage) {
+            boolean imageUploaded = false;
+
+            @Override
+            protected void onFinishText(final String text) {
+                imageUploaded = true;
+                Utils.LogMessage("Image sent: " + currentImage.localPath);
+            }
+
+            @Override
+            protected void onError() {
+                Utils.LogMessage("Image sending failed: " + getHttpStatusCode() +
+                        ", uuid = " + currentImage.serverId);
+            }
+
+            @Override
+            protected void onEnd() {
+                if (!imageUploaded) {
+                    sendImages(remainingObservations, currentObservation, remainingObservationImages, listener);
+                    return;
+                }
+
+                // update the observation so that we know afterwards that image has been sent
+                // - insert as the last item as the latest added image seems to be the last when images
+                //   are received from backend
+                currentObservation.imageIds.add(currentImage.serverId);
+
+                mObservationDatabase.saveObservation(currentObservation, new SaveListener() {
+                    @Override
+                    public void onSaved(long id) {
+                        sendImages(remainingObservations, currentObservation, remainingObservationImages, listener);
+                    }
+
+                    @Override
+                    public void onError() {
+                        sendImages(remainingObservations, currentObservation, remainingObservationImages, listener);
+                    }
+                });
+            }
+        };
+        task.start();
     }
 }

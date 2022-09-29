@@ -2,3 +2,4 @@ build
 .gradle
 output-framework
 local.properties
+.DS_Store

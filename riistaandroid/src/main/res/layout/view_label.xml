@@ -19,11 +19,34 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/colorText"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             tools:text="Label"
             />
+
+        <TextView
+            android:id="@+id/tv_label_text_caps"
+            style="@style/GroupHuntingText14.Bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/colorText"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:textAllCaps="true"
+            android:visibility="gone"
+            tools:text="Tässä on otsikko"
+            />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/text_barrier"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            app:barrierDirection="right"
+            app:constraint_referenced_ids="tv_label_text, tv_label_text_caps" />
 
         <TextView
             android:id="@+id/tv_label_required_indicator"
@@ -35,7 +58,7 @@
             android:textColor="@color/button_destructive_color"
             android:paddingStart="@dimen/padding_tiny"
             android:paddingEnd="@dimen/padding_tiny"
-            app:layout_constraintStart_toEndOf="@id/tv_label_text"
+            app:layout_constraintStart_toEndOf="@id/text_barrier"
             app:layout_constraintBaseline_toBaselineOf="@id/tv_label_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"

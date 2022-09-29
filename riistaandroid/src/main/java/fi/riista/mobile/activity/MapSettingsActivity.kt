@@ -1,15 +1,20 @@
 package fi.riista.mobile.activity
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.AppCompatImageView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import dagger.android.AndroidInjection
 import fi.riista.mobile.R
@@ -102,8 +107,25 @@ class MapSettingsActivity : BaseActivity() {
             AppPreferences.setShowGameTriangles(this, b)
         }
 
+        val mooseRestrictionsCheck = findViewById<SwitchMaterial>(R.id.enable_layer_moose_restrictions)
+        mooseRestrictionsCheck.isChecked = AppPreferences.getShowMooseRestrictions(this)
+        mooseRestrictionsCheck.setOnCheckedChangeListener { _, b ->
+            AppPreferences.setShowMooseRestrictions(this, b)
+        }
+
+        val smallGameRestrictionsCheck = findViewById<SwitchMaterial>(R.id.enable_layer_small_game_restrictions)
+        smallGameRestrictionsCheck.isChecked = AppPreferences.getShowSmallGameRestrictions(this)
+        smallGameRestrictionsCheck.setOnCheckedChangeListener { _, b ->
+            AppPreferences.setShowSmallGameRestrictions(this, b)
+        }
+
+        val aviHuntingBanCheck = findViewById<SwitchMaterial>(R.id.enable_layer_avi_hunting_ban)
+        aviHuntingBanCheck.isChecked = AppPreferences.getShowAviHuntingBan(this)
+        aviHuntingBanCheck.setOnCheckedChangeListener { _, b ->
+            AppPreferences.setShowAviHuntingBan(this, b)
+        }
+
         val areasContainer = findViewById<LinearLayout>(R.id.container_map_areas)
-        refreshSelectedAreaTypes()
         refreshSelectedAreasView(areasContainer)
 
         findViewById<View>(R.id.btn_add_area_map_club).setOnClickListener {
@@ -130,6 +152,7 @@ class MapSettingsActivity : BaseActivity() {
 
         // List may be different after back navigation
         fetchCachedClubAreas()
+        refreshSelectedAreaTypes()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -240,6 +263,18 @@ class MapSettingsActivity : BaseActivity() {
             idText.visibility = View.VISIBLE
         } else {
             idText.visibility = View.GONE
+        }
+
+        val copyToClipboardButton = item.findViewById<AppCompatImageView>(R.id.btn_copy_to_clipboard)
+        copyToClipboardButton.setOnClickListener {
+            val clipboardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = ClipData.newPlainText(getString(R.string.map_area_code), areaId)
+            clipboardManager.setPrimaryClip(clipData)
+            val androidSv2 = Build.VERSION_CODES.S + 1 // TODO: Use build code S_V2 when updated to target API 32
+            if (Build.VERSION.SDK_INT <= androidSv2) {
+                // Android 13+ automatically shows something similar
+                Toast.makeText(this, getString(R.string.copied), Toast.LENGTH_SHORT).show()
+            }
         }
 
         val removeButton = item.findViewById<TextView>(R.id.btn_remove_area)

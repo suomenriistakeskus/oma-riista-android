@@ -13,10 +13,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.RiistaSDK
 import fi.riista.common.extensions.*
-import fi.riista.common.groupHunting.model.GroupHuntingDayId
-import fi.riista.common.groupHunting.model.HuntingGroupTarget
-import fi.riista.common.groupHunting.ui.huntingDays.select.SelectHuntingDayController
-import fi.riista.common.groupHunting.ui.huntingDays.select.SelectHuntingDayViewModel
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.ui.huntingDays.select.SelectHuntingDayController
+import fi.riista.common.domain.groupHunting.ui.huntingDays.select.SelectHuntingDayViewModel
 import fi.riista.common.model.LocalDate
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy

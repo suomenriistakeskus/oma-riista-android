@@ -14,17 +14,17 @@ import androidx.appcompat.widget.AppCompatSpinner
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.button.MaterialButton
-import fi.riista.common.poi.ui.PoiFilter
+import fi.riista.common.domain.poi.ui.PoiFilter
 import fi.riista.mobile.R
 import fi.riista.mobile.database.SpeciesInformation
 import fi.riista.mobile.feature.poi.PoiListFragment
+import fi.riista.mobile.feature.poi.PoiLocationActivity
 import fi.riista.mobile.gamelog.FilterCategoryFragment
 import fi.riista.mobile.gamelog.FilterSpeciesFragment
 import fi.riista.mobile.models.GameLog
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.Utils
 import fi.riista.mobile.utils.toVisibility
-import java.util.*
 import java.util.Collections.emptyList
 
 class GameLogFilterView : ConstraintLayout {
@@ -44,9 +44,10 @@ class GameLogFilterView : ConstraintLayout {
     private lateinit var clearButton: MaterialButton
 
     var listener: GameLogFilterListener? = null
+    var centerMapListener: PoiLocationActivity.CenterMapListener? = null
     var poiFilter: PoiFilter? = null
-    var srvaPosition = -1
-    var poiPosition = -1
+    private var srvaPosition = -1
+    private var poiPosition = -1
 
     constructor(context: Context) : super(context) {
         init()
@@ -82,6 +83,7 @@ class GameLogFilterView : ConstraintLayout {
                     externalId = externalId,
                     filter = poiFilter ?: PoiFilter(PoiFilter.PoiFilterType.ALL)
                 )
+                dialog.listener = centerMapListener
             } else {
                 dialog = FilterCategoryFragment.newInstance()
                 dialog.listener = listener

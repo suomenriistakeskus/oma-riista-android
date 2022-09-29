@@ -69,6 +69,7 @@
                 android:layout_width="@dimen/square_image_button_dimen"
                 android:layout_height="@dimen/square_image_button_dimen"
                 android:contentDescription="@null"
+                app:tint="@color/text_color_editable_stateful"
                 app:srcCompat="@drawable/ic_magnify" />
 
             <View
@@ -81,6 +82,7 @@
                 android:layout_width="@dimen/square_image_button_dimen"
                 android:layout_height="@dimen/square_image_button_dimen"
                 android:contentDescription="@null"
+                app:tint="@color/text_color_editable_stateful"
                 app:srcCompat="@drawable/ic_minify" />
 
             <View

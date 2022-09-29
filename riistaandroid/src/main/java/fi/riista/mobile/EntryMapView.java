@@ -8,7 +8,6 @@ import android.graphics.Point;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
@@ -45,8 +44,9 @@ import fi.riista.mobile.vectormap.VectorTileProvider;
 public class EntryMapView extends MapView implements OnMapReadyCallback {
 
     public static final float MAP_ZOOM_LEVEL_MIN = 4;
-    public static final float MAP_ZOOM_LEVEL_MAX = 16;
+    public static final float MAP_ZOOM_LEVEL_MAX = 17;
     public static final float MAP_ZOOM_LEVEL_DEFAULT = 15;
+    public static final String KEY_ZOOM_LEVEL = "zoomLevel";
 
     private GoogleMap mMap;
     private Marker mLocationMarker;
@@ -67,6 +67,9 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
     private TileOverlay mMhMooseOverlay;
     private TileOverlay mMhPienriistaOverlay;
     private TileOverlay mGameTrianglesOverlay;
+    private TileOverlay mMooseRestrictionsOverlay;
+    private TileOverlay mSmallGameRestrictionsOverlay;
+    private TileOverlay mAviHuntingBanOverlay;
 
     private TextView mCopyrightText;
 
@@ -101,6 +104,9 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
                 mMhMooseOverlay,
                 mMhPienriistaOverlay,
                 mGameTrianglesOverlay,
+                mMooseRestrictionsOverlay,
+                mSmallGameRestrictionsOverlay,
+                mAviHuntingBanOverlay,
         };
         for (TileOverlay overlay : overlays) {
             if (overlay != null) {
@@ -119,6 +125,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         mMyInfoWindowAdapter = new MyInfoWindowAdapter(context);
     }
 
+    @SuppressLint("PotentialBehaviorOverride")
     public void setShowInfoWindow(final boolean show) {
         if (show && !mShowInfoWindow) {
             mMap.setInfoWindowAdapter(mMyInfoWindowAdapter);
@@ -158,6 +165,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         mShowAccuracy = show;
     }
 
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(final GoogleMap map) {
         mMap = map;
@@ -309,6 +317,60 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
     }
 
+    public void setShowMooseRestrictionsLayer(final boolean show) {
+        if (mMooseRestrictionsOverlay != null) {
+            mMooseRestrictionsOverlay.remove();
+            mMooseRestrictionsOverlay = null;
+        }
+
+        if (show && mMap != null) {
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            tileProvider.setAreaType(VectorTileProvider.AreaType.MOOSE_RESTRICTIONS);
+            tileProvider.setMapExternalId("-1");
+            tileProvider.setInvertColors(false);
+
+            mMooseRestrictionsOverlay = mMap.addTileOverlay(new TileOverlayOptions()
+                    .tileProvider(tileProvider)
+                    .zIndex(8f));
+        }
+    }
+
+    public void setShowSmallGameRestrictionsLayer(final boolean show) {
+        if (mSmallGameRestrictionsOverlay != null) {
+            mSmallGameRestrictionsOverlay.remove();
+            mSmallGameRestrictionsOverlay = null;
+        }
+
+        if (show && mMap != null) {
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            tileProvider.setAreaType(VectorTileProvider.AreaType.SMALL_GAME_RESTRICTIONS);
+            tileProvider.setMapExternalId("-1");
+            tileProvider.setInvertColors(false);
+
+            mSmallGameRestrictionsOverlay = mMap.addTileOverlay(new TileOverlayOptions()
+                    .tileProvider(tileProvider)
+                    .zIndex(9f));
+        }
+    }
+
+    public void setShowAviHuntingBanLayer(final boolean show) {
+        if (mAviHuntingBanOverlay != null) {
+            mAviHuntingBanOverlay.remove();
+            mAviHuntingBanOverlay = null;
+        }
+
+        if (show && mMap != null) {
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            tileProvider.setAreaType(VectorTileProvider.AreaType.AVI_HUNTING_BAN);
+            tileProvider.setMapExternalId("-1");
+            tileProvider.setInvertColors(false);
+
+            mAviHuntingBanOverlay = mMap.addTileOverlay(new TileOverlayOptions()
+                    .tileProvider(tileProvider)
+                    .zIndex(10f));
+        }
+    }
+
     private TextView setupCopyright() {
         // Display copyright text in bottom right corner
         final TextView copyrightText = new TextView(getContext());
@@ -440,6 +502,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
     }
 
+    @SuppressLint("PotentialBehaviorOverride")
     private void refreshGpsInfoWindow(final Location location) {
         if (mShowInfoWindow && mMyInfoWindowAdapter != null) {
             mMyInfoWindowAdapter.newLocation(location);
@@ -494,7 +557,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         final Bundle extras = location.getExtras();
 
         return extras != null
-                ? extras.getFloat("zoomLevel", MAP_ZOOM_LEVEL_DEFAULT)
+                ? extras.getFloat(KEY_ZOOM_LEVEL, MAP_ZOOM_LEVEL_DEFAULT)
                 : MAP_ZOOM_LEVEL_DEFAULT;
     }
 

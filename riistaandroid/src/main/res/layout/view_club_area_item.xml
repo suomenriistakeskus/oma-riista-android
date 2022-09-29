@@ -33,14 +33,28 @@
     <TextView
         android:id="@+id/club_area_id"
         style="@style/PrimaryTextBody"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/item_spacing_small"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/club_area_name"
-        app:layout_constraintStart_toStartOf="@id/club_area_name"
         app:layout_constraintTop_toBottomOf="@id/club_area_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/club_area_title"
+        app:layout_constraintHorizontal_chainStyle="packed"
         tools:text="Aluetunnus: 4455KK2211" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/btn_copy_to_clipboard"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/content_copy"
+        android:tint="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="@id/club_area_id"
+        app:layout_constraintBottom_toBottomOf="@id/club_area_id"
+        app:layout_constraintStart_toEndOf="@id/club_area_id"
+        app:layout_constraintEnd_toStartOf="@id/btn_remove_area"
+        app:layout_constraintHorizontal_bias="0.1" />
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_remove_area"

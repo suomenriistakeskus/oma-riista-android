@@ -1,22 +1,36 @@
 package fi.riista.common.network
 
-import fi.riista.common.dto.HunterNumberDTO
-import fi.riista.common.dto.MockUserInfo
-import fi.riista.common.dto.PersonWithHunterNumberDTO
-import fi.riista.common.dto.UserInfoDTO
-import fi.riista.common.groupHunting.MockGroupHuntingData
-import fi.riista.common.groupHunting.dto.*
-import fi.riista.common.groupHunting.model.HuntingGroupId
-import fi.riista.common.huntingclub.MockHuntingClubData
-import fi.riista.common.huntingclub.dto.HuntingClubMemberInvitationsDTO
-import fi.riista.common.huntingclub.dto.HuntingClubMembershipsDTO
-import fi.riista.common.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.dto.HunterNumberDTO
+import fi.riista.common.domain.dto.MockUserInfo
+import fi.riista.common.domain.dto.PersonWithHunterNumberDTO
+import fi.riista.common.domain.dto.UserInfoDTO
+import fi.riista.common.domain.groupHunting.MockGroupHuntingData
+import fi.riista.common.domain.groupHunting.dto.*
+import fi.riista.common.domain.groupHunting.model.HuntingGroupId
+import fi.riista.common.domain.huntingControl.sync.dto.HuntingControlEventCreateDTO
+import fi.riista.common.domain.huntingControl.sync.dto.HuntingControlEventDTO
+import fi.riista.common.domain.huntingControl.sync.dto.LoadRhysAndHuntingControlEventsDTO
+import fi.riista.common.domain.huntingclub.MockHuntingClubData
+import fi.riista.common.domain.huntingclub.dto.HuntingClubMemberInvitationsDTO
+import fi.riista.common.domain.huntingclub.dto.HuntingClubMembershipsDTO
+import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingControl.MockHuntingControlData
+import fi.riista.common.io.CommonFile
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.domain.model.OrganizationId
+import fi.riista.common.domain.observation.metadata.MockObservationMetadata
+import fi.riista.common.domain.observation.metadata.dto.ObservationMetadataDTO
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.network.calls.NetworkResponseData
 import fi.riista.common.network.cookies.CookieData
-import fi.riista.common.poi.MockPoiData
-import fi.riista.common.poi.dto.PoiLocationGroupsDTO
+import fi.riista.common.domain.poi.MockPoiData
+import fi.riista.common.domain.poi.dto.PoiLocationGroupsDTO
+import fi.riista.common.domain.srva.metadata.MockSrvaMetadata
+import fi.riista.common.domain.srva.metadata.dto.SrvaMetadataDTO
+import fi.riista.common.domain.training.dto.TrainingsDTO
+import fi.riista.common.domain.training.ui.MockTrainingData
 import fi.riista.common.util.deserializeFromJson
+import io.ktor.utils.io.core.*
 
 data class MockResponse(
     val statusCode: Int? = 200,
@@ -24,6 +38,7 @@ data class MockResponse(
 ) {
     companion object {
         fun success(responseData: String?) = MockResponse(responseData = responseData)
+        fun success(statusCode: Int?, responseData: String?) = MockResponse(statusCode = statusCode, responseData = responseData)
         fun successWithNoData(statusCode: Int?) = MockResponse(statusCode = statusCode)
         fun error(statusCode: Int?) = MockResponse(statusCode = statusCode)
     }
@@ -51,12 +66,23 @@ open class BackendAPIMock(
     var huntingClubMemberInvitationsResponse: MockResponse = MockResponse.success(MockHuntingClubData.HuntingClubMemberInvitations),
     var acceptHuntingClubMemberInvitationResponse: MockResponse = MockResponse.successWithNoData(204),
     var rejectHuntingClubMemberInvitationResponse: MockResponse = MockResponse.successWithNoData(204),
-    var poiLocationGroupsResponse: MockResponse = MockResponse.success(MockPoiData.PoiLocationGroups)
+    var poiLocationGroupsResponse: MockResponse = MockResponse.success(MockPoiData.PoiLocationGroups),
+    var huntingControlRhysResponse: MockResponse = MockResponse.success(MockHuntingControlData.HuntingControlRhys),
+    var huntingControlAttachmentThumbnailResponse: MockResponse = MockResponse.success(MockHuntingControlData.AttachmentThumbnail),
+    var createHuntingControlEventResponse: MockResponse = MockResponse.success(MockHuntingControlData.CreatedHuntingControlEvent),
+    var updateHuntingControlEventReponse: MockResponse = MockResponse.success(MockHuntingControlData.UpdatedHuntingControlEvent),
+    var deleteHuntingControlEventAttachmentResponse: MockResponse = MockResponse.successWithNoData(204),
+    var uploadHuntingControlEventAttachmentResponse: MockResponse = MockResponse.success(204, "${MockHuntingControlData.UploadedAttachmentRemoteId}"),
+    var fetchTrainingsResponse: MockResponse = MockResponse.success(MockTrainingData.Trainings),
+    var fetchSrvaMetadataResponse: MockResponse = MockResponse.success(MockSrvaMetadata.METADATA_SPEC_VERSION_2),
+    var fetchObservationMetadataResponse: MockResponse = MockResponse.success(MockObservationMetadata.METADATA_SPEC_VERSION_4),
 ) : BackendAPI {
     private val callCounts: MutableMap<String, Int> = mutableMapOf()
     private val callParameters: MutableMap<String, Any> = mutableMapOf()
 
     override fun getAllNetworkCookies(): List<CookieData> = listOf()
+
+    override fun getNetworkCookies(requestUrl: String): List<CookieData> = listOf()
 
     override suspend fun login(username: String, password: String): NetworkResponse<UserInfoDTO> {
         increaseCallCount(::login.name)
@@ -157,6 +183,11 @@ open class BackendAPIMock(
         return respond(poiLocationGroupsResponse)
     }
 
+    override suspend fun fetchTrainings(): NetworkResponse<TrainingsDTO> {
+        increaseCallCount(::fetchTrainings.name)
+        return respond(fetchTrainingsResponse)
+    }
+
     override suspend fun fetchHuntingClubMemberships(): NetworkResponse<HuntingClubMembershipsDTO> {
         increaseCallCount(::fetchHuntingClubMemberships.name)
         return respond(huntingClubMembershipResponse)
@@ -177,6 +208,99 @@ open class BackendAPIMock(
         increaseCallCount(::rejectHuntingClubMemberInvitation.name)
         callParameters[::rejectHuntingClubMemberInvitation.name] = invitationId
         return respond(rejectHuntingClubMemberInvitationResponse)
+    }
+
+    override suspend fun fetchHuntingControlRhys(modifiedAfter: LocalDateTime?): NetworkResponse<LoadRhysAndHuntingControlEventsDTO> {
+        increaseCallCount(::fetchHuntingControlRhys.name)
+        modifiedAfter?.let {
+            callParameters[::fetchHuntingControlRhys.name] = modifiedAfter
+        }
+        return respond(huntingControlRhysResponse)
+    }
+
+    override suspend fun fetchHuntingControlAttachmentThumbnail(attachmentId: Long): NetworkResponse<ByteArray> {
+        increaseCallCount(::fetchHuntingControlAttachmentThumbnail.name)
+        callParameters[::fetchHuntingControlAttachmentThumbnail.name] = attachmentId
+        val response = huntingControlAttachmentThumbnailResponse
+        return if (response.statusCode != null) {
+            if (response.statusCode in 200..299) {
+                if (response.responseData != null) {
+                        return NetworkResponse.Success(
+                            statusCode = response.statusCode,
+                            data = NetworkResponseData(
+                                raw = response.responseData,
+                                typed = response.responseData.toByteArray()
+                            )
+                        )
+                } else {
+                    NetworkResponse.SuccessWithNoData(statusCode = response.statusCode)
+                }
+            } else {
+                NetworkResponse.ResponseError(response.statusCode)
+            }
+        } else {
+            NetworkResponse.NetworkError(exception = null)
+        }
+    }
+
+    override suspend fun createHuntingControlEvent(
+        rhyId: OrganizationId,
+        event: HuntingControlEventCreateDTO
+    ): NetworkResponse<HuntingControlEventDTO> {
+        increaseCallCount(::createHuntingControlEvent.name)
+        callParameters[::createHuntingControlEvent.name] = Pair(rhyId, event)
+        return respond(createHuntingControlEventResponse)
+    }
+
+    override suspend fun updateHuntingControlEvent(
+        rhyId: OrganizationId,
+        event: HuntingControlEventDTO
+    ): NetworkResponse<HuntingControlEventDTO> {
+        increaseCallCount(::updateHuntingControlEvent.name)
+        callParameters[::updateHuntingControlEvent.name] = Pair(rhyId, event)
+        return respond(updateHuntingControlEventReponse)
+    }
+
+    override suspend fun deleteHuntingControlEventAttachment(attachmentId: Long): NetworkResponse<Unit> {
+        increaseCallCount(::deleteHuntingControlEventAttachment.name)
+        callParameters[::deleteHuntingControlEventAttachment.name] = attachmentId
+        return respond(deleteHuntingControlEventAttachmentResponse)
+    }
+
+    override suspend fun uploadHuntingControlEventAttachment(
+        eventRemoteId: Long,
+        uuid: String,
+        fileName: String,
+        contentType: String,
+        file: CommonFile,
+    ): NetworkResponse<Long> {
+        increaseCallCount(::uploadHuntingControlEventAttachment.name)
+        callParameters[::uploadHuntingControlEventAttachment.name] = UploadHuntingControlEventAttachmentCallParameters(
+            eventRemoteId = eventRemoteId,
+            uuid = uuid,
+            fileName = fileName,
+            contentType = contentType,
+            file = file,
+        )
+        return respond(uploadHuntingControlEventAttachmentResponse)
+    }
+
+    data class UploadHuntingControlEventAttachmentCallParameters(
+        val eventRemoteId: Long,
+        val uuid: String,
+        val fileName: String,
+        val contentType: String,
+        val file: CommonFile,
+    )
+
+    override suspend fun fetchSrvaMetadata(): NetworkResponse<SrvaMetadataDTO> {
+        increaseCallCount(::fetchSrvaMetadata.name)
+        return respond(fetchSrvaMetadataResponse)
+    }
+
+    override suspend fun fetchObservationMetadata(): NetworkResponse<ObservationMetadataDTO> {
+        increaseCallCount(::fetchObservationMetadata.name)
+        return respond(fetchObservationMetadataResponse)
     }
 
     /**
@@ -225,4 +349,3 @@ open class BackendAPIMock(
         }
     }
 }
-

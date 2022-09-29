@@ -3,7 +3,7 @@ package fi.riista.mobile.feature.groupHunting.map
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.groupHunting.ui.diary.GroupDiaryEntryViewModel
+import fi.riista.common.domain.groupHunting.ui.diary.GroupDiaryEntryViewModel
 import fi.riista.mobile.database.SpeciesResolver
 
 class ListGroupDiaryEntriesAdapter(

@@ -1,7 +1,6 @@
 package fi.riista.common.model.extensions
 
 import fi.riista.common.model.*
-import fi.riista.common.model.toKotlinxLocalDateTime
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant

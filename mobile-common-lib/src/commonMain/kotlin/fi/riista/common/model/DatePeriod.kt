@@ -1,5 +1,7 @@
 package fi.riista.common.model
 
+import fi.riista.common.domain.constants.Constants
+import fi.riista.common.domain.model.HuntingYear
 import kotlinx.serialization.Serializable
 
 /**
@@ -24,8 +26,8 @@ data class DatePeriod(
 
     fun toLocalDatePeriod(beginDateYear: Int, endDateYear: Int): LocalDatePeriod {
         return LocalDatePeriod(
-                beginDate = beginDate.toLocalDate(beginDateYear),
-                endDate = endDate.toLocalDate(endDateYear)
+            beginDate = beginDate.toLocalDate(beginDateYear),
+            endDate = endDate.toLocalDate(endDateYear)
         )
     }
 }
@@ -45,19 +47,21 @@ fun DatePeriod.toLocalDatePeriodsWithinHuntingYear(huntingYear: HuntingYear): Li
 
     return if (beginsBeforeHuntingYearChange && endsAfterHuntingYearChange) {
         listOf(
-                LocalDatePeriod(
-                        beginDate = Constants.FIRST_DATE_OF_HUNTING_YEAR.toLocalDateWithinHuntingYear(huntingYear),
-                        endDate = endDate.toLocalDateWithinHuntingYear(huntingYear)
-                ),
-                LocalDatePeriod(
-                        beginDate = beginDate.toLocalDateWithinHuntingYear(huntingYear),
-                        endDate = Constants.LAST_DATE_OF_HUNTING_YEAR.toLocalDateWithinHuntingYear(huntingYear)
-                ),
+            LocalDatePeriod(
+                beginDate = Constants.FIRST_DATE_OF_HUNTING_YEAR.toLocalDateWithinHuntingYear(huntingYear),
+                endDate = endDate.toLocalDateWithinHuntingYear(huntingYear)
+            ),
+            LocalDatePeriod(
+                beginDate = beginDate.toLocalDateWithinHuntingYear(huntingYear),
+                endDate = Constants.LAST_DATE_OF_HUNTING_YEAR.toLocalDateWithinHuntingYear(huntingYear)
+            ),
         )
     } else {
-        listOf(LocalDatePeriod(
+        listOf(
+            LocalDatePeriod(
                 beginDate = beginDate.toLocalDateWithinHuntingYear(huntingYear),
                 endDate = endDate.toLocalDateWithinHuntingYear(huntingYear)
-        ))
+            )
+        )
     }
 }

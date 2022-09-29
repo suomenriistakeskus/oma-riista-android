@@ -1,19 +1,20 @@
 package fi.riista.mobile.utils;
 
+import static java.util.Objects.requireNonNull;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
-
-import static java.util.Objects.requireNonNull;
 
 public class DateTimeUtils {
 
@@ -54,7 +55,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parses a Joda DateTime object from an input string. Will parse input without millisecond part.
+     * Parses a Joda DateTime object from an input string.
      *
      * @param dateTimeStr input string to be parsed
      *
@@ -65,30 +66,10 @@ public class DateTimeUtils {
      */
     @NonNull
     public static DateTime parseDateTime(@NonNull final String dateTimeStr) {
-        return parseDateTime(dateTimeStr, true);
-    }
-
-    /**
-     * Parses a Joda DateTime object from an input string.
-     *
-     * @param dateTimeStr input string to be parsed
-     * @param endureMissingMilliseconds whether to endure input without millisecond part
-     *
-     * @return DateTime object parsed from input
-     *
-     * @exception NullPointerException if dateTimeStr is null
-     * @exception IllegalArgumentException if dateTimeStr cannot be parsed
-     */
-    @NonNull
-    public static DateTime parseDateTime(@NonNull final String dateTimeStr, final boolean endureMissingMilliseconds) {
         try {
             return DATETIME_FMT_DEFAULT.parseDateTime(dateTimeStr);
         } catch (final IllegalArgumentException ex) {
-            if (endureMissingMilliseconds) {
-                return DATETIME_FMT_NO_MILLISECONDS.parseDateTime(dateTimeStr);
-            } else {
-                throw ex;
-            }
+            return DATETIME_FMT_NO_MILLISECONDS.parseDateTime(dateTimeStr);
         }
     }
 
@@ -106,7 +87,6 @@ public class DateTimeUtils {
      * Parses a java.util.Calendar object from an input string.
      *
      * @param dateTimeStr input string to be parsed
-     * @param endureMissingMilliseconds whether to endure input without millisecond part
      *
      * @return Calendar object parsed from input
      *
@@ -114,8 +94,8 @@ public class DateTimeUtils {
      * @exception IllegalArgumentException if dateTimeStr cannot be parsed
      */
     @NonNull
-    public static Calendar parseCalendar(@NonNull final String dateTimeStr, final boolean endureMissingMilliseconds) {
-        final DateTime dateTime = parseDateTime(dateTimeStr, endureMissingMilliseconds);
+    public static Calendar parseCalendar(@NonNull final String dateTimeStr) {
+        final DateTime dateTime = parseDateTime(dateTimeStr);
 
         final Calendar calendar = Calendar.getInstance();
         calendar.setTime(dateTime.toDate());
@@ -135,6 +115,11 @@ public class DateTimeUtils {
     @Nullable
     public static String formatTime(@Nullable final DateTime dateTime) {
         return dateTime == null ? null : TIME_FMT_FINNISH.print(dateTime);
+    }
+
+    @Nullable
+    public static String formatTime(@Nullable final LocalTime time) {
+        return time == null ? null : TIME_FMT_FINNISH.print(time);
     }
 
     @Nullable

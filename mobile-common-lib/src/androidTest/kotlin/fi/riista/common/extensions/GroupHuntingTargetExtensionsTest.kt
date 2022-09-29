@@ -1,6 +1,6 @@
 package fi.riista.common.extensions
 
-import fi.riista.common.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.*
 import fi.riista.common.model.StringWithId
 import fi.riista.common.util.MockBundle
 import org.junit.Test

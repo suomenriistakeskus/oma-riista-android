@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.groupHunting.model.GroupHuntingDayId
-import fi.riista.common.groupHunting.ui.huntingDays.select.SelectableHuntingDayViewModel
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.ui.huntingDays.select.SelectableHuntingDayViewModel
 import fi.riista.mobile.R
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
 

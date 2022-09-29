@@ -12,8 +12,41 @@ import fi.riista.mobile.feature.groupHunting.map.ListGroupDiaryEntriesDialogFrag
 import fi.riista.mobile.feature.groupHunting.observations.CreateGroupObservationFragment
 import fi.riista.mobile.feature.groupHunting.observations.EditGroupObservationFragment
 import fi.riista.mobile.feature.groupHunting.observations.ViewGroupObservationFragment
+import fi.riista.mobile.feature.huntingControl.CreateHuntingControlEventFragment
+import fi.riista.mobile.feature.huntingControl.EditHuntingControlEventFragment
+import fi.riista.mobile.feature.huntingControl.ViewHuntingControlEventFragment
+import fi.riista.mobile.feature.login.EmailChangedFragment
+import fi.riista.mobile.feature.login.LoginFragment
+import fi.riista.mobile.feature.login.ResetPasswordFragment
 import fi.riista.mobile.feature.myDetails.MyDetailsHuntingClubMembershipsFragment
-import fi.riista.mobile.pages.*
+import fi.riista.mobile.feature.myDetails.MyDetailsTrainingsFragment
+import fi.riista.mobile.feature.observation.CreateObservationFragment
+import fi.riista.mobile.feature.observation.EditObservationFragment
+import fi.riista.mobile.feature.observation.ViewObservationFragment
+import fi.riista.mobile.feature.srva.CreateSrvaEventFragment
+import fi.riista.mobile.feature.srva.EditSrvaEventFragment
+import fi.riista.mobile.feature.srva.ViewSrvaFragment
+import fi.riista.mobile.pages.AnnouncementsFragment
+import fi.riista.mobile.pages.ContactDetailsFragment
+import fi.riista.mobile.pages.GalleryFragment
+import fi.riista.mobile.pages.GameLogFragment
+import fi.riista.mobile.pages.GroupHuntingMapViewer
+import fi.riista.mobile.pages.HarvestFragment
+import fi.riista.mobile.pages.HomeViewFragment
+import fi.riista.mobile.pages.MapViewer
+import fi.riista.mobile.pages.MyDetailsFragment
+import fi.riista.mobile.pages.MyDetailsLicenseFragment
+import fi.riista.mobile.pages.MyDetailsMhPermitDetailsFragment
+import fi.riista.mobile.pages.MyDetailsMhPermitListFragment
+import fi.riista.mobile.pages.MyDetailsOccupationsFragment
+import fi.riista.mobile.pages.MyDetailsShootingTestsFragment
+import fi.riista.mobile.pages.PermitList
+import fi.riista.mobile.pages.SettingsFragment
+import fi.riista.mobile.pages.ShootingTestCalendarEventListFragment
+import fi.riista.mobile.pages.ShootingTestEventFragment
+import fi.riista.mobile.pages.ShootingTestPaymentsFragment
+import fi.riista.mobile.pages.ShootingTestQueueFragment
+import fi.riista.mobile.pages.ShootingTestRegisterFragment
 
 @Suppress("unused")
 @Module
@@ -39,9 +72,6 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributePermitListFragment(): PermitList
-
-    @ContributesAndroidInjector
-    abstract fun contributeObservationEditFragment(): ObservationEditFragment
 
     @ContributesAndroidInjector
     abstract fun contributeMyDetailsFragment(): MyDetailsFragment
@@ -74,6 +104,9 @@ abstract class FragmentModule {
     abstract fun contributeMyDetailsHuntingClubMembershipsFragment(): MyDetailsHuntingClubMembershipsFragment
 
     @ContributesAndroidInjector
+    abstract fun contributeMyDetailsTrainingsFragment(): MyDetailsTrainingsFragment
+
+    @ContributesAndroidInjector
     abstract fun contributeShootingTestCalendarEventListFragment(): ShootingTestCalendarEventListFragment
 
     @ContributesAndroidInjector
@@ -88,6 +121,14 @@ abstract class FragmentModule {
     @ContributesAndroidInjector
     abstract fun contributeShootingTestPaymentsFragment(): ShootingTestPaymentsFragment
 
+    @ContributesAndroidInjector
+    abstract fun contributeLoginFragment(): LoginFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeResetPasswordFragment(): ResetPasswordFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeEmailChangeFragment(): EmailChangedFragment
 
     // Group hunting
 
@@ -120,4 +161,40 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributeListGroupDiaryEntriesDialogFragment(): ListGroupDiaryEntriesDialogFragment
+
+
+    // Hunting control
+
+    @ContributesAndroidInjector
+    abstract fun contributeViewHuntingControlEventFragment(): ViewHuntingControlEventFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeEditHuntingControlEventFragment(): EditHuntingControlEventFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeCreateHuntingControlEventFragment(): CreateHuntingControlEventFragment
+
+
+    // SRVA
+
+    @ContributesAndroidInjector
+    abstract fun contributeViewSrvaFragment(): ViewSrvaFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeEditSrvaEventFragment(): EditSrvaEventFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeCreateSrvaEventFragment(): CreateSrvaEventFragment
+
+
+    // Observation
+
+    @ContributesAndroidInjector
+    abstract fun contributeViewObservationFragment(): ViewObservationFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeEditObservationFragment(): EditObservationFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeCreateObservationFragment(): CreateObservationFragment
 }

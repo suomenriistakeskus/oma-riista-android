@@ -33,12 +33,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import dagger.android.support.AndroidSupportInjection;
+import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.R;
 import fi.riista.mobile.activity.BaseActivity;
 import fi.riista.mobile.activity.HarvestPermitActivity;
 import fi.riista.mobile.database.PermitManager;
 import fi.riista.mobile.database.SpeciesResolver;
-import fi.riista.mobile.gamelog.HarvestSpecVersionResolver;
 import fi.riista.mobile.models.Permit;
 import fi.riista.mobile.models.PermitSpeciesAmount;
 import fi.riista.mobile.network.CheckPermitNumberTask;
@@ -66,9 +66,6 @@ public class PermitList extends PageFragment {
 
     @Inject
     PermitManager mPermitManager;
-
-    @Inject
-    HarvestSpecVersionResolver mHarvestSpecVersionResolver;
 
     private String mPresetNumber;
 
@@ -185,7 +182,7 @@ public class PermitList extends PageFragment {
             final CheckPermitNumberTask task = new CheckPermitNumberTask(
                     mNetworkTaskContext,
                     permitNumberInput,
-                    mHarvestSpecVersionResolver.resolveHarvestSpecVersion()) {
+                    AppConfig.HARVEST_SPEC_VERSION) {
 
                 @Override
                 protected void onFinishObject(final Permit permit) {

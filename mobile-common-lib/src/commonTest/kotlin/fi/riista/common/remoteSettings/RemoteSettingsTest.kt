@@ -1,6 +1,6 @@
 package fi.riista.common.remoteSettings
 
-import fi.riista.common.dto.HunterNumberDTO
+import fi.riista.common.domain.dto.HunterNumberDTO
 import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.getJson

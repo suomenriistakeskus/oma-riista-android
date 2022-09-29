@@ -33,8 +33,10 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.android.support.AndroidSupportInjection;
+import fi.riista.common.domain.observation.model.CommonObservation;
+import fi.riista.common.domain.srva.model.CommonSrvaEvent;
+import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.R;
-import fi.riista.mobile.activity.EditActivity;
 import fi.riista.mobile.activity.HarvestActivity;
 import fi.riista.mobile.adapter.GameLogAdapter;
 import fi.riista.mobile.database.HarvestDatabase;
@@ -42,13 +44,16 @@ import fi.riista.mobile.database.HarvestDatabase.SeasonStats;
 import fi.riista.mobile.database.SpeciesInformation;
 import fi.riista.mobile.event.HarvestChangeEvent;
 import fi.riista.mobile.event.HarvestChangeListener;
-import fi.riista.mobile.gamelog.HarvestSpecVersionResolver;
+import fi.riista.mobile.feature.observation.ObservationActivity;
+import fi.riista.mobile.feature.srva.SrvaActivity;
 import fi.riista.mobile.models.GameHarvest;
 import fi.riista.mobile.models.GameLog;
 import fi.riista.mobile.models.SpeciesCategory;
 import fi.riista.mobile.models.observation.GameObservation;
 import fi.riista.mobile.models.srva.SrvaEvent;
 import fi.riista.mobile.observation.ObservationDatabase;
+import fi.riista.mobile.riistaSdkHelpers.ObservationExtensionsKt;
+import fi.riista.mobile.riistaSdkHelpers.SrvaEventExtensionsKt;
 import fi.riista.mobile.service.harvest.HarvestEventEmitter;
 import fi.riista.mobile.srva.SrvaDatabase;
 import fi.riista.mobile.sync.AppSync;
@@ -80,9 +85,6 @@ public class GameLogFragment extends PageFragment
     @Inject
     HarvestEventEmitter mHarvestEventEmitter;
 
-    @Inject
-    HarvestSpecVersionResolver mSpecVersionResolver;
-
     private GameLogAdapter mAdapter;
     private List<GameLogListItem> mDisplayItems = new ArrayList<>();
     private GetHarvestsTask mGetHarvestsTask = null;
@@ -95,9 +97,14 @@ public class GameLogFragment extends PageFragment
             result -> onHarvestActivityResult(result.getResultCode(), result.getData())
     );
 
-    private final ActivityResultLauncher<Intent> editActivityResultLaunch = registerForActivityResult(
+    private final ActivityResultLauncher<Intent> observationActivityResultLaunch = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
-            result -> onEditActivityResult(result.getResultCode(), result.getData())
+            result -> onObservationActivityResult(result.getResultCode(), result.getData())
+    );
+
+    private final ActivityResultLauncher<Intent> srvaActivityResultLaunch = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> onSrvaActivityResult(result.getResultCode(), result.getData())
     );
 
     public static GameLogFragment newInstance() {
@@ -237,20 +244,16 @@ public class GameLogFragment extends PageFragment
             if (GameLog.TYPE_HARVEST.equals(typeSelected)) {
                 final Intent intent = new Intent(getActivity(), HarvestActivity.class);
                 intent.putExtra(HarvestActivity.EXTRA_HARVEST,
-                        GameHarvest.createNew(mSpecVersionResolver.resolveHarvestSpecVersion()));
+                        GameHarvest.createNew(AppConfig.HARVEST_SPEC_VERSION));
                 harvestActivityResultLaunch.launch(intent);
 
             } else if (GameLog.TYPE_OBSERVATION.equals(typeSelected)) {
-                final Intent intent = new Intent(getActivity(), EditActivity.class);
-                intent.putExtra(EditActivity.EXTRA_OBSERVATION, GameObservation.createNew());
-                intent.putExtra(EditActivity.EXTRA_NEW, true);
-                editActivityResultLaunch.launch(intent);
+                final Intent intent = ObservationActivity.getLaunchIntentForCreating(requireActivity(), null);
+                observationActivityResultLaunch.launch(intent);
 
             } else if (GameLog.TYPE_SRVA.equals(typeSelected)) {
-                final Intent intent = new Intent(getActivity(), EditActivity.class);
-                intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, SrvaEvent.createNew());
-                intent.putExtra(EditActivity.EXTRA_NEW, true);
-                editActivityResultLaunch.launch(intent);
+                final Intent intent = SrvaActivity.getLaunchIntentForCreating(requireActivity());
+                srvaActivityResultLaunch.launch(intent);
             }
             return true;
         }
@@ -283,13 +286,25 @@ public class GameLogFragment extends PageFragment
         }
     }
 
-    private void onEditActivityResult(int resultCode, final Intent data) {
+    private void onObservationActivityResult(int resultCode, final Intent data) {
         if (resultCode == Activity.RESULT_OK && data != null) {
-            if (data.getBooleanExtra(EditActivity.RESULT_DID_SAVE, false)) {
-                refreshList();
+            if (ObservationActivity.getObservationCreatedOrModified(data.getExtras())) {
+                refreshListAndStartAutomaticSync();
             }
-            mAppSync.syncImmediatelyIfAutomaticSyncEnabled();
         }
+    }
+
+    private void onSrvaActivityResult(int resultCode, final Intent data) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (SrvaActivity.getSrvaEventCreatedOrModified(data.getExtras())) {
+                refreshListAndStartAutomaticSync();
+            }
+        }
+    }
+
+    private void refreshListAndStartAutomaticSync() {
+        refreshList();
+        mAppSync.syncImmediatelyIfAutomaticSyncEnabled();
     }
 
     private void startHarvestItemsTask() {
@@ -507,16 +522,21 @@ public class GameLogFragment extends PageFragment
                 break;
             }
             case GameLog.TYPE_OBSERVATION: {
-                final Intent intent = new Intent(getActivity(), EditActivity.class);
-                item.mObservation.observationCategorySelected = true; // This selection is not stored so set it to true, as it must have been selected as observation is saved.
-                intent.putExtra(EditActivity.EXTRA_OBSERVATION, item.mObservation);
-                editActivityResultLaunch.launch(intent);
+                // todo: ensure observation category remains selected (same as previously)
+                // item.mObservation.observationCategorySelected = true; // This selection is not stored so set it to true, as it must have been selected as observation is saved.
+                final CommonObservation observation = ObservationExtensionsKt.toCommonObservation(item.mObservation);
+                if (observation != null) {
+                    final Intent intent = ObservationActivity.getLaunchIntentForViewing(requireActivity(), observation);
+                    observationActivityResultLaunch.launch(intent);
+                }
                 break;
             }
             case GameLog.TYPE_SRVA: {
-                final Intent intent = new Intent(getActivity(), EditActivity.class);
-                intent.putExtra(EditActivity.EXTRA_SRVA_EVENT, item.mSrva);
-                editActivityResultLaunch.launch(intent);
+                final CommonSrvaEvent srvaEvent = SrvaEventExtensionsKt.toCommonSrvaEvent(item.mSrva);
+                if (srvaEvent != null) {
+                    final Intent intent = SrvaActivity.getLaunchIntentForViewing(requireActivity(), srvaEvent);
+                    srvaActivityResultLaunch.launch(intent);
+                }
                 break;
             }
         }

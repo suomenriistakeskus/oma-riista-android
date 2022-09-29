@@ -69,6 +69,10 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:${kotlinxDatetimeVersion}")
 
                 implementation("com.squareup.sqldelight:runtime:$sqlDelightVersion")
+
+                // Base64 encoding
+                val encoding = "1.0.3" // Use 1.1.0 for kotlin 1.6
+                implementation("io.matthewnelson.kotlin-components:encoding-base64:$encoding")
             }
         }
         val commonTest by getting {
@@ -133,17 +137,18 @@ kotlin {
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
     }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
         }
     }
+    namespace = "fi.riista.common.android"
 }
 
 // Compilation fails on 32bit iOS devices due to clang failure:
@@ -152,6 +157,14 @@ android {
 // so that clang no longer complains
 kotlin.iosArm32().binaries.getFramework(org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType.DEBUG).apply {
     val properties = "clangDebugFlags.ios_arm32=-Os"
+    freeCompilerArgs = freeCompilerArgs + listOf(
+        "-Xoverride-konan-properties=$properties"
+    )
+}
+// Optimization flags are not used for release builds. Instead lower the inlining threshold
+// as instructed in comments of https://youtrack.jetbrains.com/issue/KT-37368
+kotlin.iosArm32().binaries.getFramework(org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType.RELEASE).apply {
+    val properties = "llvmInlineThreshold=90"
     freeCompilerArgs = freeCompilerArgs + listOf(
         "-Xoverride-konan-properties=$properties"
     )

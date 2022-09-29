@@ -15,7 +15,7 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import fi.riista.mobile.R;
 import fi.riista.mobile.RiistaApplication;
-import fi.riista.mobile.activity.LoginActivity;
+import fi.riista.mobile.feature.login.LoginActivity;
 import fi.riista.mobile.models.announcement.Announcement;
 import fi.riista.mobile.network.RegisterPushDeviceTask;
 import fi.riista.mobile.storage.StorageDatabase;

@@ -1,9 +1,10 @@
 package fi.riista.mobile.riistaSdkHelpers
 
 import android.content.Context
+import androidx.annotation.PluralsRes
+import androidx.annotation.StringRes
 import fi.riista.common.resources.ContextStringProvider
 import fi.riista.common.resources.RR
-import fi.riista.common.resources.RStringId
 import fi.riista.common.resources.StringIdMapper
 import fi.riista.mobile.R
 
@@ -11,7 +12,7 @@ import fi.riista.mobile.R
 /**
  * A factory that is able to create [ContextStringProvider]s based on given [Context].
  *
- * Also specifies the mapping from [RStringId] to android string resource ids
+ * Also specifies the mapping from [RR.string] to android string resource ids
  * (i.e. implements [StringIdMapper]).
  */
 object ContextStringProviderFactory {
@@ -23,16 +24,18 @@ object ContextStringProviderFactory {
 }
 
 private class AppStringIdMapper : StringIdMapper {
-    override fun mapToResourceId(stringId: RStringId): Int {
+    @StringRes
+    override fun mapToStringResourceId(stringId: RR.string): Int {
         return when (stringId) {
             RR.string.generic_yes -> R.string.yes
             RR.string.generic_no -> R.string.no
+
             RR.string.error_date_not_allowed -> R.string.error_date_not_allowed
             RR.string.group_hunting_label_club -> R.string.group_hunting_club
             RR.string.group_hunting_label_season -> R.string.group_hunting_season
             RR.string.group_hunting_label_species -> R.string.group_hunting_species
             RR.string.group_hunting_label_hunting_group -> R.string.group_hunting_group
-            RR.string.group_hunting_label_permit_formatted -> R.string.group_hunting_permit
+            RR.string.group_hunting_error_hunting_has_finished -> R.string.group_hunting_error_hunting_has_finished
 
             RR.string.group_hunting_error_time_not_within_hunting_day ->
                 R.string.group_hunting_error_time_not_within_hunting_day
@@ -57,6 +60,9 @@ private class AppStringIdMapper : StringIdMapper {
                 R.string.group_hunting_day_label_snow_depth
             RR.string.group_hunting_day_label_break_duration_minutes ->
                 R.string.group_hunting_day_label_break_duration
+
+            RR.string.group_hunting_day_no_breaks ->
+                R.string.group_hunting_day_no_breaks
 
             RR.string.group_hunting_day_error_dates_not_within_permit ->
                 R.string.group_hunting_day_error_dates_not_within_permit
@@ -197,6 +203,44 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.group_hunting_observation_field_mooselike_unknown_specimen_amount_within_deer_hunting ->
                 R.string.mooselike_unknown_within_deer_hunting
 
+            // Observation labels
+            RR.string.observation_label_observation_category -> R.string.observation_category
+            RR.string.observation_label_within_moose_hunting -> R.string.within_moose_hunting
+            RR.string.observation_label_within_deer_hunting -> R.string.within_deer_hunting
+            RR.string.observation_label_amount -> R.string.harvest_amount
+            RR.string.observation_label_tassu_verified_by_carnivore_authority -> R.string.tassu_verified_by_carnivore_authority
+            RR.string.observation_label_tassu_observer_name -> R.string.tassu_observer_name
+            RR.string.observation_label_tassu_observer_phonenumber -> R.string.tassu_observer_phone_number
+            RR.string.observation_label_tassu_official_additional_information -> R.string.tassu_official_additional_info
+            RR.string.observation_label_tassu_in_yard_distance_to_residence -> R.string.tassu_distance_to_residence
+            RR.string.observation_label_tassu_litter -> R.string.tassu_litter
+            RR.string.observation_label_tassu_pack -> R.string.tassu_pack
+            RR.string.observation_label_description -> R.string.description
+
+            // Observation category
+            RR.string.observation_category_normal -> R.string.observation_category_normal
+            RR.string.observation_category_moose_hunting -> R.string.observation_category_within_moose_hunting
+            RR.string.observation_category_deer_hunting -> R.string.observation_category_within_deer_hunting
+
+            // Specimen labels
+            RR.string.specimen_label_width_of_paw -> R.string.tassu_paw_width
+            RR.string.specimen_label_length_of_paw -> R.string.tassu_paw_length
+            RR.string.specimen_label_state_of_health -> R.string.observation_state
+            RR.string.specimen_label_marking -> R.string.observation_marked
+
+            // state of health
+            RR.string.specimen_state_of_health_healthy -> R.string.state_healthy
+            RR.string.specimen_state_of_health_ill -> R.string.state_ill
+            RR.string.specimen_state_of_health_wounded -> R.string.state_wounded
+            RR.string.specimen_state_of_health_carcass -> R.string.state_carcass
+            RR.string.specimen_state_of_health_dead -> R.string.state_dead
+
+            // marking
+            RR.string.specimen_marking_not_marked -> R.string.marked_none
+            RR.string.specimen_marking_collar_or_radio_transmitter -> R.string.marked_collar
+            RR.string.specimen_marking_leg_ring_or_wing_tag -> R.string.marked_ring
+            RR.string.specimen_marking_earmark -> R.string.marked_ear
+
             // deer hunting types
             RR.string.deer_hunting_type_stand_hunting -> R.string.deer_hunting_type_standing
             RR.string.deer_hunting_type_dog_hunting -> R.string.deer_hunting_type_dog
@@ -259,10 +303,147 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.hunting_club_membership_invitations -> R.string.my_details_hunting_club_membership_invitations
             RR.string.hunting_club_memberships -> R.string.my_details_hunting_club_memberships
 
+            RR.string.training_type_sahkoinen -> R.string.training_type_sahkoinen
+            RR.string.training_type_lahi -> R.string.training_type_lahi
+
+            RR.string.jht_training_occupation_type_metsastyksenvalvoja -> R.string.occupation_type_metsastyksenvalvoja
+            RR.string.jht_training_occupation_type_metsastajatutkinnon_vastaanottaja -> R.string. occupation_type_metsastajatutkinnon_vastaanottaja
+            RR.string.jht_training_occupation_type_ampumakokeen_vastaanottaja -> R.string.occupation_type_ampumakokeen_vastaanottaja
+            RR.string.jht_training_occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa -> R.string.occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa
+            RR.string.occupation_training_occupation_type_petoyhdyshenkilo -> R.string.occupation_type_petoyhdyshenkilo
+
             RR.string.poi_location_group_type_sighting_place -> R.string.poi_location_group_type_sighting_place
             RR.string.poi_location_group_type_mineral_lick -> R.string.poi_location_group_type_mineral_lick
             RR.string.poi_location_group_type_feeding_place -> R.string.poi_location_group_type_feeding_place
             RR.string.poi_location_group_type_other -> R.string.poi_location_group_type_other
+
+            RR.string.hunting_control_start_time -> R.string.hunting_control_start_time
+            RR.string.hunting_control_end_time -> R.string.hunting_control_end_time
+            RR.string.hunting_control_duration -> R.string.hunting_control_duration
+            RR.string.hunting_control_event_type -> R.string.hunting_control_event_type
+            RR.string.hunting_control_number_of_inspectors -> R.string.hunting_control_number_of_inspectors
+            RR.string.hunting_control_cooperation_type -> R.string.hunting_control_cooperation_type
+            RR.string.hunting_control_wolf_territory -> R.string.hunting_control_wolf_territory
+            RR.string.hunting_control_inspectors -> R.string.hunting_control_inspectors
+            RR.string.hunting_control_location_description -> R.string.hunting_control_location_description
+            RR.string.hunting_control_event_description -> R.string.hunting_control_event_description
+            RR.string.hunting_control_number_of_customers -> R.string.hunting_control_number_of_customers
+            RR.string.hunting_control_number_of_proof_orders -> R.string.hunting_control_number_of_proof_orders
+            RR.string.hunting_control_date -> R.string.hunting_control_date
+            RR.string.hunting_control_other_participants -> R.string.hunting_control_other_participants
+            RR.string.hunting_control_duration_zero -> R.string.hunting_control_duration_zero
+            RR.string.hunting_control_choose_inspector -> R.string.hunting_control_choose_inspectors
+            RR.string.hunting_control_choose_cooperation -> R.string.hunting_control_choose_cooperation
+            RR.string.hunting_control_attachments -> R.string.hunting_control_attachments
+            RR.string.hunting_control_inspector_selection_search_by_name -> R.string.hunting_control_inspector_selection_search_by_name
+            RR.string.hunting_control_inspector_selection_name_hint -> R.string.hunting_control_inspector_selection_name_hint
+            RR.string.hunting_control_error_no_inspectors_for_selected_date -> R.string.hunting_control_error_no_inspectors_for_selected_date
+            RR.string.hunting_control_add_attachment -> R.string.hunting_control_add_attachment
+
+            RR.string.hunting_control_cooperation_type_poliisi -> R.string.hunting_control_cooperation_type_poliisi
+            RR.string.hunting_control_cooperation_type_rajavartiosto -> R.string.hunting_control_cooperation_type_rajavartiosto
+            RR.string.hunting_control_cooperation_type_mh -> R.string.hunting_control_cooperation_type_mh
+            RR.string.hunting_control_cooperation_type_oma -> R.string.hunting_control_cooperation_type_oma
+
+            RR.string.hunting_control_event_type_mooselike -> R.string.hunting_control_event_type_mooselike
+            RR.string.hunting_control_event_type_large_carnivore -> R.string.hunting_control_event_type_large_carnivore
+            RR.string.hunting_control_event_type_grouse -> R.string.hunting_control_event_type_grouse
+            RR.string.hunting_control_event_type_waterfowl -> R.string.hunting_control_event_type_waterfowl
+            RR.string.hunting_control_event_type_dog_discipline -> R.string.hunting_control_event_type_dog_discipline
+            RR.string.hunting_control_event_type_other -> R.string.hunting_control_event_type_other
+
+            RR.string.srva_event_label_other_species_description -> R.string.srva_other_species_description
+            RR.string.srva_event_label_approver -> R.string.srva_approver
+            RR.string.srva_event_label_rejector -> R.string.srva_rejecter
+            RR.string.srva_event_label_specimen_amount -> R.string.srva_specimen_amount
+            RR.string.srva_event_label_event_category -> R.string.srva_event
+            RR.string.srva_event_label_deportation_order_number -> R.string.srva_event_label_deportation_order_number
+            RR.string.srva_event_label_event_type -> R.string.srva_type
+            RR.string.srva_event_label_other_event_type_description -> R.string.srva_type_description
+            RR.string.srva_event_label_event_type_detail -> R.string.srva_event_label_event_type_detail
+            RR.string.srva_event_label_other_event_type_detail_description -> R.string.srva_event_label_other_event_type_detail_description
+            RR.string.srva_event_label_method -> R.string.srva_method
+            RR.string.srva_event_label_other_method_description -> R.string.srva_method_description
+            RR.string.srva_event_label_event_result -> R.string.srva_result
+            RR.string.srva_event_label_event_result_detail -> R.string.srva_event_label_event_result_detail
+            RR.string.srva_event_label_person_count -> R.string.srva_person_count
+            RR.string.srva_event_label_hours_spent -> R.string.srva_time_spent
+            RR.string.srva_event_label_description -> R.string.description
+
+            RR.string.srva_event_category_accident -> R.string.srva_accident
+            RR.string.srva_event_category_deportation -> R.string.srva_deportation
+            RR.string.srva_event_category_injured_animal -> R.string.srva_sick_animal
+
+            RR.string.srva_event_type_traffic_accident -> R.string.srva_traffic_accident
+            RR.string.srva_event_type_railway_accident -> R.string.srva_railway_accident
+            RR.string.srva_event_type_animal_near_houses_area -> R.string.srva_animal_near_houses
+            RR.string.srva_event_type_animal_at_food_destination -> R.string.srva_animal_at_food_destination
+            RR.string.srva_event_type_injured_animal -> R.string.srva_injured_animal
+            RR.string.srva_event_type_animal_on_ice -> R.string.srva_animal_on_ice
+            RR.string.srva_event_type_other -> R.string.srva_other
+
+            RR.string.srva_event_type_detail_cared_house_area -> R.string.srva_event_type_detail_cared_house_area
+            RR.string.srva_event_type_detail_farm_animal_building -> R.string.srva_event_type_detail_farm_animal_building
+            RR.string.srva_event_type_detail_urban_area -> R.string.srva_event_type_detail_urban_area
+            RR.string.srva_event_type_detail_carcass_at_forest -> R.string.srva_event_type_detail_carcass_at_forest
+            RR.string.srva_event_type_detail_carcass_near_houses_area -> R.string.srva_event_type_detail_carcass_near_houses_area
+            RR.string.srva_event_type_detail_garbage_can -> R.string.srva_event_type_detail_garbage_can
+            RR.string.srva_event_type_detail_beehive -> R.string.srva_event_type_detail_beehive
+            RR.string.srva_event_type_detail_other -> R.string.srva_event_type_detail_other
+
+            RR.string.srva_event_result_animal_found_dead -> R.string.srva_animal_found_dead
+            RR.string.srva_event_result_animal_found_and_terminated -> R.string.srva_animal_found_and_terminated
+            RR.string.srva_event_result_animal_found_and_not_terminated -> R.string.srva_animal_found_and_not_terminated
+            RR.string.srva_event_result_accident_site_not_found -> R.string.srva_accident_site_not_found
+            RR.string.srva_event_result_animal_not_found -> R.string.srva_animal_not_found
+            RR.string.srva_event_result_animal_terminated -> R.string.srva_animal_terminated
+            RR.string.srva_event_result_animal_deported -> R.string.srva_animal_deported
+            RR.string.srva_event_result_undue_alarm -> R.string.srva_undue_alarm
+
+            RR.string.srva_event_result_detail_animal_contacted_and_deported -> R.string.srva_event_result_detail_animal_contacted_and_deported
+            RR.string.srva_event_result_detail_animal_contacted -> R.string.srva_event_result_detail_animal_contacted
+            RR.string.srva_event_result_detail_uncertain_result -> R.string.srva_event_result_detail_uncertain_result
+
+            RR.string.srva_method_traced_with_dog -> R.string.srva_method_traced_with_dog
+            RR.string.srva_method_traced_without_dog -> R.string.srva_method_traced_without_dog
+            RR.string.srva_method_dog -> R.string.srva_method_dog
+            RR.string.srva_method_pain_equipment -> R.string.srva_method_pain_equipment
+            RR.string.srva_method_sound_equipment -> R.string.srva_method_sound_equipment
+            RR.string.srva_method_vehicle -> R.string.srva_method_vehicle
+            RR.string.srva_method_chasing_with_people -> R.string.srva_method_chasing_with_people
+            RR.string.srva_method_other -> R.string.srva_other
+
+            RR.string.other_species -> R.string.species_other
+            RR.string.unknown_species -> R.string.species_unknown
+
+            RR.string.gender_label -> R.string.gender_title
+            RR.string.gender_female -> R.string.gender_female
+            RR.string.gender_male -> R.string.gender_male
+            RR.string.gender_unknown -> R.string.gender_unknown
+
+            RR.string.age_label -> R.string.age_title
+            RR.string.age_adult -> R.string.age_adult
+            RR.string.age_young -> R.string.age_young
+            RR.string.age_less_than_one_year -> R.string.age_less_than_year
+            RR.string.age_between_one_and_two_years -> R.string.age_year_or_two
+            RR.string.age_eraus -> R.string.age_eraus
+            RR.string.age_unknown -> R.string.age_unknown
+        }
+    }
+
+    @StringRes
+    override fun mapToStringFormatResourceId(stringFormatId: RR.stringFormat): Int {
+        return when (stringFormatId) {
+            RR.stringFormat.generic_hours_and_minutes_format -> R.string.hours_and_minutes
+            RR.stringFormat.group_hunting_label_permit_formatted -> R.string.group_hunting_permit
+        }
+    }
+
+    @PluralsRes
+    override fun mapToPluralsResourceId(pluralsId: RR.plurals): Int {
+        return when (pluralsId) {
+            RR.plurals.hours -> R.plurals.hours
+            RR.plurals.minutes -> R.plurals.minutes
         }
     }
 }

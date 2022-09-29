@@ -2,7 +2,7 @@ package fi.riista.mobile.utils
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterItem
-import fi.riista.common.poi.model.PointOfInterestType
+import fi.riista.common.domain.poi.model.PointOfInterestType
 
 class MapMarkerItem(private val mPosition: LatLng, val type: String, val localId: Long, val poiType: PointOfInterestType?, val poiText: String?) : ClusterItem {
 

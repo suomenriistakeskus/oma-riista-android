@@ -6,17 +6,22 @@ object ClubAreaUtils {
 
     @JvmStatic
     fun addRemoteAreaMapToList(remote: ClubAreaMap, locals: MutableList<ClubAreaMap>) {
+        // Remove old version
+        removeRemoteAreaMapFromList(remote.externalId, locals)
+
+        locals.add(remote)
+    }
+
+    @JvmStatic
+    fun removeRemoteAreaMapFromList(externalId: String, locals: MutableList<ClubAreaMap>) {
         for (i in 0 until locals.size) {
             val local = locals[i]
 
-            if (local.externalId != null && remote.externalId != null && local.externalId == remote.externalId) {
-                // Remove old version
+            if (local.externalId != null && local.externalId == externalId) {
                 locals.removeAt(i)
                 break
             }
         }
-
-        locals.add(remote)
     }
 
     @JvmStatic

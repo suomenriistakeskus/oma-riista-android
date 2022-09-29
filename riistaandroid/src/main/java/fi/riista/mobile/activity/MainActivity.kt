@@ -19,7 +19,7 @@ import dagger.android.AndroidInjection
 import fi.riista.common.RiistaSDK
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
-import fi.riista.common.userInfo.LoginStatus
+import fi.riista.common.domain.userInfo.LoginStatus
 import fi.riista.mobile.ExternalUrls.Companion.getEventSearchUrl
 import fi.riista.mobile.ExternalUrls.Companion.getHunterMagazineUrl
 import fi.riista.mobile.ExternalUrls.Companion.getHuntingSeasonsUrl
@@ -29,6 +29,8 @@ import fi.riista.mobile.database.HarvestDatabase
 import fi.riista.mobile.database.PermitManager
 import fi.riista.mobile.database.SpeciesInformation
 import fi.riista.mobile.feature.groupHunting.GroupHuntingActivity
+import fi.riista.mobile.feature.huntingControl.HuntingControlActivity
+import fi.riista.mobile.feature.login.LoginActivity
 import fi.riista.mobile.pages.*
 import fi.riista.mobile.pages.MapViewer.FullScreenExpand
 import fi.riista.mobile.sync.AnnouncementSync
@@ -67,6 +69,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     private lateinit var progressBar: ProgressBar
     private var syncOnResume = true
     private var groupHuntingAvailable = false
+    private var huntingControlAvailable = false
     private val disposeBag = DisposeBag()
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,12 +95,16 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
         checkIntentForAnnouncementExtra(intent)
         registerLoginStatus()
         registerGroupHuntingStatus()
+        registerHuntingControlStatus()
     }
 
     private fun registerLoginStatus() {
         RiistaSDK.currentUserContext.loginStatus.bindAndNotify { loginStatus ->
             if (loginStatus is LoginStatus.LoggedIn) {
                 checkGroupHuntingAvailability()
+
+                // ensure hunting control gets updated data from the backend by refreshing
+                checkHuntingControlAvailability(refresh = true)
             }
         }.disposeBy(disposeBag)
     }
@@ -113,6 +120,20 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     private fun checkGroupHuntingAvailability() {
         CoroutineScope(Dispatchers.Main).launch {
             RiistaSDK.currentUserContext.groupHuntingContext.checkAvailabilityAndFetchClubs()
+        }
+    }
+
+    private fun registerHuntingControlStatus() {
+        RiistaSDK.currentUserContext.huntingControlContext
+            .huntingControlRhyProvider.loadStatus.bindAndNotify {
+                huntingControlAvailable = RiistaSDK.currentUserContext.huntingControlContext.huntingControlAvailable
+            }
+            .disposeBy(disposeBag)
+    }
+
+    private fun checkHuntingControlAvailability(refresh: Boolean = false) {
+        CoroutineScope(Dispatchers.Main).launch {
+            RiistaSDK.currentUserContext.huntingControlContext.checkAvailability(refresh)
         }
     }
 
@@ -164,6 +185,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     }
 
     private fun displayMorePopupMenu() {
+        onDisplayingMorePopupMenu()
         selectItem(R.id.menu_more)
         val popupMenu = PopupMenu(this@MainActivity, bottomNavigationView)
         popupMenu.menuInflater.inflate(R.menu.menu_main_more, popupMenu.menu)
@@ -177,6 +199,9 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
                 R.id.menu_shooting_test_list -> innerFragment = ShootingTestCalendarEventListFragment.newInstance()
                 R.id.menu_hunting_group_leader -> {
                     startActivity(Intent(this, GroupHuntingActivity::class.java))
+                }
+                R.id.menu_hunting_control -> {
+                    startActivity(Intent(this, HuntingControlActivity::class.java))
                 }
                 R.id.menu_event_search -> {
                     val eventSearchUrl = getEventSearchUrl(languageCode)
@@ -198,11 +223,21 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
             true
         }
         popupMenu.menu.findItem(R.id.menu_hunting_group_leader).isVisible = groupHuntingAvailable
+        popupMenu.menu.findItem(R.id.menu_hunting_control).isVisible = huntingControlAvailable
         val userInfo = userInfoStore.getUserInfo()
         val displayShootingTests = userInfo != null && userInfo.enableShootingTests
         popupMenu.menu.findItem(R.id.menu_shooting_test_list).isVisible = displayShootingTests
         popupMenu.gravity = Gravity.END
         popupMenu.show()
+    }
+
+    private fun onDisplayingMorePopupMenu() {
+        // check results won't affect the current popup menu instance being shown. They
+        // may, however, be available when menu is displayed next time
+        // - this helps the case when availability information has not been fetched when
+        //   user opens the menu the first time (e.g. login call failed due to timeout)
+        checkGroupHuntingAvailability()
+        checkHuntingControlAvailability()
     }
 
     private val languageCode: String

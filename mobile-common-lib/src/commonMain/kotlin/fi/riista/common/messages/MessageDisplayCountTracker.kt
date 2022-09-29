@@ -1,7 +1,6 @@
 package fi.riista.common.messages
 
 import co.touchlab.stately.collections.IsoMutableList
-import co.touchlab.stately.concurrency.AtomicBoolean
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.deserializeFromJson
 import fi.riista.common.util.removeFirst

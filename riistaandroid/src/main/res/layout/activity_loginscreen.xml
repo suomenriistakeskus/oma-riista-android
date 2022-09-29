@@ -1,77 +1,37 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/login_bg"
-    android:focusableInTouchMode="false"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:paddingLeft="20dp"
-    android:paddingRight="20dp"
-    tools:context=".activity.LoginActivity">
+    tools:context=".feature.login.LoginActivity">
 
-    <LinearLayout
+    <ImageView
+        android:contentDescription="@null"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/login_bg"
+        android:scaleType="centerCrop"
+        />
+
+    <ImageView
+        android:id="@+id/riista_logo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/logo"
+        android:paddingTop="@dimen/page_padding_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/riista_logo" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="6"
-        android:orientation="vertical"
-        tools:ignore="UseCompoundDrawables">
+        android:paddingBottom="@dimen/page_padding_vertical"
+        android:paddingLeft="@dimen/page_padding_horizontal"
+        android:paddingRight="@dimen/page_padding_horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/riista_logo" />
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:contentDescription="@string/logo"
-            android:paddingTop="40dp"
-            android:src="@drawable/sarvi_logo" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:gravity="center"
-            android:paddingLeft="0dp"
-            android:paddingTop="0dp"
-            android:paddingRight="0dp"
-            android:text="@string/login_description"
-            android:textColor="@color/onPrimary"
-            android:textSize="18sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:layout_weight="4"
-        android:orientation="vertical">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/username"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginBottom="10dp"
-            android:hint="@string/username"
-            android:inputType="textEmailAddress"
-            android:nextFocusDown="@+id/password"
-            android:textSize="17sp" />
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/password"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginBottom="20dp"
-            android:hint="@string/password"
-            android:inputType="textPassword"
-            android:textSize="17sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/loginbutton"
-            style="@style/PrimaryButton"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/default_button_height"
-            android:text="@string/login" />
-
-    </LinearLayout>
-
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

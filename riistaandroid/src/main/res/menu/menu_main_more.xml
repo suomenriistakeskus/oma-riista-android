@@ -20,6 +20,10 @@
         android:title="@string/menu_hunting_group_leader"
         android:visible="false" />
     <item
+        android:id="@+id/menu_hunting_control"
+        android:title="@string/menu_hunting_control"
+        android:visible="false" />
+    <item
         android:id="@+id/menu_event_search"
         android:title="@string/menu_event_search" />
     <item

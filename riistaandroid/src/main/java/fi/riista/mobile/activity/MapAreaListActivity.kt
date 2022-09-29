@@ -23,11 +23,7 @@ import fi.riista.mobile.models.ClubAreaMap
 import fi.riista.mobile.network.FetchClubAreaMapTask
 import fi.riista.mobile.network.FetchUserMapAreasTask
 import fi.riista.mobile.network.ListAreasTask
-import fi.riista.mobile.utils.AppPreferences
-import fi.riista.mobile.utils.ClubAreaHelper
-import fi.riista.mobile.utils.ClubAreaUtils
-import fi.riista.mobile.utils.KeyboardUtils
-import fi.riista.mobile.utils.LocaleUtil
+import fi.riista.mobile.utils.*
 import fi.riista.mobile.vectormap.VectorTileProvider
 import fi.vincit.androidutilslib.context.WorkContext
 import fi.vincit.androidutilslib.task.NetworkTask
@@ -66,7 +62,11 @@ class MapAreaListActivity : BaseActivity() {
 
         viewManager = LinearLayoutManager(this)
         dataSet = arrayOf()
-        viewAdapter = MapAreaAdapter(this.dataSet, clickListener = ::itemSelected)
+        viewAdapter = MapAreaAdapter(
+            dataSet = this.dataSet,
+            clickListener = ::itemSelected,
+            areaRemoveListener = ::removeArea,
+        )
 
         this.recyclerView = findViewById<RecyclerView>(R.id.area_map_list).apply {
             setHasFixedSize(true)
@@ -117,6 +117,23 @@ class MapAreaListActivity : BaseActivity() {
         data.putExtra(RESULT_EXTRA_AREA_NAME, area.nameText)
         setResult(Activity.RESULT_OK, data)
         finish()
+    }
+
+    private fun removeArea(areaId: String) {
+        AlertDialog.Builder(this)
+            .setMessage(getString(R.string.map_settings_remove_area_confirm))
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setPositiveButton(R.string.yes) { _, _ ->
+                val selectedAreaId = AppPreferences.getSelectedClubAreaMapId(this@MapAreaListActivity)
+                if (selectedAreaId == areaId) {
+                    AppPreferences.setSelectedClubAreaMapId(this@MapAreaListActivity, null)
+                }
+                ClubAreaUtils.removeRemoteAreaMapFromList(areaId, mClubAreas)
+                mClubAreaHelper.saveAreasToFile(mClubAreas)
+                refreshClubAreaList()
+            }
+            .setNegativeButton(R.string.no, null)
+            .show()
     }
 
     private fun refreshList() {
@@ -173,10 +190,11 @@ class MapAreaListActivity : BaseActivity() {
 
         for (area in areas) {
             val item = MapAreaAdapter.AreaListItem(
-                    area.number.toString(),
-                    area.number.toString(),
-                    area.name.toString(),
-                    null
+                areaId = area.number.toString(),
+                titleText = area.number.toString(),
+                nameText = area.name.toString(),
+                idText = null,
+                manuallyAdded = false
             )
             items.add(item)
         }
@@ -199,10 +217,11 @@ class MapAreaListActivity : BaseActivity() {
                     clubArea.externalId
             )
             val item = MapAreaAdapter.AreaListItem(
-                    clubArea.externalId,
-                    LocaleUtil.getLocalizedValue(clubArea.clubName),
-                    localizedAreaName,
-                    displayedAreaId
+                areaId = clubArea.externalId,
+                titleText = LocaleUtil.getLocalizedValue(clubArea.clubName),
+                nameText = localizedAreaName,
+                idText = displayedAreaId,
+                manuallyAdded = clubArea.manuallyAdded,
             )
             items.add(item)
         }

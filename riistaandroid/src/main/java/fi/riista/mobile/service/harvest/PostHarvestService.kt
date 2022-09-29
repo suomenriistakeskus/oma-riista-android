@@ -1,5 +1,6 @@
 package fi.riista.mobile.service.harvest
 
+import fi.riista.mobile.AppConfig
 import fi.riista.mobile.database.HarvestDatabase
 import fi.riista.mobile.database.HarvestDbHelper.UpdateType
 import fi.riista.mobile.event.HarvestChangeEvent
@@ -7,7 +8,6 @@ import fi.riista.mobile.event.HarvestChangeEvent.Companion.deleted
 import fi.riista.mobile.event.HarvestChangeEvent.Companion.inserted
 import fi.riista.mobile.event.HarvestChangeEvent.Companion.updated
 import fi.riista.mobile.event.HarvestChangeListener
-import fi.riista.mobile.gamelog.HarvestSpecVersionResolver
 import fi.riista.mobile.models.GameHarvest
 import fi.riista.mobile.network.PostHarvestTask
 import fi.riista.mobile.utils.OperationCounter
@@ -25,15 +25,14 @@ import javax.inject.Singleton
 
 @Singleton
 class PostHarvestService @Inject constructor(private val harvestDatabase: HarvestDatabase,
-                                             private val harvestEventEmitter: HarvestEventEmitter,
-                                             private val specVersionResolver: HarvestSpecVersionResolver) {
+                                             private val harvestEventEmitter: HarvestEventEmitter) {
 
     private val localIdsOfHarvestsBeingSent = ConcurrentHashMap<Int, Any>()
 
     fun postHarvest(workContext: WorkContext, harvest: GameHarvest, callback: HarvestRemoteUpdateResult) {
-        val specVersion = specVersionResolver.resolveHarvestSpecVersion()
+        val specVersion = AppConfig.HARVEST_SPEC_VERSION
 
-        val task: PostHarvestTask = object : PostHarvestTask(workContext, harvestDatabase, harvest, specVersion) {
+        val task: PostHarvestTask = object : PostHarvestTask(workContext, harvestDatabase, harvest) {
 
             override fun onHarvestSent() {
                 callback.onSuccess()
@@ -64,9 +63,9 @@ class PostHarvestService @Inject constructor(private val harvestDatabase: Harves
     }
 
     fun removeHarvest(workContext: WorkContext, harvest: GameHarvest, callback: HarvestRemoteUpdateResult) {
-        val specVersion = specVersionResolver.resolveHarvestSpecVersion()
+        val specVersion = AppConfig.HARVEST_SPEC_VERSION
 
-        val task: PostHarvestTask = object : PostHarvestTask(workContext, harvestDatabase, harvest, specVersion) {
+        val task: PostHarvestTask = object : PostHarvestTask(workContext, harvestDatabase, harvest) {
 
             override fun onHarvestSent() {
                 removeLocalHarvest()
@@ -121,9 +120,9 @@ class PostHarvestService @Inject constructor(private val harvestDatabase: Harves
             // Check if harvest is already being processed by another thread.
             if (localIdsOfHarvestsBeingSent.putIfAbsent(harvest.mLocalId, MARKER) == null) {
 
-                val specVersion = specVersionResolver.resolveHarvestSpecVersion()
+                val specVersion = AppConfig.HARVEST_SPEC_VERSION
 
-                val task: PostHarvestTask = object : PostHarvestTask(workContext, harvestDatabase, harvest, specVersion) {
+                val task: PostHarvestTask = object : PostHarvestTask(workContext, harvestDatabase, harvest) {
 
                     override fun onHarvestSent() {
                         harvestChangeEvents.add(when {

@@ -1,61 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants"
     android:paddingLeft="@dimen/page_padding_horizontal"
-    android:paddingRight="@dimen/page_padding_horizontal">
+    android:paddingRight="@dimen/page_padding_horizontal" >
 
     <TextView
-        android:id="@+id/announcement_subject"
-        style="@style/HeaderText.Bold"
+        android:id="@+id/announcement_sender_organisation"
+        style="@style/AnnouncementHeader"
+        android:layout_marginTop="@dimen/item_spacing_small"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/item_spacing_normal"
-        android:gravity="start"
-        app:layout_constraintEnd_toStartOf="@id/announcement_pointoftime"
+        android:layout_marginEnd="@dimen/item_spacing_normal"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/announcement_pointoftime"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Announcement subject" />
-
-    <TextView
-        android:id="@+id/announcement_sender_title"
-        style="@style/HeaderText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/announcement_subject"
-        tools:text="Sender title - Sender organization" />
+        tools:text="Sender organization" />
 
     <TextView
         android:id="@+id/announcement_pointoftime"
         style="@style/AnnouncementTextBody"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBaseline_toBaselineOf="@id/announcement_subject"
+        app:layout_constraintBaseline_toBaselineOf="@id/announcement_sender_organisation"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:text="00.00.1900" />
+        tools:text="12.1.1998" />
+
+    <TextView
+        android:id="@+id/announcement_sender_title"
+        style="@style/AnnouncementHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/item_spacing_normal"
+        app:layout_constraintEnd_toStartOf="@id/announcement_pointoftime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/announcement_sender_organisation"
+        tools:text="Sender title" />
+
+    <TextView
+        android:id="@+id/announcement_subject"
+        style="@style/AnnouncementSubject"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/item_spacing_normal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/announcement_sender_title"
+        tools:text="Announcement subject" />
 
     <TextView
         android:id="@+id/announcement_message"
         style="@style/AnnouncementTextBody"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/item_spacing_normal"
         android:layout_marginBottom="@dimen/item_spacing_normal"
         android:autoLink="web|email|phone"
         android:ellipsize="end"
         android:linksClickable="false"
         android:maxLines="3"
-        app:layout_constraintTop_toBottomOf="@id/announcement_sender_title"
+        app:layout_constraintTop_toBottomOf="@id/announcement_subject"
         tools:text="Message body" />
 
     <TextView
         android:id="@+id/announcement_full_text"
-        style="@style/PrimaryTextBody.ThemeColor"
+        style="@style/PrimaryTextBody.Bold.ThemeColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/display_all"
@@ -68,7 +81,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/item_spacing_small"
-        android:layout_marginLeft="@dimen/item_spacing_small"
+        android:layout_marginTop="@dimen/item_spacing_normal"
         android:layout_marginBottom="@dimen/item_spacing_normal"
         android:contentDescription="@null"
         app:layout_constraintBottom_toBottomOf="parent"

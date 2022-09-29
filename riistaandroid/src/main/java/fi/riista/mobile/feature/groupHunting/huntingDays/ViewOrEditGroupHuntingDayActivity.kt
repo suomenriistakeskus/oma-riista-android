@@ -8,10 +8,10 @@ import android.widget.TextView
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.RiistaSDK
 import fi.riista.common.extensions.*
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.huntingDays.ViewGroupHuntingDayController
-import fi.riista.common.groupHunting.ui.huntingDays.modify.CreateGroupHuntingDayController
-import fi.riista.common.groupHunting.ui.huntingDays.modify.EditGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.huntingDays.view.ViewGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.CreateGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.EditGroupHuntingDayController
 import fi.riista.common.model.LocalDate
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity

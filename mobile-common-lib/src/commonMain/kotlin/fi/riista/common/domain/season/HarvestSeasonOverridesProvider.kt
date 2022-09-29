@@ -1,11 +1,11 @@
 package fi.riista.common.domain.season
 
 import co.touchlab.stately.collections.IsoMutableMap
+import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.season.dto.SpeciesHuntingSeasonsDTO
 import fi.riista.common.domain.season.dto.toHuntingSeason
 import fi.riista.common.domain.season.model.HuntingSeason
 import fi.riista.common.logging.getLogger
-import fi.riista.common.model.SpeciesCode
 import fi.riista.common.util.deserializeFromJson
 
 class HarvestSeasonOverridesProvider : HarvestSeasonProvider {

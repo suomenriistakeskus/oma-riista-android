@@ -48,14 +48,9 @@ public class DateTimeUtilsTest {
     @Test
     public void testParseDateTime_noMilliseconds() {
         final DateTime expected = dt(2018, 6, 22, 12, 34, 56, 0);
-        final DateTime result = DateTimeUtils.parseDateTime("2018-06-22T12:34:56", true);
+        final DateTime result = DateTimeUtils.parseDateTime("2018-06-22T12:34:56");
 
         assertEquals(expected, result);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseDateTime_noMilliseconds_whenEndureMissingMillisecondsIsFalse() {
-        DateTimeUtils.parseDateTime("2018-06-22T12:34:56", false);
     }
 
     @Test(expected = NullPointerException.class)
@@ -68,20 +63,20 @@ public class DateTimeUtilsTest {
     public void testThreadSafetyOf_parseDateTime_withMilliseconds() {
         final DateTime expected = dt(2018, 6, 22, 12, 34, 56, 789);
 
-        testThreadSafetyOfParseDateTime("2018-06-22T12:34:56.789", expected, false);
+        testThreadSafetyOfParseDateTime("2018-06-22T12:34:56.789", expected);
     }
 
     @Test
     public void testThreadSafetyOf_parseDateTime_noMilliseconds() {
         final DateTime expected = dt(2018, 6, 22, 12, 34, 56, 0);
 
-        testThreadSafetyOfParseDateTime("2018-06-22T12:34:56", expected, true);
+        testThreadSafetyOfParseDateTime("2018-06-22T12:34:56", expected);
     }
 
     @Test
     public void testParseCalendar_withMilliseconds() {
         final Calendar expected = getCalendar(2018, 6, 22, 12, 34, 56, 789);
-        final Calendar result = DateTimeUtils.parseCalendar("2018-06-22T12:34:56.789", false);
+        final Calendar result = DateTimeUtils.parseCalendar("2018-06-22T12:34:56.789");
 
         assertEquals(expected, result);
     }
@@ -89,34 +84,29 @@ public class DateTimeUtilsTest {
     @Test
     public void testParseCalendar_noMilliseconds() {
         final Calendar expected = getCalendar(2018, 6, 22, 12, 34, 56, 0);
-        final Calendar result = DateTimeUtils.parseCalendar("2018-06-22T12:34:56", true);
+        final Calendar result = DateTimeUtils.parseCalendar("2018-06-22T12:34:56");
 
         assertEquals(expected, result);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testParseCalendar_noMilliseconds_whenEndureMissingMillisecondsIsFalse() {
-        DateTimeUtils.parseCalendar("2018-06-22T12:34:56", false);
     }
 
     @Test(expected = NullPointerException.class)
     public void testParseCalendar_forNull() {
         //noinspection ConstantConditions
-        DateTimeUtils.parseCalendar(null, false);
+        DateTimeUtils.parseCalendar(null);
     }
 
     @Test
     public void testThreadSafetyOf_parseCalendar_withMilliseconds() {
         final Calendar expected = getCalendar(2018, 6, 22, 12, 34, 56, 789);
 
-        testThreadSafetyOfParseCalendar("2018-06-22T12:34:56.789", expected, false);
+        testThreadSafetyOfParseCalendar("2018-06-22T12:34:56.789", expected);
     }
 
     @Test
     public void testThreadSafetyOf_parseCalendar_noMilliseconds() {
         final Calendar expected = getCalendar(2018, 6, 22, 12, 34, 56, 0);
 
-        testThreadSafetyOfParseCalendar("2018-06-22T12:34:56", expected, true);
+        testThreadSafetyOfParseCalendar("2018-06-22T12:34:56", expected);
     }
 
     private interface ParseDateTimeStringFunction<T> {
@@ -124,20 +114,16 @@ public class DateTimeUtilsTest {
     }
 
     private void testThreadSafetyOfParseDateTime(final String dateTimeStr,
-                                                 final DateTime expected,
-                                                 final boolean endureMissingMilliseconds) {
+                                                 final DateTime expected) {
 
-        testThreadSafetyOfParseDateTimeString(dateTimeStr, expected, str -> {
-            return DateTimeUtils.parseDateTime(str, endureMissingMilliseconds);
-        });
+        testThreadSafetyOfParseDateTimeString(dateTimeStr, expected, DateTimeUtils::parseDateTime);
     }
 
     private void testThreadSafetyOfParseCalendar(final String dateTimeStr,
-                                                 final Calendar expected,
-                                                 final boolean endureMissingMilliseconds) {
+                                                 final Calendar expected) {
 
         testThreadSafetyOfParseDateTimeString(dateTimeStr, expected, str -> {
-            return DateTimeUtils.parseCalendar(dateTimeStr, endureMissingMilliseconds);
+            return DateTimeUtils.parseCalendar(dateTimeStr);
         });
     }
 
@@ -189,7 +175,8 @@ public class DateTimeUtilsTest {
     public void testFormatTime() {
         final DateTime dateTime = DateTime.parse("2020-04-04T18:25:14");
         assertEquals("18:25", DateTimeUtils.formatTime(dateTime));
-        assertNull(DateTimeUtils.formatTime(null));
+        final DateTime nullDateTime = null;
+        assertNull(DateTimeUtils.formatTime(nullDateTime));
     }
 
     @Test

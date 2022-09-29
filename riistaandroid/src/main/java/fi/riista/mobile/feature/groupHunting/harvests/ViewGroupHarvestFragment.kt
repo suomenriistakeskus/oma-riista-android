@@ -9,11 +9,11 @@ import android.view.*
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.groupHunting.GroupHuntingHarvestOperationResponse
-import fi.riista.common.groupHunting.model.AcceptStatus
-import fi.riista.common.groupHunting.model.GroupHuntingHarvest
-import fi.riista.common.groupHunting.ui.GroupHarvestField
-import fi.riista.common.groupHunting.ui.groupHarvest.view.ViewGroupHarvestController
+import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.view.ViewGroupHarvestController
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
@@ -22,11 +22,11 @@ import fi.riista.mobile.R
 import fi.riista.mobile.activity.MapViewerActivity
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.pages.MapExternalIdProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.dataFields.viewHolder.*
 import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -38,7 +38,9 @@ import javax.inject.Inject
  */
 class ViewGroupHarvestFragment
     : DataFieldPageFragment<GroupHarvestField>()
-    , DataFieldViewHolderTypeResolver<GroupHarvestField>, MapOpener {
+    , DataFieldViewHolderTypeResolver<GroupHarvestField>
+    , MapOpener
+    , MapExternalIdProvider {
 
     interface Manager {
         val viewGroupHarvestController: ViewGroupHarvestController
@@ -177,7 +179,7 @@ class ViewGroupHarvestFragment
     override fun resolveViewHolderType(dataField: DataField<GroupHarvestField>): DataFieldViewHolderType {
         return when (dataField) {
             is LabelField -> dataField.determineViewHolderType()
-            is SpeciesCodeField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
+            is SpeciesField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
             is DateAndTimeField -> DataFieldViewHolderType.READONLY_DATE_AND_TIME
             is LocationField -> DataFieldViewHolderType.LOCATION_ON_MAP
             is GenderField -> DataFieldViewHolderType.GENDER
@@ -190,12 +192,21 @@ class ViewGroupHarvestFragment
                     throw IllegalStateException("Non-singleline StringField not supported: ${dataField.id}")
                 }
             }
+            is SpecimenField,
             is InstructionsField,
             is HuntingDayAndTimeField,
             is DoubleField,
             is StringListField,
             is SelectDurationField,
-            is IntField -> {
+            is IntField,
+            is HarvestField,
+            is ObservationField,
+            is DateField,
+            is TimespanField,
+            is AttachmentField,
+            is ButtonField,
+            is ChipField,
+            is CustomUserInterfaceField -> {
                 throw IllegalStateException("Not supported ${dataField.id}")
             }
         }
@@ -204,8 +215,11 @@ class ViewGroupHarvestFragment
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<GroupHarvestField>) {
         adapter.apply {
             registerLabelFieldViewHolderFactories()
-            registerViewHolderFactory(LocationOnMapViewHolder.Factory(
-                    mapOpener = this@ViewGroupHarvestFragment)
+            registerViewHolderFactory(
+                LocationOnMapViewHolder.Factory(
+                    mapOpener = this@ViewGroupHarvestFragment,
+                    mapExternalIdProvider = this@ViewGroupHarvestFragment,
+                ),
             )
             registerViewHolderFactory(SpeciesNameAndIconViewHolder.Factory(speciesResolver))
             registerViewHolderFactory(ReadOnlyDateAndTimeViewHolder.Factory())
@@ -262,7 +276,12 @@ class ViewGroupHarvestFragment
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, false)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_EXTERNAL_ID, getMapExternalId())
         startActivity(intent)
+    }
+
+    override fun getMapExternalId(): String? {
+        return controller.getLoadedViewModelOrNull()?.huntingGroupArea?.externalId
     }
 
     companion object {

@@ -5,8 +5,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.groupHunting.model.GroupHuntingDayId
-import fi.riista.common.groupHunting.ui.huntingDays.HuntingDayViewModel
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.ui.huntingDays.HuntingDayViewModel
 import fi.riista.common.model.LocalDate
 import fi.riista.common.util.letWith
 import fi.riista.mobile.R

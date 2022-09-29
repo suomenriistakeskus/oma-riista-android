@@ -1,25 +1,35 @@
 package fi.riista.common.ui.controller.selectString
 
+import co.touchlab.stately.collections.IsoMutableList
 import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.model.StringId
 import fi.riista.common.model.StringWithId
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
+import fi.riista.common.ui.dataField.StringListField
 import fi.riista.common.ui.intent.IntentHandler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 
+/**
+ * When Mode == SINGLE only one item can be selected at a time and a new selection removes old one.
+ * When Mode == MULTI several items can be selected at the same time. In order to deselect an item,
+ * it needs to be 'selected' again.
+ */
 class SelectStringWithIdController(
+    private val mode: StringListField.Mode,
     private val possibleValues: List<StringWithId>,
-    private val initiallySelectedValue: StringId?,
+    private val initiallySelectedValues: List<StringId>? = null,
 ) : ControllerWithLoadableModel<SelectStringWithIdViewModel>(),
     IntentHandler<SelectStringWithIdIntent>,
     HasUnreproducibleState<SelectStringWithIdController.State> {
 
     private var stateToRestore: State? = null
-    var selectedValue: StringWithId? = null
+    private val _selectedValues = IsoMutableList<StringWithId>()
+    val selectedValues: List<StringWithId>
+        get() = _selectedValues
 
     val eventDispatcher: SelectStringWithIdEventDispatcher = SelectStringWithIdEventToIntentMapper(intentHandler = this)
 
@@ -38,9 +48,9 @@ class SelectStringWithIdController(
         // no asynchronous loading -> no need for loading
 
         val filter = stateToRestore?.filter ?: ""
-        selectedValue = stateToRestore?.selectedValue
-            ?: possibleValues.find { it.id == initiallySelectedValue }
-        val selectedValueId = selectedValue?.id
+        _selectedValues.addAll(
+            stateToRestore?.selectedValues ?: getInitiallySelectedValues()
+        )
 
         // state restoration was done -> Clear the stateToRestore in order to NOT use
         // same values again when restoring.
@@ -49,7 +59,7 @@ class SelectStringWithIdController(
         val allValues = possibleValues.map { value ->
             SelectableStringWithId(
                 value = value,
-                selected = (value.id == selectedValueId)
+                selected = (selectedValues.firstOrNull { it.id == value.id } != null)
             )
         }
         emit(
@@ -58,10 +68,18 @@ class SelectStringWithIdController(
                     allValues = allValues,
                     filteredValues = filterValues(allValues, filter),
                     filter = filter,
-                    selectedValue = selectedValue,
+                    selectedValues = selectedValues,
                 )
             )
         )
+    }
+
+    private fun getInitiallySelectedValues(): List<StringWithId> {
+        return possibleValues.filter { values ->
+            initiallySelectedValues?.firstOrNull { id ->
+                values.id == id
+            } != null
+        }
     }
 
     override fun handleIntent(intent: SelectStringWithIdIntent) {
@@ -85,10 +103,14 @@ class SelectStringWithIdController(
         newFilter: String? = null
     ) {
         val filter = newFilter ?: viewModel.filter
-        updateViewModel(ViewModelLoadStatus.Loaded(viewModel.copy(
-            filter = filter,
-            filteredValues = filterValues(viewModel.allValues, filter),
-        )))
+        updateViewModel(
+            ViewModelLoadStatus.Loaded(
+                viewModel.copy(
+                    filter = filter,
+                    filteredValues = filterValues(viewModel.allValues, filter),
+                )
+            )
+        )
     }
 
     private fun filterValues(
@@ -107,27 +129,48 @@ class SelectStringWithIdController(
 
     private fun selectValue(
         viewModel: SelectStringWithIdViewModel,
-        newSelectedValue: StringWithId?,
+        newSelectedValue: StringWithId,
     ) {
-        selectedValue = newSelectedValue
+        // If mode == SINGLE then new selection removes old one. If an already selected item is selected again,
+        // then nothing happens.
+        // In MULTI mode new selection is added to the list of selections.
+        when (mode) {
+            StringListField.Mode.MULTI -> {
+                if (selectedValues.contains(newSelectedValue)) {
+                    _selectedValues.remove(newSelectedValue)
+                } else {
+                    _selectedValues.add(newSelectedValue)
+                }
+            }
+            StringListField.Mode.SINGLE -> {
+                if (!selectedValues.contains(newSelectedValue)) {
+                    _selectedValues.clear()
+                    _selectedValues.add(newSelectedValue)
+                }
+            }
+        }
 
-        val newAllValues = viewModel.allValues.map { model ->
+        val newAllValues = viewModel.allValues.map { selectableStringWithId ->
             SelectableStringWithId(
-                value = model.value,
-                selected = (model.value.id == newSelectedValue?.id)
+                value = selectableStringWithId.value,
+                selected = (selectedValues.firstOrNull { it.id == selectableStringWithId.value.id } != null)
             )
         }
-        val newFilteredValues = viewModel.filteredValues.map { model ->
+        val newFilteredValues = viewModel.filteredValues.map { selectableStringWithId ->
             SelectableStringWithId(
-                value = model.value,
-                selected = (model.value.id == newSelectedValue?.id)
+                value = selectableStringWithId.value,
+                selected = (selectedValues.firstOrNull { it.id == selectableStringWithId.value.id } != null)
             )
         }
-        updateViewModel(ViewModelLoadStatus.Loaded(viewModel.copy(
-            selectedValue = newSelectedValue,
-            allValues = newAllValues,
-            filteredValues = newFilteredValues,
-        )))
+        updateViewModel(
+            ViewModelLoadStatus.Loaded(
+                viewModel.copy(
+                    selectedValues = selectedValues,
+                    allValues = newAllValues,
+                    filteredValues = newFilteredValues,
+                )
+            )
+        )
     }
 
     /**
@@ -156,7 +199,7 @@ class SelectStringWithIdController(
         return getLoadedViewModelOrNull()?.let { viewModel ->
             State(
                 filter = viewModel.filter,
-                selectedValue =  viewModel.selectedValue,
+                selectedValues = viewModel.selectedValues,
             )
         }
     }
@@ -171,6 +214,6 @@ class SelectStringWithIdController(
     @Serializable
     data class State(
         val filter: String,
-        val selectedValue: StringWithId?,
+        val selectedValues: List<StringWithId>?,
     )
 }

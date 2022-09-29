@@ -1,6 +1,7 @@
 package fi.riista.common.domain.season.model
 
-import fi.riista.common.model.*
+import fi.riista.common.domain.model.HuntingYear
+import fi.riista.common.model.DatePeriod
 import kotlinx.serialization.Serializable
 
 

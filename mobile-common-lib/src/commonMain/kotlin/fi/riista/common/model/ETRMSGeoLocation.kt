@@ -9,7 +9,11 @@ enum class GeoLocationSource(override val rawBackendEnumValue: String): Represen
     ;
 
     // for iOS compatibility
+
     fun toBackendEnumCompat(): BackendEnum<GeoLocationSource> = toBackendEnum()
+    companion object {
+        fun toBackendEnumCompat(value: String?): BackendEnum<GeoLocationSource> = value.toBackendEnum()
+    }
 }
 
 @Serializable

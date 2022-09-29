@@ -1,7 +1,7 @@
 package fi.riista.common.messages
 
-import fi.riista.common.model.LocalizedString
 import fi.riista.common.model.Language
+import fi.riista.common.model.LocalizedString
 import kotlinx.serialization.Serializable
 
 typealias MessageId = String

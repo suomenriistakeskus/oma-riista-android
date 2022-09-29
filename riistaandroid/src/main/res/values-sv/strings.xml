@@ -4,11 +4,31 @@
     <!-- Don't change. Required in this format by the RiistaSDK -->
     <string name="language_code">sv</string>
 
-    <string name="login_description">Logga in med koderna som skapats i oma.riista.fi </string>
     <string name="logo">Logo</string>
     <string name="username">E-post</string>
     <string name="password">Lösenord</string>
     <string name="login">Logga in</string>
+    <string name="login_tab_title">Logga in</string>
+    <string name="register_tab_title">Skapa konto</string>
+    <string name="password_forgotten">Glömt lösenord?</string>
+    <string name="send_password_reset_title">Har du glömt ditt lösenord?</string>
+    <string name="send_password_reset_message">Skriv i fältet den e-postadress som användes vid registreringen av kontot.</string>
+    <string name="send_password_reset_action">Skicka återställande-länk</string>
+    <string name="password_reset_sent_message">Vi har skickat anvisningar om återställande av lösenord till angiven e-postadress. Kontrollera din skräppostbox om e-posten inte anländer inom några minuter.</string>
+    <string name="authentication_link_sent_title">Länk skickad</string>
+    <string name="authentication_link_sent_back_to_login">Tillbaka til login</string>
+    <string name="login_failed">Inloggning misslyckades</string>
+    <string name="login_connect_failed">Kontakt med servern ficks ej. Var god och försök senare igen.</string>
+    <string name="login_incorrect_credentials">Fel användarnamn eller lösenord. Var god och försök igen.</string>
+    <string name="login_outdated_version">Programversionen är föråldrad. Uppdatera programmet till en ny version för att fortsätta användningen.</string>
+    <string name="send_registration_link_title">Registering till tjänst</string>
+    <string name="send_registration_link_message">Vid registrering i tjänsten oma.riista.fi behöver du en personlig, fungerande e-postadress. Som en del av registreringsprocessen skickar vi en registreringslänk till din e-postadress och du verifierar din identitet (bankkontokoder / Suomi.fi-tjänst i Finland).</string>
+    <string name="send_registration_link_action">Starta registreringen</string>
+    <string name="registration_link_sent_message">Vi har skickat anvisningar om registrering till angiven e-postadress. Kontrollera din skräppostbox om e-posten inte anländer inom några minuter.</string>
+    <string name="login_username_changed">Har e-postadressen bytts?</string>
+    <string name="change_username_title">Att byta e-postadress</string>
+    <string name="change_username_message">Du kan byta den e-postadress som använts som Oma riista -användarsignum genom att registrera dig till tjänsten på nytt.\n\nAlla tidigare uppgifter du har antecknat i Oma riista -tjänsten bevaras då du registrerar dig på nytt.</string>
+    <string name="change_username_action">Skapa ett konto</string>
 
     <string name="add">Lägg till</string>
     <string name="edit">Redigera</string>
@@ -26,6 +46,7 @@
     <string name="menu_settings">Inställningar</string>
     <string name="menu_shooting_test_list">Skjutprov</string>
     <string name="menu_hunting_group_leader">@string/group_hunting_main_page_title</string>
+    <string name="menu_hunting_control">@string/hunting_control_main_page_title</string>
     <string name="menu_event_search">Sök evenemang</string>
     <string name="menu_contact_details">Kontaktuppgifter</string>
     <string name="menu_show_magazine">Läs senaste numret av Jägaren</string>
@@ -54,9 +75,9 @@
     <string name="observation">Observation</string>
     <string name="srva">SRVA</string>
 
-    <string name="poi">Vägpunkter</string>
+    <string name="poi">Positionspunkter</string>
     <string name="poi_list">List</string>
-    <string name="poi_list_title">Vägpunkter</string>
+    <string name="poi_list_title">Positionspunkter</string>
     <string name="poi_location_group_type_sighting_place">Pass</string>
     <string name="poi_location_group_type_mineral_lick">Slicksten</string>
     <string name="poi_location_group_type_feeding_place">Utfodringsplats</string>
@@ -66,8 +87,11 @@
     <string name="poi_filter_type_mineral_lick">@string/poi_location_group_type_mineral_lick</string>
     <string name="poi_filter_type_feeding_place">@string/poi_location_group_type_feeding_place</string>
     <string name="poi_filter_type_other">@string/poi_location_group_type_other</string>
-    <string name="poi_select_external_id">Välj Oma riista-område från kartans intställningar för att se de till området kopplade vägpunkterna.</string>
-    <string name="poi_no_pois">Inga vägpunkter</string>
+    <string name="poi_select_external_id">Välj Oma riista-område från kartans intställningar för att se de till området kopplade positionspunkterna.</string>
+    <string name="poi_no_pois">Inga positionspunkter</string>
+    <string name="poi_center_and_return_to_map">Centrera och återgå till kartan</string>
+    <string name="previous">Föregående</string>
+    <string name="next">Nästa</string>
 
     <string name="amount_format">%1$d&#160;st.</string>
     <string name="minutes_format">%1$d&#160;min</string>
@@ -149,6 +173,10 @@
     <string name="my_details_hunting_ban">Jaktförbud</string>
     <string name="my_details_assignments_title">Uppdrag</string>
     <string name="my_details_hunting_group_memberships_title">Föreningsmedlemsskap</string>
+    <string name="my_details_trainings_title">Tränings</string>
+    <string name="my_details_trainings_training_date">Datum:</string>
+    <string name="my_details_trainings_training_place">Plats:</string>
+    <string name="my_details_no_trainings">Inga tränings</string>
     <string name="my_details_shooting_tests_title">Skjutprovsprestationerna</string>
     <string name="my_details_no_shooting_test_attempts">Inga ikraftvarande elektroniska skjutprovsprestationer</string>
     <string name="my_details_mh_permits_title">Forststyrelsens licenser</string>
@@ -158,7 +186,7 @@
     <string name="my_details_mh_permit_name">Typ av licens</string>
     <string name="my_details_mh_permit_period">Tid</string>
     <string name="my_details_mh_permit_harvest_feedback">Skicka bytesrespons</string>
-    <string name="my_details_mh_permit_harvest_feedback_confirmation">Du håller på att flytta dig från Oma riista -tjänsten till Forststyrelsens fångstresponssystem.\n\nOm det uppstår problem vid givandet av fångstresponsen eller om du vill ha tilläggsinformation om ärendet, ta kontakt med kundtjänsten för vildmarkstillstånd vid Forststyrelsen, t. 020 69 2424 (vardagar kl. 9-16) eller per e-post till adressen eraluvat@metsa.fi.</string>
+    <string name="my_details_mh_permit_harvest_feedback_confirmation">Du håller på att flytta dig från Oma riista –tjänsten till Forststyrelsens fångstresponssystem.\n\nOm det uppstår problem vid givandet av fångstresponsen eller om du vill ha tilläggsinformation om ärendet, ta kontakt med kundtjänsten för vildmarkstillstånd vid Forststyrelsen, t. 020 69 2424 (vardagar kl. 9–16) eller per e-post till adressen eraluvat@metsa.fi.</string>
     <string name="my_details_duration">I kraft</string>
     <string name="duration_indefinite">Tills vidare</string>
     <string name="my_details_hunting_club_membership_invitations">Föreningsinbjudningar</string>
@@ -169,10 +197,22 @@
     <string name="my_details_hunting_club_memberships">Föreningsmedlemsskap</string>
     <string name="my_details_customer_number">Kundnummer: %1$s</string>
 
+    <string name="training_type_lahi">Närutbildning</string>
+    <string name="training_type_sahkoinen">Elektronisk</string>
+
+    <string name="occupation_type_metsastyksenvalvoja">Jaktövervakare</string>
+    <string name="occupation_type_metsastajatutkinnon_vastaanottaja">Examinator för jägarexamen</string>
+    <string name="occupation_type_ampumakokeen_vastaanottaja">Examinator för skjutprov</string>
+    <string name="occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa">JVF:s representant för terrängobservation vid viltskador</string>
+    <string name="occupation_type_petoyhdyshenkilo">Rovdjurskontaktperson</string>
+
     <!-- New diary entry page -->
     <string name="species">Art</string>
+    <string name="species_other">Annan art</string>
+    <string name="species_unknown">Okänd art</string>
     <string name="species_prompt">Välj art</string>
     <string name="dismiss">Förkasta</string>
+    <string name="description">Beskrivning</string>
     <string name="add_description">Lägg till beskrivning</string>
     <string name="save">Spara</string>
     <string name="select">Välj</string>
@@ -190,7 +230,8 @@
     <string name="gps_bad">GPS DÅLIG</string>
     <string name="gps_none">GPS ONÅBAR</string>
     <string name="go_to_current_location">Gå till den aktuella GPS platsen</string>
-    <string name="set_location">Ställ en ny platts på kartan</string>
+    <string name="set_location_on_map">Ställ en plats på kartan</string>
+    <string name="set_new_location_on_map">Ställ en ny plats på kartan</string>
     <string name="map_coordinates">N %1$s  E %2$s   (ETRS-TM35FIN)</string>
     <string name="select_preferred_intent">Välj önskat sätt att dela</string>
     <string name="ok">OK</string>
@@ -232,9 +273,6 @@
     <string name="permit_list_help_text">För hjortdjur behöver man inte skriva in licensnumret</string>
     <string name="permit_list_not_available">Dispens finns inte att tillgå. Tag kontakt med dispensmottagaren.</string>
 
-    <string name="connecting_failed">Kontakt med servern ficks ej. Var god och försök senare igen.</string>
-    <string name="login_failed">Fel användarnamn eller lösenord. Var god och försök igen.</string>
-
     <string name="imageViewTemplate">Bild %1$s/%2$s</string>
 
     <string name="error">Misstag</string>
@@ -274,6 +312,12 @@
     <string name="map_settings_rhy_rajat">JVF-gränser</string>
     <string name="map_settings_game_triangles">Vilttrianglar</string>
     <string name="map_settings_offline_map_settings">Offlinekartor</string>
+    <string name="map_settings_moose_restrictions">Hjortdjur begränsningsområden</string>
+    <string name="map_settings_moose_restrictions_link">Se på: https://retkikartta.fi</string>
+    <string name="map_settings_small_game_restrictions">Småvilt begränsningsområden</string>
+    <string name="map_settings_small_game_restrictions_link">Se på: https://retkikartta.fi</string>
+    <string name="map_settings_avi_hunting_ban">Rfv jaktförbudsområden</string>
+    <string name="map_settings_avi_hunting_ban_link">Se på: https://avi.fi/sv/pressmeddelanden</string>
     <string name="offline_map_settings_background_map">Bakgrundskarta</string>
     <string name="offline_map_settings_map_layers">Kartlager</string>
     <string name="offline_map_settings_cache_label">Cacheanvändning:</string>
@@ -285,9 +329,12 @@
     <string name="map_settings_add_hirvialue">Forststyrelsen älgområdena</string>
     <string name="map_settings_add_with_area_code">Områdets kod</string>
     <string name="map_settings_select_area">Välj området</string>
+    <string name="map_settings_remove_area_confirm">Vill du säkert ta bort området?</string>
     <string name="map_settings_general_title">General</string>
     <string name="map_club_areas_title">De valda områdena</string>
-    <string name="map_display_pins">Visa händelser</string>
+    <string name="map_hide_markers">Dölja markeringar</string>
+    <string name="map_show_markers">Visa markeringar</string>
+    <string name="copied">Kopierat</string>
 
     <string name="species_category_birds">Viltfågel</string>
     <string name="species_category_mammals">Viltdäggdjur</string>
@@ -316,7 +363,7 @@
     <string name="age_adult">Vuxen</string>
     <string name="age_young">Under 1 År</string>
     <string name="age_less_than_year">Under 1 år</string>
-    <string name="age_year_or_two">1-2-åring</string>
+    <string name="age_year_or_two">1–2-åring</string>
     <string name="age_eraus">Överåring</string>
     <string name="age_unknown">Okänd</string>
 
@@ -356,6 +403,11 @@
     <string name="observation_marked">Djuret märkts</string>
     <string name="within_moose_hunting">I samband med älgjakten</string>
     <string name="within_deer_hunting">I samband med jakt på vitsvanshjort</string>
+
+    <string name="observation_category">Observationssammanhang</string>
+    <string name="observation_category_normal">Vanligt</string>
+    <string name="observation_category_within_moose_hunting">@string/within_moose_hunting</string>
+    <string name="observation_category_within_deer_hunting">@string/within_deer_hunting</string>
 
     <!-- Antler instructions page -->
     <string name="instructions">Instruktioner</string>
@@ -461,12 +513,17 @@
     <string name="tassu_pack">Flock (automatisk konklusion)</string>
 
     <!-- SRVA -->
-    <string name="srva_other_species_description">Annan art</string>
+    <string name="srva_other_species_description">@string/species_other</string>
+    <string name="srva_specimen_amount">@string/harvest_amount</string>
     <string name="srva_event">Händelse</string>
+    <string name="srva_event_label_deportation_order_number">Fördrivningsorderns nummer</string>
     <string name="srva_type">Typ</string>
     <string name="srva_type_description">Beskrivning av typ</string>
+    <string name="srva_event_label_event_type_detail">Specifikation av typ</string>
+    <string name="srva_event_label_other_event_type_detail_description">Beskrivning av specifikation</string>
 
     <string name="srva_result">Resultat</string>
+    <string name="srva_event_label_event_result_detail">Resultatets specifikation</string>
     <string name="srva_method">Metod</string>
     <string name="srva_method_description">Beskrivning av metoden</string>
     <string name="srva_person_count">Personer som deltog</string>
@@ -479,6 +536,15 @@
     <string name="srva_traffic_accident">Trafikolycka</string>
     <string name="srva_railway_accident">Olycka på järnväg</string>
     <string name="srva_other">Övrigt</string>
+
+    <string name="srva_event_type_detail_cared_house_area">Vårdad gårdsplan</string>
+    <string name="srva_event_type_detail_farm_animal_building">Produktionsdjursbyggnad</string>
+    <string name="srva_event_type_detail_urban_area">Tätort</string>
+    <string name="srva_event_type_detail_carcass_at_forest">Åtel i skogen</string>
+    <string name="srva_event_type_detail_carcass_near_houses_area">Åtel på gårdsplan</string>
+    <string name="srva_event_type_detail_garbage_can">Soptunna</string>
+    <string name="srva_event_type_detail_beehive">Bikupa</string>
+    <string name="srva_event_type_detail_other">@string/srva_other</string>
 
     <string name="srva_animal_near_houses">Djur i närheten av bosättning</string>
     <string name="srva_animal_at_food_destination">Djur vid näringskälla</string>
@@ -493,6 +559,10 @@
     <string name="srva_animal_not_found">Djuret hittades inte</string>
     <string name="srva_undue_alarm">Obefogat larm</string>
 
+    <string name="srva_event_result_detail_animal_contacted_and_deported">Omedelbar kontakt, djuret fördrevs</string>
+    <string name="srva_event_result_detail_animal_contacted">Fick kontakt med djuret</string>
+    <string name="srva_event_result_detail_uncertain_result">Resultatet oklart</string>
+
     <string name="srva_animal_terminated">Djuret avlivades</string>
     <string name="srva_animal_deported">Djuret fördrevs</string>
 
@@ -501,13 +571,15 @@
     <string name="srva_method_traced_without_dog">Spårades utan hund</string>
     <string name="srva_method_pain_equipment">Anordning som orsakar smärta</string>
     <string name="srva_method_sound_equipment">Anordning som skapar ljud</string>
+    <string name="srva_method_vehicle">Fördrivning med fordon</string>
+    <string name="srva_method_chasing_with_people">Fördrivning utförd av människor</string>
 
     <string name="srva_approved">Godkänd</string>
     <string name="srva_rejected">Förkastad</string>
     <string name="srva_approver">Godkännare</string>
     <string name="srva_rejecter">Förkastare</string>
 
-    <string name="display_all">Visa hela</string>
+    <string name="display_all">Visa hela meddelanden</string>
     <string name="announcements_none">Inga meddelanden</string>
     <string name="announcements_fetch_failed">Hämtning av meddelanden misslyckadesi</string>
 
@@ -589,6 +661,7 @@
     <string name="group_hunting_species">Djurart</string>
     <string name="group_hunting_group">Grupp</string>
     <string name="group_hunting_permit">Licens: %s</string>
+    <string name="group_hunting_error_hunting_has_finished">Jakten avslutats</string>
     <string name="group_hunting_new_harvest">@string/home_new_harvest</string>
     <string name="group_hunting_new_observation">@string/home_new_observation</string>
     <string name="group_hunting_entries_on_map">Markeringar på kartan</string>
@@ -629,11 +702,11 @@
 
     <string name="group_hunting_hunter_id">@string/my_details_hunter_id</string>
     <string name="group_hunting_enter_hunter_id">Ge den 8-siffriga jägarnummern</string>
-    <string name="group_hunting_invalid_hunter_id">TODO: Metsästäjänumero on virheellinen</string>
-    <string name="group_hunting_searching_hunter_by_id">TODO: Haetaan ampujan tietoja..</string>
-    <string name="group_hunting_searching_observer_by_id">TODO: Haetaan havaitsijan tietoja..</string>
-    <string name="group_hunting_hunter_search_failed">TODO: Metsästäjänumerolla ei löydetty ampujaa.</string>
-    <string name="group_hunting_observer_search_failed">TODO: Metsästäjänumerolla ei löydetty havaitsijaa.</string>
+    <string name="group_hunting_invalid_hunter_id">Jägarnumret är felaktigt</string>
+    <string name="group_hunting_searching_hunter_by_id">Skyttens uppgifter söks..</string>
+    <string name="group_hunting_searching_observer_by_id">Observatörens uppgifter söks..</string>
+    <string name="group_hunting_hunter_search_failed">Med jägarnumret hittades ingen skytt.</string>
+    <string name="group_hunting_observer_search_failed">Med jägarnumret hittades ingen observatör.</string>
     <string name="group_hunting_other_hunter">Annat</string>
     <string name="group_hunting_other_observer">@string/group_hunting_other_hunter</string>
 
@@ -700,4 +773,55 @@
     <string name="group_member_selection_search_name">Sök efter namn</string>
     <string name="group_member_selection_enter_name">Namn</string>
 
+    <!-- Hunting control -->
+    <string name="hunting_control_main_page_title">Jaktövervakning</string>
+    <string name="hunting_control_add_event">Skapa händelse</string>
+    <string name="hunting_control_my_events">Egna händelser</string>
+    <string name="hunting_control_no_events">Inga händelser</string>
+    <string name="hunting_control_select_rhy_to_display_events">Välj jaktvårdsförening för att se händelser</string>
+    <string name="huntint_control_rhy">Jaktvårdsförening</string>
+    <string name="hunting_control_view_page_title">Händelse</string>
+    <string name="hunting_control_start_time">Starttidpunkt</string>
+    <string name="hunting_control_end_time">Sluttidpunkt</string>
+    <string name="hunting_control_duration">Varaktighet</string>
+    <string name="hunting_control_event_type">Övervakningshändelse</string>
+    <string name="hunting_control_number_of_inspectors">Antal övervakare</string>
+    <string name="hunting_control_cooperation_type">Samarbete</string>
+    <string name="hunting_control_wolf_territory">Vargrevir</string>
+    <string name="hunting_control_inspectors">Övervakare</string>
+    <string name="hunting_control_location_description">Beskrivning av platsen</string>
+    <string name="hunting_control_event_description">Beskrivning av händelsen</string>
+    <string name="hunting_control_number_of_customers">Kunder</string>
+    <string name="hunting_control_number_of_proof_orders">Ålägganden att visa upp bevis</string>
+    <string name="hunting_control_date">Datum</string>
+    <string name="hunting_control_other_participants">Övriga deltagare</string>
+    <string name="hunting_control_duration_zero">0</string>
+    <string name="hunting_control_choose_inspectors">Välj övervakare</string>
+    <string name="hunting_control_choose_cooperation">Välj samarbete</string>
+    <string name="hunting_control_attachments">Bilagor</string>
+    <string name="hunting_control_inspector_selection_search_by_name">@string/group_member_selection_search_name</string>
+    <string name="hunting_control_inspector_selection_name_hint">@string/group_member_selection_enter_name</string>
+    <string name="hunting_control_error_no_inspectors_for_selected_date">Det finns inga övervakare för den valda dagen</string>
+    <string name="hunting_control_event_save_failed_generic">Det gick inte att spara övervakningshändelsen</string>
+    <string name="hunting_control_download_attachment_question">Ska bilagan laddas ner från servern?</string>
+    <string name="hunting_control_delete_attachment_question">Ska bilagan %1$s tas bort?</string>
+    <string name="hunting_control_add_attachment">Lägg till bilaga</string>
+    <string name="hunting_control_select_attachment">Välj bilaga</string>
+
+    <string name="download_manager_downloading_file">Filen laddas ner</string>
+    <string name="download_manager_download_complete">Den nedladdade filen %1$s finns i aviseringarna</string>
+    <string name="download_manager_download_failed">Det gick inte att ladda ner filen %1$s</string>
+    <string name="download_manager_download_title">Oma riista: %1$s</string>
+
+    <string name="hunting_control_cooperation_type_poliisi">Polisen</string>
+    <string name="hunting_control_cooperation_type_rajavartiosto">Gränsbevakningsväsendet</string>
+    <string name="hunting_control_cooperation_type_mh">Forststyrelsen</string>
+    <string name="hunting_control_cooperation_type_oma">Egen</string>
+
+    <string name="hunting_control_event_type_mooselike">Övervakning av jakt på hjortdjur</string>
+    <string name="hunting_control_event_type_large_carnivore">Övervakning av jakt på stora rovdjur</string>
+    <string name="hunting_control_event_type_grouse">Övervakning av jakt på hönsfåglar</string>
+    <string name="hunting_control_event_type_waterfowl">Övervakning av jakt på sjöfåglar</string>
+    <string name="hunting_control_event_type_dog_discipline">Övervakning av hunddisciplin</string>
+    <string name="hunting_control_event_type_other">Övrig övervakning</string>
 </resources>

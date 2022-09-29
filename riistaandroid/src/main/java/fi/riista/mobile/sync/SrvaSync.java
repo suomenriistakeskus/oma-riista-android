@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import fi.riista.mobile.models.LocalImage;
@@ -151,49 +152,84 @@ public class SrvaSync {
     }
 
     private void sendImages(final SrvaSyncListener listener) {
-        SrvaDatabase.getInstance().loadEventsWithLocalImages(events -> sendImage(events, listener));
+        SrvaDatabase.getInstance().loadEventsWithLocalImages(events -> sendImages(events, listener));
     }
 
-    private void sendImage(final List<SrvaEvent> events, final SrvaSyncListener listener) {
-        if (events.isEmpty()) {
+    private void sendImages(final List<SrvaEvent> remainingEvents, final SrvaSyncListener listener) {
+        if (remainingEvents.isEmpty()) {
             listener.onFinish();
             return;
         }
 
-        final SrvaEvent event = events.get(0);
+        final SrvaEvent currentEvent = remainingEvents.remove(0);
+        final List<LocalImage> remainingEventImages = new ArrayList<>(currentEvent.localImages);
+        sendImages(remainingEvents, currentEvent, remainingEventImages, listener);
+    }
 
-        if (event.remoteId != null && event.localImages.size() > 0) {
-            // This server-backed observation has local images
-            final LocalImage image = event.localImages.remove(0);
-
-            if (!event.imageIds.contains(image.serverId)) {
-                // This local image has not been sent to the server yet
-                final PostSrvaImageTask task = new PostSrvaImageTask(syncWorkContext, event, image) {
-                    @Override
-                    protected void onFinishText(final String text) {
-                        Utils.LogMessage("Image sent: " + image.localPath);
-                    }
-
-                    @Override
-                    protected void onError() {
-                        Utils.LogMessage("Image sending failed: " + getHttpStatusCode());
-                    }
-
-                    @Override
-                    protected void onEnd() {
-                        sendImage(events, listener);
-                    }
-                };
-                task.start();
-            } else {
-                // Try next image or observation
-                sendImage(events, listener);
-            }
-        } else {
-            // No images for this observation
-            events.remove(0);
-
-            sendImage(events, listener);
+    private void sendImages(final List<SrvaEvent> remainingEvents,
+                            final SrvaEvent currentEvent,
+                            final List<LocalImage> remainingEventImages,
+                            final SrvaSyncListener listener) {
+        if (remainingEventImages.isEmpty()) {
+            sendImages(remainingEvents, listener);
+            return;
         }
+
+        if (currentEvent.remoteId == null) {
+            // event has not been sent yet, cannot send images for it
+            // -> continue sending images from next available event
+            sendImages(remainingEvents, listener);
+            return;
+        }
+
+        final LocalImage currentImage = remainingEventImages.remove(0);
+        if (currentEvent.imageIds.contains(currentImage.serverId)) {
+            // image has already been sent, try next image
+            sendImages(remainingEvents, currentEvent, remainingEventImages, listener);
+            return;
+        }
+
+        // This local image has not been sent to the server yet
+        final PostSrvaImageTask task = new PostSrvaImageTask(syncWorkContext, currentEvent, currentImage) {
+            boolean imageUploaded = false;
+
+            @Override
+            protected void onFinishText(final String text) {
+                imageUploaded = true;
+                Utils.LogMessage("Image sent: " + currentImage.localPath);
+            }
+
+            @Override
+            protected void onError() {
+                Utils.LogMessage("Image sending failed: " + getHttpStatusCode() +
+                        ", uuid = " + currentImage.serverId);
+            }
+
+            @Override
+            protected void onEnd() {
+                if (!imageUploaded) {
+                    sendImages(remainingEvents, currentEvent, remainingEventImages, listener);
+                    return;
+                }
+
+                // update event so that we know afterwards that image has been sent
+                // - insert as first item as the latest added image seems to be the first when images
+                //   are received from backend
+                currentEvent.imageIds.add(0, currentImage.serverId);
+
+                SrvaDatabase.getInstance().saveEvent(currentEvent, new SaveListener() {
+                    @Override
+                    public void onSaved(final long id) {
+                        sendImages(remainingEvents, currentEvent, remainingEventImages, listener);
+                    }
+
+                    @Override
+                    public void onError() {
+                        sendImages(remainingEvents, currentEvent, remainingEventImages, listener);
+                    }
+                });
+            }
+        };
+        task.start();
     }
 }

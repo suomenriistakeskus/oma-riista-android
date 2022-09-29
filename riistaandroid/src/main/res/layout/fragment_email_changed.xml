@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".feature.login.EmailChangedFragment">
+
+    <LinearLayout
+        android:id="@+id/email_change_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/login_area_color"
+        android:orientation="vertical"
+        android:paddingLeft="@dimen/page_padding_vertical"
+        android:paddingRight="@dimen/page_padding_vertical">
+
+        <TextView
+            style="@style/LoginTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/page_padding_vertical"
+            android:text="@string/change_username_title" />
+
+        <TextView
+            style="@style/LoginText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/page_padding_vertical"
+            android:text="@string/change_username_message" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_registration"
+            style="@style/LoginPrimaryButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:layout_marginTop="@dimen/page_padding_vertical"
+            android:text="@string/change_username_action" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_return_to_login"
+            style="@style/LoginSecondaryButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/default_button_height"
+            android:layout_marginTop="@dimen/page_padding_vertical"
+            android:layout_marginBottom="@dimen/page_padding_vertical"
+            android:text="@string/cancel" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,6 +1,6 @@
 package fi.riista.common.domain.season.dto
 
-import fi.riista.common.dto.SpeciesCodeDTO
+import fi.riista.common.domain.dto.SpeciesCodeDTO
 import kotlinx.serialization.Serializable
 
 @Serializable

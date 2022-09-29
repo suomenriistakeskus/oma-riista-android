@@ -2,8 +2,8 @@ package fi.riista.common.messages
 
 import fi.riista.common.PlatformName
 import fi.riista.common.dto.LocalizedStringDTO
-import fi.riista.common.dto.MessageDTO
-import fi.riista.common.dto.MessageTargetApplicationVersionsDTO
+import fi.riista.common.domain.dto.MessageDTO
+import fi.riista.common.domain.dto.MessageTargetApplicationVersionsDTO
 import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.JsonHelper

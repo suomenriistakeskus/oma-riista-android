@@ -1,0 +1,29 @@
+CREATE TABLE DbHuntingControlEventInspector(
+    hunting_control_event_id INTEGER NOT NULL,
+    remote_id INTEGER NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+
+    CONSTRAINT pk_constraint_DbHuntingControlEventInspector PRIMARY KEY (hunting_control_event_id, remote_id),
+    CONSTRAINT fk_DbHuntingControlEvent
+        FOREIGN KEY (hunting_control_event_id)
+        REFERENCES DbHuntingControlEvent (local_id)
+        ON DELETE CASCADE
+);
+
+selectByHuntingControlEvent:
+SELECT * FROM DbHuntingControlEventInspector WHERE hunting_control_event_id = ?;
+
+insert:
+INSERT INTO DbHuntingControlEventInspector(hunting_control_event_id, remote_id, first_name, last_name)
+VALUES (?, ?, ?, ?);
+
+deleteByEvent:
+DELETE FROM DbHuntingControlEventInspector WHERE hunting_control_event_id = ?;
+
+deleteInspectorFromEvent:
+DELETE FROM DbHuntingControlEventInspector WHERE remote_id = ? AND hunting_control_event_id = ?;
+
+updateInspectorName:
+UPDATE DbHuntingControlEventInspector
+SET first_name = ?, last_name = ? WHERE remote_id = ? AND hunting_control_event_id = ?;

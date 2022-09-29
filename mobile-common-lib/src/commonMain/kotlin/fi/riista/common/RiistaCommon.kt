@@ -2,23 +2,33 @@ package fi.riista.common
 
 import co.touchlab.stately.concurrency.AtomicReference
 import fi.riista.common.authentication.EmailService
+import fi.riista.common.authentication.LoginService
 import fi.riista.common.database.DatabaseDriverFactory
+import fi.riista.common.database.RiistaDatabase
+import fi.riista.common.domain.dto.UserInfoDTO
+import fi.riista.common.domain.poi.PoiContext
 import fi.riista.common.domain.season.HarvestSeasons
-import fi.riista.common.dto.UserInfoDTO
+import fi.riista.common.domain.userInfo.CurrentUserContextProvider
+import fi.riista.common.domain.userInfo.UserContext
+import fi.riista.common.io.CommonFileProvider
+import fi.riista.common.io.CommonFileStorage
 import fi.riista.common.logging.LogLevel
 import fi.riista.common.logging.Logger
 import fi.riista.common.messages.AppStartupMessageHandler
 import fi.riista.common.messages.MessageHandler
+import fi.riista.common.metadata.DefaultMetadataProvider
+import fi.riista.common.metadata.MetadataProvider
 import fi.riista.common.model.Language
 import fi.riista.common.network.*
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.network.cookies.CookieData
-import fi.riista.common.poi.PoiContext
 import fi.riista.common.preferences.PlatformPreferences
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.remoteSettings.RemoteSettings
-import fi.riista.common.userInfo.CurrentUserContextProvider
-import fi.riista.common.userInfo.UserContext
+import fi.riista.common.util.LocalDateTimeProvider
+import fi.riista.common.util.SystemDateTimeProvider
+import fi.riista.common.util.coroutines.AppMainScopeProvider
+import fi.riista.common.util.coroutines.MainScopeProvider
 import kotlin.jvm.JvmStatic
 
 object RiistaSDK {
@@ -59,6 +69,13 @@ object RiistaSDK {
         }
 
     /**
+     * The MetadataProvider that is able to provide various metadata (e.g. SRVA)
+     */
+    @JvmStatic
+    val metadataProvider: MetadataProvider
+        get() = INSTANCE.metadataProvider
+
+    /**
      * The harvest seasons information
      */
     @JvmStatic
@@ -76,6 +93,17 @@ object RiistaSDK {
             return INSTANCE.poiContext
         }
 
+    @JvmStatic
+    val commonFileProvider: CommonFileProvider
+        get() {
+            return INSTANCE.commonFileProvider
+        }
+
+    internal val mainScopeProvider: MainScopeProvider
+        get() {
+            return INSTANCE.mainScopeProvider
+        }
+
     /**
      * Initializes the Riista SDK with given information.
      *
@@ -84,7 +112,9 @@ object RiistaSDK {
      */
     internal fun initialize(sdkConfiguration: RiistaSdkConfiguration, databaseDriverFactory: DatabaseDriverFactory) {
         Logger.usePlatformLogger.value = true
-        INSTANCE_HOLDER.set(RiistaSdkImpl(sdkConfiguration, databaseDriverFactory))
+        val instance = RiistaSdkImpl(sdkConfiguration, databaseDriverFactory)
+        INSTANCE_HOLDER.set(instance)
+        instance.initialize()
     }
 
     /**
@@ -95,10 +125,24 @@ object RiistaSDK {
     internal fun initializeMocked(
         sdkConfiguration: RiistaSdkConfiguration,
         databaseDriverFactory: DatabaseDriverFactory,
-        mockBackendAPI: BackendAPI
+        mockBackendAPI: BackendAPI,
+        mockCurrentUserContextProvider: CurrentUserContextProvider,
+        mockLocalDateTimeProvider: LocalDateTimeProvider,
+        mockMainScopeProvider: MainScopeProvider,
+        mockFileProvider: CommonFileProvider,
     ) {
         Logger.usePlatformLogger.value = false
-        INSTANCE_HOLDER.set(RiistaSdkImpl(sdkConfiguration, databaseDriverFactory, mockBackendAPI = mockBackendAPI))
+        val instance =  RiistaSdkImpl(
+            sdkConfiguration,
+            databaseDriverFactory,
+            mockBackendAPI = mockBackendAPI,
+            mockCurrentUserContextProvider = mockCurrentUserContextProvider,
+            mockLocalDateTimeProvider = mockLocalDateTimeProvider,
+            mockMainScopeProvider = mockMainScopeProvider,
+            mockFileProvider = mockFileProvider,
+        )
+        INSTANCE_HOLDER.set(instance)
+        instance.initialize()
     }
 
     /**
@@ -170,6 +214,20 @@ object RiistaSDK {
     }
 
     /**
+     * Synchronize given submodules with backend.
+     */
+    suspend fun synchronizeAllDataPieces() {
+        synchronizeDataPieces(SyncDataPiece.values().toList())
+    }
+
+    /**
+     * Synchronize given submodules with backend.
+     */
+    suspend fun synchronizeDataPieces(dataPieces: List<SyncDataPiece>) {
+        INSTANCE.synchronizeDataPieces(dataPieces)
+    }
+
+    /**
      * Gets all network cookies that the network client has stored so far. The cookies
      * are kept in memory only.
      *
@@ -177,6 +235,23 @@ object RiistaSDK {
      */
     fun getAllNetworkCookies(): List<CookieData> {
         return INSTANCE.backendAPI.getAllNetworkCookies()
+    }
+
+    /**
+     * Gets all network cookies that the network client has stored so far for the given [requestUrl].
+     * The cookies are kept in memory only.
+     *
+     * TODO: remove once applications no longer have application specific network clients
+     */
+    fun getNetworkCookies(requestUrl: String): List<CookieData> {
+        return INSTANCE.backendAPI.getNetworkCookies(requestUrl)
+    }
+
+    internal fun registerSyncContextProvider(
+        syncDataPiece: SyncDataPiece,
+        synchronizationContextProvider: SynchronizationContextProvider
+    ) {
+        INSTANCE.synchronizationService.registerSyncContextProvider(syncDataPiece, synchronizationContextProvider)
     }
 }
 
@@ -190,13 +265,37 @@ private interface RiistaSdkBase {
 
 internal class RiistaSdkImpl(
     val sdkConfiguration: RiistaSdkConfiguration,
-    internal val databaseDriverFactory: DatabaseDriverFactory,
+    private val databaseDriverFactory: DatabaseDriverFactory,
 
     /**
      * A mocked [BackendAPI] to be used instead of created one. Should only be passed
      * if running tests.
      */
     val mockBackendAPI: BackendAPI? = null,
+
+    /**
+     * A mocked [CurrentUserContextProvider] to be used instead of created one. Should only be passed
+     * if running tests.
+     */
+    val mockCurrentUserContextProvider: CurrentUserContextProvider? = null,
+
+    /**
+     * A mocked [LocalDateTimeProvider] to be used instead of created one. Should only be passed
+     * if running tests.
+     */
+    val mockLocalDateTimeProvider: LocalDateTimeProvider? = null,
+
+    /**
+     * A mocked [MainScopeProvider] to be used instead of default one. Should only be passed
+     * if running tests.
+     */
+    val mockMainScopeProvider: MainScopeProvider? = null,
+
+    /**
+     * A mocked [CommonFileProvider] to be used instead of default one. Should only be passed
+     * if running tests.
+     */
+    val mockFileProvider: CommonFileProvider? = null,
 ): RiistaSdkBase, BackendApiProvider {
 
     internal val preferences: Preferences by lazy {
@@ -223,8 +322,17 @@ internal class RiistaSdkImpl(
     }
 
     internal val currentUserContextProvider by lazy {
-        CurrentUserContextProvider(backendApiProvider = this,
-                                   groupHuntingAvailabilityResolver = remoteSettings)
+        mockCurrentUserContextProvider ?: CurrentUserContextProvider(
+            backendApiProvider = this,
+            groupHuntingAvailabilityResolver = remoteSettings,
+            preferences = preferences,
+            localDateTimeProvider = localDateTimeProvider,
+            commonFileProvider = commonFileProvider,
+        )
+    }
+
+    internal val database by lazy {
+        RiistaDatabase(driver = databaseDriverFactory.createDriver())
     }
 
     private val networkClient: NetworkClient by lazy {
@@ -243,12 +351,40 @@ internal class RiistaSdkImpl(
         EmailService(networkClient)
     }
 
+    internal val synchronizationService by lazy {
+        SynchronizationService()
+    }
+
+    internal val metadataProvider by lazy {
+        DefaultMetadataProvider(
+            databaseDriverFactory = databaseDriverFactory,
+            backendApiProvider = this,
+            preferences = preferences,
+            localDateTimeProvider = localDateTimeProvider,
+            synchronizationService = synchronizationService,
+            currentUserContextProvider = currentUserContextProvider,
+            mainScopeProvider = mainScopeProvider,
+        )
+    }
+
     internal val harvestSeasons by lazy {
         HarvestSeasons()
     }
 
     internal val poiContext by lazy {
         PoiContext(backendApiProvider = this)
+    }
+
+    internal val commonFileProvider by lazy {
+        mockFileProvider ?: CommonFileStorage
+    }
+
+    internal val localDateTimeProvider: LocalDateTimeProvider by lazy {
+        mockLocalDateTimeProvider ?: SystemDateTimeProvider()
+    }
+
+    internal val mainScopeProvider: MainScopeProvider by lazy {
+        mockMainScopeProvider ?: AppMainScopeProvider()
     }
 
     override fun getInitializedRiistaSDK(): RiistaSdkImpl = this
@@ -271,6 +407,14 @@ internal class RiistaSdkImpl(
 
     fun logout() {
         loginService.logout()
+    }
+
+    suspend fun synchronizeDataPieces(dataPieces: List<SyncDataPiece>) {
+        synchronizationService.synchronizeDataPieces(dataPieces)
+    }
+
+    internal fun initialize() {
+        metadataProvider.initialize()
     }
 }
 

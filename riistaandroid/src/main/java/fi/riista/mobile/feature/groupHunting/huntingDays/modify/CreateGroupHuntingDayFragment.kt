@@ -5,9 +5,9 @@ import android.os.Bundle
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.extensions.getLocalDate
 import fi.riista.common.extensions.putLocalDate
-import fi.riista.common.groupHunting.model.GroupHuntingDay
-import fi.riista.common.groupHunting.ui.huntingDays.modify.CreateGroupHuntingDayController
-import fi.riista.common.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.CreateGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayController
 import fi.riista.common.model.LocalDate
 
 /**

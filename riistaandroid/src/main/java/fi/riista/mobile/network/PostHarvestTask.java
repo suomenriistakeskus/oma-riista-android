@@ -41,20 +41,16 @@ public abstract class PostHarvestTask extends TextTask {
 
     private final HarvestDatabase mHarvestDatabase;
     private final GameHarvest mHarvest;
-    private final int mHarvestSpecVersion;
 
-    // TODO Remove `harvestSpecVersion` parameter when deer pilot 2020 is over.
     protected PostHarvestTask(final WorkContext workContext,
                               final HarvestDatabase harvestDatabase,
-                              final GameHarvest harvest,
-                              final int harvestSpecVersion) {
+                              final GameHarvest harvest) {
         super(workContext);
 
         setCookieStore(CookieStoreSingleton.INSTANCE.getCookieStore());
 
         mHarvestDatabase = harvestDatabase;
         mHarvest = harvest;
-        mHarvestSpecVersion = requireNonNull(harvestSpecVersion);
 
         if (harvest.mPendingOperation == HarvestDbHelper.UpdateType.DELETE) {
             setBaseUrl(AppConfig.getBaseUrl() + "/gamediary/harvest/" + mHarvest.mId);
@@ -74,7 +70,7 @@ public abstract class PostHarvestTask extends TextTask {
         final Map<String, Object> object = new HashMap<>();
 
         object.put("type", GameLog.TYPE_HARVEST);
-        object.put("harvestSpecVersion", mHarvestSpecVersion);
+        object.put("harvestSpecVersion", event.mHarvestSpecVersion);
 
         if (edit) {
             object.put("rev", event.mRev);

@@ -1,0 +1,16 @@
+CREATE TABLE DbHuntingControlEventAttachment (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_local_id INTEGER NOT NULL,
+    remote_id INTEGER,
+    filename TEXT NOT NULL,
+    is_image INTEGER AS Boolean NOT NULL,
+    thumbnail TEXT,
+    deleted INTEGER AS Boolean NOT NULL DEFAULT 0,
+    uuid TEXT,
+    mime_type TEXT,
+
+    CONSTRAINT fk_DbHuntingControlEventAttachmentToDbHuntingControlEvent
+        FOREIGN KEY (event_local_id)
+        REFERENCES DbHuntingControlEvent (local_id)
+        ON DELETE CASCADE
+);

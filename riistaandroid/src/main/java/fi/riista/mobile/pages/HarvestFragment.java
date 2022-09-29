@@ -1,6 +1,7 @@
 package fi.riista.mobile.pages;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -60,6 +61,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import dagger.android.support.AndroidSupportInjection;
+import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.DiaryImageManager;
 import fi.riista.mobile.DiaryImageManager.ImageManagerActivityAPI;
 import fi.riista.mobile.EntryMapView;
@@ -100,6 +102,7 @@ import fi.riista.mobile.utils.AppPreferences;
 import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.EditUtils;
 import fi.riista.mobile.utils.HarvestValidator;
+import fi.riista.mobile.utils.PermissionHelper;
 import fi.riista.mobile.utils.RequiredHarvestFields;
 import fi.riista.mobile.utils.ResourceProvider;
 import fi.riista.mobile.utils.Utils;
@@ -739,6 +742,8 @@ public class HarvestFragment extends DetailsPageFragment
 
             final GameHarvest harvest = mModel.getResultHarvest();
 
+            harvest.mHarvestSpecVersion = AppConfig.HARVEST_SPEC_VERSION;
+
             if (!mHarvestValidator.validate(harvest)) {
                 Utils.LogMessage("Failed to validate harvest");
 
@@ -1009,6 +1014,7 @@ public class HarvestFragment extends DetailsPageFragment
     // Map and location related methods
     //
 
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(final GoogleMap map) {
         final String locationSource = mModel.getLocationSource().getValue();
@@ -1025,9 +1031,12 @@ public class HarvestFragment extends DetailsPageFragment
                 mLocationClient.addListener(this);
             }
         }
+        mMapView.setMapExternalId(
+                AppPreferences.getSelectedClubAreaMapId(requireContext()),
+                AppPreferences.getInvertMapColors(requireContext())
+        );
 
         map.setOnMapClickListener(arg0 -> viewMap());
-
         map.setOnMarkerClickListener(marker -> {
             viewMap();
             return true;
@@ -1810,20 +1819,14 @@ public class HarvestFragment extends DetailsPageFragment
 
     @Override
     public boolean hasPhotoPermissions() {
-        final FragmentActivity activity = requireActivity();
-        return ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        final Context context = requireContext();
+        return PermissionHelper.hasPhotoPermissions(context);
     }
 
     @Override
     public void requestPhotoPermissions() {
-        final FragmentActivity activity = requireActivity();
-
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // Ignore result, user has to tap item again to use granted permission or request it again
-            ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 111);
-        }
+        final Activity activity = requireActivity();
+        PermissionHelper.requestPhotoPermissions(activity, 111);
     }
 
     // endregion

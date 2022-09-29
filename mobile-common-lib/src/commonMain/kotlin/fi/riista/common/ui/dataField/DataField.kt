@@ -1,7 +1,13 @@
 package fi.riista.common.ui.dataField
 
-import fi.riista.common.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.model.*
+import fi.riista.common.domain.specimens.ui.SpecimenFieldDataContainer
 import fi.riista.common.model.*
+import fi.riista.common.resources.RR
+import io.matthewnelson.component.base64.decodeBase64ToArray
 import kotlinx.serialization.Serializable
 
 
@@ -30,14 +36,6 @@ import kotlinx.serialization.Serializable
  */
 
 typealias DataFields<FieldId> = List<DataField<FieldId>>
-
-interface DataFieldId {
-    /**
-     * [DataField] ids must be representable as [Int]. This allows using stable ids in
-     * RecyclerView.
-     */
-    fun toInt(): Int
-}
 
 enum class Padding {
     NONE,
@@ -142,7 +140,7 @@ data class LabelField<DataId : DataFieldId>(
     override val id: DataId,
     val text: String,
     val type: Type,
-    override val settings: Settings
+    override val settings: LabelFieldSettings
 ) : DataField<DataId>() {
     enum class Type {
         CAPTION,
@@ -150,16 +148,63 @@ data class LabelField<DataId : DataFieldId>(
         INFO,
     }
 
+    interface LabelFieldSettings : Settings {
+        val allCaps: Boolean
+    }
+
+    internal data class DefaultLabelFieldSettings(
+        override var allCaps: Boolean = false,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+    ) : LabelFieldSettings
+
     internal constructor(
         id: DataId,
         text: String,
         type: Type,
-        configureSettings: (DefaultSettings.() -> Unit)? = null
+        configureSettings: (DefaultLabelFieldSettings.() -> Unit)? = null
     ): this(id = id,
             text = text,
             type = type,
-            settings = DefaultSettings().configuredBy(configureSettings)
+            settings = DefaultLabelFieldSettings().configuredBy(configureSettings)
     )
+}
+
+data class AttachmentField<DataId : DataFieldId>(
+    override val id: DataId,
+    val localId: Long?,
+    val filename: String,
+    val isImage: Boolean,
+    val thumbnailBase64: String?,
+    override val settings: EditableSettings,
+) : DataField<DataId>() {
+
+    internal data class DefaultAttachmentFieldSettings(
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ) : EditableSettings
+
+    internal constructor(
+        id: DataId,
+        localId: Long?,
+        filename: String,
+        isImage: Boolean,
+        thumbnailBase64: String?,
+        configureSettings: (DefaultAttachmentFieldSettings.() -> Unit)? = null
+    ): this(id = id,
+        localId = localId,
+        filename = filename,
+        isImage = isImage,
+        thumbnailBase64 = thumbnailBase64,
+        settings = DefaultAttachmentFieldSettings().configuredBy(configureSettings)
+    )
+
+    val thumbnailAsByteArray: ByteArray?
+        get() {
+            return thumbnailBase64?.decodeBase64ToArray()
+        }
 }
 
 data class IntField<DataId : DataFieldId>(
@@ -226,17 +271,24 @@ data class DoubleField<DataId : DataFieldId>(
 
 data class BooleanField<DataId : DataFieldId>(
     override val id: DataId,
-    // allow unknown value
+    // allow unknown/unselected value by allowing null
     val value: Boolean?,
     override val settings: BooleanFieldSettings
 ) : DataField<DataId>() {
 
+    enum class Appearance {
+        YES_NO_BUTTONS,
+        CHECKBOX
+    }
+
     interface BooleanFieldSettings : EditableSettings {
         val label: String?
+        val appearance: Appearance
     }
 
     internal data class DefaultBooleanFieldSettings(
         override var label: String? = null,
+        override var appearance: Appearance = Appearance.YES_NO_BUTTONS,
         override var readOnly: Boolean = true,
         override var paddingTop: Padding = Padding.MEDIUM,
         override var paddingBottom: Padding = Padding.MEDIUM,
@@ -253,29 +305,101 @@ data class BooleanField<DataId : DataFieldId>(
     )
 }
 
-// data class IntField<DataId>(override val id: DataId, val value: Int): DataField<DataId>()
-
 
 // Custom data field types
 
 /**
- * SpeciesCode is actually Int but use a separate data field since we're not able to provide
- * species name + icon from RiistaSDK currently --> app can handle these differently
+ * RiistaSDK currently doesn't have means for providing icon information. Thus wraps
+ * only species and it is app's responsibility to be able to provide icon + species name.
  */
-data class SpeciesCodeField<DataId : DataFieldId>(
+data class SpeciesField<DataId : DataFieldId>(
     override val id: DataId,
-    val speciesCode: SpeciesCode,
-    override val settings: EditableSettings,
+    val species: Species,
+    val entityImage: EntityImage?,
+    override val settings: SpeciesFieldSettings,
 ) : DataField<DataId>() {
+
+    sealed class SelectableSpecies {
+        object All : SelectableSpecies()
+        data class Listed(val species: List<Species>): SelectableSpecies()
+
+        fun contains(candidate: Species): Boolean {
+            return when (this) {
+                All -> true
+                is Listed -> this.species.contains(candidate)
+            }
+        }
+    }
+
+    interface SpeciesFieldSettings: EditableSettings {
+        val showEntityImage: Boolean
+        val selectableSpecies: SelectableSpecies
+    }
 
     internal constructor(
         id: DataId,
         speciesCode: SpeciesCode,
-        configureSettings: (DefaultEditableSettings.() -> Unit)? = null
+        entityImage: EntityImage? = null,
+        configureSettings: (DefaultSpeciesFieldSettings.() -> Unit)? = null
     ): this(id = id,
-            speciesCode = speciesCode,
-            settings = DefaultEditableSettings().configuredBy(configureSettings)
+            species = Species.Known(speciesCode = speciesCode),
+            entityImage = entityImage,
+            configureSettings = configureSettings
     )
+
+    internal constructor(
+        id: DataId,
+        species: Species,
+        entityImage: EntityImage? = null,
+        configureSettings: (DefaultSpeciesFieldSettings.() -> Unit)? = null
+    ): this(id = id,
+            species = species,
+            entityImage = entityImage,
+            settings = DefaultSpeciesFieldSettings().configuredBy(configureSettings)
+    )
+
+    internal data class DefaultSpeciesFieldSettings(
+        override var showEntityImage: Boolean = false,
+        override var selectableSpecies: SelectableSpecies = SelectableSpecies.All,
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ): SpeciesFieldSettings
+}
+
+/**
+ * A data field containing all specimen data related to an entity / event.
+ *
+ * [SpecimenFieldDataContainer] is intended to be passed to a separate controller in
+ * a separate view in order to display / edit specimen data.
+ */
+data class SpecimenField<DataId : DataFieldId>(
+    override val id: DataId,
+    val specimenData: SpecimenFieldDataContainer,
+    override val settings: SpecimenFieldSettings,
+) : DataField<DataId>() {
+
+    interface SpecimenFieldSettings: EditableSettings {
+        val label: String?
+    }
+
+    internal constructor(
+        id: DataId,
+        specimenData: SpecimenFieldDataContainer,
+        configureSettings: (DefaultSpecimenFieldSettings.() -> Unit)? = null
+    ): this(id = id,
+        specimenData = specimenData,
+        settings = DefaultSpecimenFieldSettings().configuredBy(configureSettings)
+    )
+
+    internal data class DefaultSpecimenFieldSettings(
+        override var label: String? = null,
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ): SpecimenFieldSettings
 }
 
 data class DateAndTimeField<DataId : DataFieldId>(
@@ -341,15 +465,98 @@ data class DateAndTimeField<DataId : DataFieldId>(
     )
 }
 
+data class DateField<DataId : DataFieldId>(
+    override val id: DataId,
+    val date: LocalDate,
+    override val settings: DateFieldSettings
+) : DataField<DataId>() {
+
+    interface DateFieldSettings : EditableSettings {
+        val label: String?
+
+        /**
+         * The minimum allowed date value.
+         */
+        val minDate: LocalDate?
+
+        /**
+         * The maximum allowed date value.
+         */
+        val maxDate: LocalDate?
+    }
+
+    internal data class DefaultDateFieldSettings(
+        override var label: String? = null,
+        override var minDate: LocalDate? = null,
+        override var maxDate: LocalDate? = null,
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ) : DateFieldSettings {
+    }
+
+    internal constructor(
+        id: DataId,
+        date: LocalDate,
+        configureSettings: (DefaultDateFieldSettings.() -> Unit)? = null
+    ) : this(
+        id = id,
+        date = date,
+        settings = DefaultDateFieldSettings().configuredBy(configureSettings)
+    )
+}
+
+data class TimespanField<DataId : DataFieldId>(
+    override val id: DataId,
+    val startTime: LocalTime?,
+    val endTime: LocalTime?,
+    val startFieldId: DataId,
+    val endFieldId: DataId,
+    override val settings: TimespanFieldSettings
+) : DataField<DataId>() {
+
+    interface TimespanFieldSettings : EditableSettings {
+        val startLabel: String?
+        val endLabel: String?
+    }
+
+    internal data class DefaultTimespanFieldSettings(
+        override var startLabel: String? = null,
+        override var endLabel: String? = null,
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ) : TimespanFieldSettings {
+    }
+
+    internal constructor(
+        id: DataId,
+        startTime: LocalTime?,
+        endTime: LocalTime?,
+        startFieldId: DataId,
+        endFieldId: DataId,
+        configureSettings: (DefaultTimespanFieldSettings.() -> Unit)? = null
+    ): this(
+        id = id,
+        startTime = startTime,
+        endTime = endTime,
+        startFieldId = startFieldId,
+        endFieldId = endFieldId,
+        settings = DefaultTimespanFieldSettings().configuredBy(configureSettings)
+    )
+}
+
 data class LocationField<DataId : DataFieldId>(
     override val id: DataId,
-    val location: ETRMSGeoLocation,
+    val location: CommonLocation,
     override val settings: EditableSettings
 ) : DataField<DataId>() {
 
     internal constructor(
         id: DataId,
-        location: ETRMSGeoLocation,
+        location: CommonLocation,
         configureSettings: (DefaultEditableSettings.() -> Unit)? = null
     ): this(id = id,
             location = location,
@@ -362,53 +569,82 @@ data class LocationField<DataId : DataFieldId>(
 
 data class GenderField<DataId : DataFieldId>(
     override val id: DataId,
-    val gender: Gender,
-    override val settings: EditableSettings
+    val gender: Gender?,
+    override val settings: GenderFieldSettings
 ) : DataField<DataId>() {
+
+    interface GenderFieldSettings : EditableSettings {
+        val showUnknown: Boolean
+    }
 
     internal constructor(
         id: DataId,
-        gender: Gender,
-        configureSettings: (DefaultEditableSettings.() -> Unit)? = null
+        gender: Gender?,
+        configureSettings: (DefaultGenderFieldSettings.() -> Unit)? = null
     ): this(id = id,
             gender = gender,
-            settings = DefaultEditableSettings().configuredBy(configureSettings)
+            settings = DefaultGenderFieldSettings().configuredBy(configureSettings)
     )
+
+    internal data class DefaultGenderFieldSettings(
+        override var showUnknown: Boolean = false,
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ) : GenderFieldSettings
 }
 
 data class AgeField<DataId : DataFieldId>(
     override val id: DataId,
-    val age: GameAge,
-    override val settings: EditableSettings
+    val age: GameAge?,
+    override val settings: AgeFieldSettings
 ) : DataField<DataId>() {
+
+    interface AgeFieldSettings : EditableSettings {
+        val showUnknown: Boolean
+    }
 
     internal constructor(
         id: DataId,
-        age: GameAge,
-        configureSettings: (DefaultEditableSettings.() -> Unit)? = null
+        age: GameAge?,
+        configureSettings: (DefaultAgeFieldSettings.() -> Unit)? = null
     ): this(id = id,
             age = age,
-            settings = DefaultEditableSettings().configuredBy(configureSettings)
+            settings = DefaultAgeFieldSettings().configuredBy(configureSettings)
     )
+
+    internal data class DefaultAgeFieldSettings(
+        override var showUnknown: Boolean = false,
+        override var readOnly: Boolean = true,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ) : AgeFieldSettings
 }
 
 data class StringListField<DataId : DataFieldId>(
-        override val id: DataId,
-        /**
-         * Possible values. The strings provide default information about each value.
-         */
-        val values: List<StringWithId>,
+    override val id: DataId,
+    /**
+     * Possible values. The strings provide default information about each value.
+     */
+    val values: List<StringWithId>,
 
-        /**
-         * Possible values but with more details. The strings provide more detailed information
-         * about each value.
-         *
-         * Ids are required to match ids found in values.
-         */
-        val detailedValues: List<StringWithId>,
-        val selected: StringId?,
-        override val settings: StringListFieldSettings
+    /**
+     * Possible values but with more details. The strings provide more detailed information
+     * about each value.
+     *
+     * Ids are required to match ids found in values.
+     */
+    val detailedValues: List<StringWithId>,
+    val selected: List<StringId>?,
+    override val settings: StringListFieldSettings
 ) : DataField<DataId>() {
+
+    enum class Mode {
+        MULTI,
+        SINGLE,
+    }
 
     /**
      * Settings for the external view if selection is made in such way.
@@ -417,16 +653,23 @@ data class StringListField<DataId : DataFieldId>(
     data class ExternalViewConfiguration(
         // title for the view
         val title: String,
-        //val filterEnabled: Boolean, // should we have this?
-        val filterLabelText: String,
-        val filterTextHint: String,
+        val filterEnabled: Boolean = true,
+        val filterLabelText: String? = null,
+        val filterTextHint: String? = null,
     )
 
     interface StringListFieldSettings : EditableSettings {
+        val mode: Mode
         val label: String?
 
         /**
+         * Text that is shown in a place where SINGLE mode has selected value.
+         */
+        val multiModeChooseText: String?
+
+        /**
          * Should the selection be made using an external view if possible?
+         * When MODE == MULTI external view is always used.
          */
         val preferExternalViewForSelection: Boolean
 
@@ -437,7 +680,10 @@ data class StringListField<DataId : DataFieldId>(
     }
 
     internal data class DefaultStringListFieldSettings(
+        override var mode: Mode = Mode.SINGLE,
         override var label: String? = null,
+        override var multiModeChooseText: String? = null,
+
         override var preferExternalViewForSelection: Boolean = false,
         override var externalViewConfiguration: ExternalViewConfiguration? = null,
         override var readOnly: Boolean = true,
@@ -447,10 +693,10 @@ data class StringListField<DataId : DataFieldId>(
     ) : StringListFieldSettings
 
     internal constructor(
-            id: DataId,
-            values: List<StringWithId>,
-            selected: StringId?,
-            configureSettings: (DefaultStringListFieldSettings.() -> Unit)? = null
+        id: DataId,
+        values: List<StringWithId>,
+        selected: List<StringId>?,
+        configureSettings: (DefaultStringListFieldSettings.() -> Unit)? = null
     ): this(id = id,
             values = values,
             detailedValues = values,
@@ -462,7 +708,7 @@ data class StringListField<DataId : DataFieldId>(
         id: DataId,
         values: List<StringWithId>,
         detailedValues: List<StringWithId>,
-        selected: StringId?,
+        selected: List<StringId>?,
         configureSettings: (DefaultStringListFieldSettings.() -> Unit)? = null
     ): this(id = id,
             values = values,
@@ -481,10 +727,12 @@ data class SelectDurationField<DataId : DataFieldId>(
 
     interface SelectDurationFieldSettings : EditableSettings {
         val label: String?
+        val zeroMinutesStringId: RR.string?
     }
 
     internal data class DefaultSelectDurationFieldSettings(
         override var label: String? = null,
+        override var zeroMinutesStringId: RR.string? = null,
         override var readOnly: Boolean = true,
         override var paddingTop: Padding = Padding.MEDIUM,
         override var paddingBottom: Padding = Padding.MEDIUM,
@@ -569,6 +817,144 @@ data class InstructionsField<DataId : DataFieldId>(
     ): this(id = id,
         type = type,
         settings = DefaultSettings().configuredBy(configureSettings)
+    )
+}
+
+data class HarvestField<DataId : DataFieldId>(
+    override val id: DataId,
+    val harvestId: Long,
+    val speciesCode: SpeciesCode,
+    val pointOfTime: LocalDateTime,
+    val amount: Int,
+    val acceptStatus: AcceptStatus,
+    override val settings: Settings,
+) : DataField<DataId>() {
+
+    internal constructor(
+        id: DataId,
+        harvestId: Long,
+        speciesCode: SpeciesCode,
+        pointOfTime: LocalDateTime,
+        amount: Int,
+        acceptStatus: AcceptStatus,
+        configureSettings: (DefaultSettings.() -> Unit)? = null
+    ): this(id = id,
+            harvestId = harvestId,
+            speciesCode = speciesCode,
+            pointOfTime = pointOfTime,
+            amount = amount,
+            acceptStatus = acceptStatus,
+            settings = DefaultSettings().configuredBy(configureSettings)
+    )
+}
+
+data class ObservationField<DataId : DataFieldId>(
+    override val id: DataId,
+    val observationId: Long,
+    val speciesCode: SpeciesCode,
+    val pointOfTime: LocalDateTime,
+    val amount: Int,
+    val acceptStatus: AcceptStatus,
+    override val settings: Settings,
+) : DataField<DataId>() {
+
+    internal constructor(
+        id: DataId,
+        observationId: Long,
+        speciesCode: SpeciesCode,
+        pointOfTime: LocalDateTime,
+        amount: Int,
+        acceptStatus: AcceptStatus,
+        configureSettings: (DefaultSettings.() -> Unit)? = null
+    ): this(id = id,
+            observationId = observationId,
+            speciesCode = speciesCode,
+            pointOfTime = pointOfTime,
+            amount = amount,
+            acceptStatus = acceptStatus,
+            settings = DefaultSettings().configuredBy(configureSettings)
+    )
+}
+
+/**
+ * A [DataField] for requesting custom UI to be displayed.
+ *
+ * This field can be used e.g. for text + button that should be displayed between
+ * other fields in some particular case. The user interface (e.g. fragments on android,
+ * viewcontrollers on iOS) need to be able to handle these.
+ */
+data class CustomUserInterfaceField<DataId : DataFieldId>(
+    override val id: DataId,
+    override val settings: Settings,
+) : DataField<DataId>() {
+
+    internal constructor(
+        id: DataId,
+        configureSettings: (DefaultSettings.() -> Unit)? = null
+    ): this(id = id,
+            settings = DefaultSettings().configuredBy(configureSettings)
+    )
+}
+
+data class ButtonField<DataId : DataFieldId>(
+    override val id: DataId,
+    val text: String,
+    override val settings: Settings
+) : DataField<DataId>() {
+
+    internal constructor(
+        id: DataId,
+        text: String,
+        configureSettings: (DefaultSettings.() -> Unit)? = null
+    ): this(id = id,
+        text = text,
+        settings = DefaultSettings().configuredBy(configureSettings)
+    )
+}
+
+/**
+ * selectedIds are used in TOGGLE mode to list which chipds are selected.
+ */
+data class ChipField<DataId : DataFieldId>(
+    override val id: DataId,
+    val chips: List<StringWithId>,
+    val selectedIds: List<StringId>?,
+    override val settings: ChipFieldSettings,
+) : DataField<DataId>() {
+
+    enum class Mode {
+        VIEW,
+        DELETE,
+        TOGGLE,
+    }
+
+    interface ChipFieldSettings : EditableSettings {
+        val mode: Mode
+        val label: String?
+    }
+
+    internal data class DefaultChipFieldSettings(
+        override var mode: Mode = Mode.VIEW,
+        override var label: String? = null,
+        override var paddingTop: Padding = Padding.MEDIUM,
+        override var paddingBottom: Padding = Padding.MEDIUM,
+        override var requirementStatus: FieldRequirement = FieldRequirement.voluntary(),
+    ) : ChipFieldSettings {
+        override val readOnly: Boolean
+            get() {
+                return mode == Mode.VIEW
+            }
+    }
+
+    internal constructor(
+        id: DataId,
+        chips: List<StringWithId>,
+        selectedIds: List<StringId>? = null,
+        configureSettings: (DefaultChipFieldSettings.() -> Unit)? = null
+    ): this(id = id,
+        chips = chips,
+        selectedIds = selectedIds,
+        settings = DefaultChipFieldSettings().configuredBy(configureSettings)
     )
 }
 

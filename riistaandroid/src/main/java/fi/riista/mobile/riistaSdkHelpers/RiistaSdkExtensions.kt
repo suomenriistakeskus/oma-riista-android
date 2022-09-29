@@ -2,19 +2,17 @@ package fi.riista.mobile.riistaSdkHelpers
 
 import android.content.Context
 import androidx.annotation.StringRes
+import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.season.HarvestSeasons
-import fi.riista.common.model.HoursAndMinutes
-import fi.riista.common.model.LocalDate
-import fi.riista.common.model.LocalDateTime
-import fi.riista.common.model.SpeciesCode
+import fi.riista.common.model.*
 import fi.riista.common.ui.dataField.DataFieldId
 import fi.riista.common.ui.dataField.LabelField
-import fi.riista.mobile.R
-import fi.riista.mobile.feature.groupHunting.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.CaptionViewHolder
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.DataFieldViewHolderType
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.ErrorLabelViewHolder
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.InfoViewHolder
+import fi.riista.mobile.models.GeoLocation
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.dataFields.viewHolder.CaptionViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.ErrorLabelViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.InfoViewHolder
 import org.joda.time.DateTime
 
 fun LocalDate.toJodaLocalDate(): org.joda.time.LocalDate {
@@ -26,6 +24,18 @@ fun LocalDate.Companion.fromJodaLocalDate(date: org.joda.time.LocalDate): LocalD
             year = date.year,
             monthNumber = date.monthOfYear,
             dayOfMonth = date.dayOfMonth,
+    )
+}
+
+fun LocalTime.toJodaLocalTime(): org.joda.time.LocalTime {
+    return org.joda.time.LocalTime(hour, minute, second)
+}
+
+fun LocalTime.Companion.fromJodaLocalTime(time: org.joda.time.LocalTime): LocalTime {
+    return LocalTime(
+        hour = time.hourOfDay,
+        minute = time.minuteOfHour,
+        second = time.secondOfMinute,
     )
 }
 
@@ -53,28 +63,14 @@ fun HoursAndMinutes.formatToHoursAndMinutesString(
     context: Context,
     @StringRes zeroMinutesStringRes: Int? = null,
 ): String {
-    val zeroMinutes = toTotalMinutes() == 0
-
-    val hoursText = if (hours > 0 || zeroMinutes) {
-        context.resources.getQuantityString(R.plurals.hours, hours, hours)
-    } else {
-        ""
-    }
-    val minutesText = if (minutes > 0 || zeroMinutes) {
-        context.resources.getQuantityString(R.plurals.minutes, minutes, minutes)
-    } else {
-        ""
+    if (toTotalMinutes() == 0 && zeroMinutesStringRes != null) {
+        return context.getString(zeroMinutesStringRes)
     }
 
-    return when {
-        zeroMinutes && zeroMinutesStringRes != null ->
-            context.getString(zeroMinutesStringRes)
-        hoursText.isNotBlank() && minutesText.isNotBlank() ->
-            context.getString(R.string.hours_and_minutes, hoursText, minutesText)
-        hoursText.isNotBlank() -> hoursText
-        minutesText.isNotBlank() -> minutesText
-        else -> ""
-    }
+    val stringProvider = ContextStringProviderFactory.createForContext(context)
+    return formatHoursAndMinutesString(
+        stringProvider = stringProvider,
+    )
 }
 
 fun HarvestSeasons.isDuringHuntingSeason(
@@ -83,6 +79,27 @@ fun HarvestSeasons.isDuringHuntingSeason(
 ): Boolean {
     return isDuringHuntingSeason(speciesCode, LocalDate.fromJodaLocalDate(date))
 }
+
+fun GeoLocation.toETRMSGeoLocation() = ETRMSGeoLocation(
+    latitude = latitude,
+    longitude = longitude,
+    source = source.toBackendEnum(),
+    accuracy = accuracy,
+    altitude = altitude,
+    altitudeAccuracy = altitudeAccuracy,
+)
+
+fun ETRMSGeoLocation.toGeoLocation(): GeoLocation {
+    return GeoLocation().also { location ->
+        location.latitude = latitude
+        location.longitude = longitude
+        location.source = source.rawBackendEnumValue
+        location.accuracy = accuracy
+        location.altitude = altitude
+        location.altitudeAccuracy = altitudeAccuracy
+    }
+}
+
 
 // data field helpers
 

@@ -8,10 +8,10 @@ import fi.riista.common.RiistaSDK
 import fi.riista.common.extensions.loadGroupHuntingHarvestTarget
 import fi.riista.common.extensions.loadHuntingGroupTarget
 import fi.riista.common.extensions.saveToBundle
-import fi.riista.common.groupHunting.model.*
-import fi.riista.common.groupHunting.ui.groupHarvest.modify.CreateGroupHarvestController
-import fi.riista.common.groupHunting.ui.groupHarvest.modify.EditGroupHarvestController
-import fi.riista.common.groupHunting.ui.groupHarvest.view.ViewGroupHarvestController
+import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.CreateGroupHarvestController
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.EditGroupHarvestController
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.view.ViewGroupHarvestController
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
 import fi.riista.mobile.feature.groupHunting.observations.GroupObservationActivity

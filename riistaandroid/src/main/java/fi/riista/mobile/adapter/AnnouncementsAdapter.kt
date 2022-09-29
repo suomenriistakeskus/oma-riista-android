@@ -23,9 +23,10 @@ class AnnouncementsAdapter(data: List<Announcement>, context: Context) : ArrayAd
             viewHolder = ViewHolder()
             cView = LayoutInflater.from(context).inflate(R.layout.view_announcement_item, parent, false)
 
-            viewHolder.subject = cView.findViewById(R.id.announcement_subject)
+            viewHolder.organisation = cView.findViewById(R.id.announcement_sender_organisation)
             viewHolder.pointOfTime = cView.findViewById(R.id.announcement_pointoftime)
             viewHolder.senderTitle = cView.findViewById(R.id.announcement_sender_title)
+            viewHolder.subject = cView.findViewById(R.id.announcement_subject)
             viewHolder.messageBody = cView.findViewById(R.id.announcement_message)
 
             cView.tag = viewHolder
@@ -41,9 +42,10 @@ class AnnouncementsAdapter(data: List<Announcement>, context: Context) : ArrayAd
             val senderTitle = item.sender.title[if (item.sender.title.containsKey(languageCode)) languageCode else AppPreferences.LANGUAGE_CODE_FI]
             val senderOrganisation = item.sender.organisation[if (item.sender.organisation.containsKey(languageCode)) languageCode else AppPreferences.LANGUAGE_CODE_FI]
 
-            viewHolder.subject.text = item.subject
+            viewHolder.organisation.text = senderOrganisation
             viewHolder.pointOfTime.text = sDateFormat.format(Instant.parse(item.pointOfTime).toDate())
-            viewHolder.senderTitle.text = String.format("%s - %s", senderTitle, senderOrganisation)
+            viewHolder.senderTitle.text = senderTitle
+            viewHolder.subject.text = item.subject
             viewHolder.messageBody.text = item.body
         }
 
@@ -51,10 +53,11 @@ class AnnouncementsAdapter(data: List<Announcement>, context: Context) : ArrayAd
     }
 
     private class ViewHolder {
-        internal lateinit var subject: TextView
-        internal lateinit var pointOfTime: TextView
-        internal lateinit var senderTitle: TextView
-        internal lateinit var messageBody: TextView
+        lateinit var organisation: TextView
+        lateinit var pointOfTime: TextView
+        lateinit var senderTitle: TextView
+        lateinit var subject: TextView
+        lateinit var messageBody: TextView
     }
 
     companion object {

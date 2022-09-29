@@ -9,7 +9,7 @@
     tools:background="@color/colorPrimary">
 
     <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/toolbar_display_pins_button"
+        android:id="@+id/toolbar_display_markers_button"
         style="@style/ToolbarButton"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
@@ -20,15 +20,15 @@
         app:srcCompat="@drawable/ic_pin_disabled_white" />
 
     <TextView
-        android:id="@+id/toolbar_display_pins_title"
+        android:id="@+id/toolbar_display_markers_title"
         style="@style/HeaderText"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:gravity="center_vertical"
-        android:text="@string/map_display_pins"
+        android:text="@string/map_show_markers"
         android:textColor="@color/onPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/toolbar_display_pins_button"
+        app:layout_constraintStart_toEndOf="@id/toolbar_display_markers_button"
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
