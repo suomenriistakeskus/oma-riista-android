@@ -9,7 +9,7 @@ import fi.vincit.androidutilslib.context.WorkContext;
 import fi.vincit.androidutilslib.task.TextTask;
 
 public class RegisterPushDeviceTask extends TextTask {
-    private String mPushToken;
+    private final String mPushToken;
 
     public RegisterPushDeviceTask(WorkContext workContext, String pushToken) {
         super(workContext);

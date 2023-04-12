@@ -26,12 +26,13 @@ class CreateObservationFragment
     , LocationListener {
 
     interface Manager : BaseManager, LocationClientProvider {
-        fun onCreateObservation(observation: CommonObservation)
+        fun onCreateObservationCompleted(observation: CommonObservation)
     }
 
     override val controller: CreateObservationController by lazy {
         CreateObservationController(
             userContext = RiistaSDK.currentUserContext,
+            observationContext = RiistaSDK.observationContext,
             metadataProvider = RiistaSDK.metadataProvider,
             stringProvider = ContextStringProviderFactory.createForContext(requireContext())
         )
@@ -61,15 +62,8 @@ class CreateObservationFragment
         manager.locationClient.removeListener(this)
     }
 
-
-
-    override fun onSaveButtonClicked() {
-        val observation = controller.getValidatedObservation()
-            ?: kotlin.run {
-                return
-            }
-
-        manager.onCreateObservation(observation = observation)
+    override fun notifyManagerAboutSuccessfulSave(observation: CommonObservation) {
+        manager.onCreateObservationCompleted(observation)
     }
 
     override fun getManagerFromContext(context: Context): Manager {

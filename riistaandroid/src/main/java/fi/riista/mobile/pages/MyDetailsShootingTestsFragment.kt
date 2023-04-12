@@ -10,9 +10,8 @@ import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
 import dagger.android.support.AndroidSupportInjection
+import fi.riista.common.domain.model.ShootingTestType
 import fi.riista.mobile.R
-import fi.riista.mobile.models.shootingTest.ShootingTestType
-import fi.riista.mobile.models.shootingTest.ShootingTestType.*
 import fi.riista.mobile.models.user.UserInfo
 import fi.riista.mobile.utils.UserInfoStore
 import java.text.DateFormat
@@ -137,10 +136,10 @@ class MyDetailsShootingTestsFragment : DialogFragment() {
 
     private fun shootingTestTypeToText(type: ShootingTestType): String {
         @StringRes val strResId: Int = when (type) {
-            MOOSE -> R.string.shooting_test_type_moose
-            BEAR -> R.string.shooting_test_type_bear
-            ROE_DEER -> R.string.shooting_test_type_roe_deer
-            BOW -> R.string.shooting_test_type_bow
+            ShootingTestType.MOOSE -> R.string.shooting_test_type_moose
+            ShootingTestType.BEAR -> R.string.shooting_test_type_bear
+            ShootingTestType.ROE_DEER -> R.string.shooting_test_type_roe_deer
+            ShootingTestType.BOW -> R.string.shooting_test_type_bow
         }
 
         return getString(strResId)

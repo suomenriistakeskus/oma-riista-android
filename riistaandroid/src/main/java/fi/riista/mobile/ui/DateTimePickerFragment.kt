@@ -6,6 +6,7 @@ import android.app.TimePickerDialog
 import android.os.Bundle
 import android.widget.DatePicker
 import android.widget.TimePicker
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import org.joda.time.DateTime
@@ -27,7 +28,7 @@ class DateTimePickerFragment: DialogFragment(), DatePickerDialog.OnDateSetListen
      * An interface for the listener. The instantiating activity is expected to implement this.
      */
     interface Listener {
-        fun onDateTimeSelected(dialogId: Int, dateTime: DateTime)
+        fun onDateTimeSelected(fieldId: Int, dateTime: DateTime)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -41,7 +42,6 @@ class DateTimePickerFragment: DialogFragment(), DatePickerDialog.OnDateSetListen
             PickMode.DATE -> createDatePickerDialog(selectedDateTime, minDateTime, maxDateTime)
             PickMode.TIME -> createTimePickerDialog(selectedDateTime)
         }
-
     }
 
     private fun createDatePickerDialog(
@@ -78,14 +78,10 @@ class DateTimePickerFragment: DialogFragment(), DatePickerDialog.OnDateSetListen
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
         val originalDateTime = getDateTimeFromArguments()
         val newDateTime = DateTime(
-                year, month + 1, dayOfMonth,
-                originalDateTime.hourOfDay, originalDateTime.minuteOfHour, originalDateTime.secondOfMinute
+            year, month + 1, dayOfMonth,
+            originalDateTime.hourOfDay, originalDateTime.minuteOfHour, originalDateTime.secondOfMinute
         )
-
-        getListener()?.onDateTimeSelected(
-                dialogId = requireArguments().getInt(KEY_DIALOG_ID),
-                dateTime = newDateTime
-        )
+        setFragmentResult(newDateTime)
     }
 
     override fun onTimeSet(view: TimePicker?, hourOfDay: Int, minute: Int) {
@@ -93,10 +89,17 @@ class DateTimePickerFragment: DialogFragment(), DatePickerDialog.OnDateSetListen
 
         val newDateTime = getDateTimeWithinLimits(originalDateTime.toLocalDate(), hourOfDay, minute)
 
-        getListener()?.onDateTimeSelected(
-                dialogId = requireArguments().getInt(KEY_DIALOG_ID),
-                dateTime = newDateTime
-        )
+        setFragmentResult(newDateTime)
+    }
+
+    private fun setFragmentResult(dateTime: DateTime) {
+        val requestCode = requireNotNull(requireArguments().getString(KEY_REQUEST_CODE))
+        val fieldId = requireArguments().getInt(KEY_FIELD_ID)
+        val bundle = Bundle().also {
+            it.putInt(KEY_DIALOG_RESULT_FIELD, fieldId)
+            it.putLong(KEY_DIALOG_RESULT_DATE_TIME_MILLIS, dateTime.millis)
+        }
+        requireActivity().supportFragmentManager.setFragmentResult(requestCode, bundle)
     }
 
     private fun getDateTimeWithinLimits(date: LocalDate, hourOfDay: Int, minute: Int): DateTime {
@@ -132,46 +135,50 @@ class DateTimePickerFragment: DialogFragment(), DatePickerDialog.OnDateSetListen
         return hourOfDay * 60 + minute
     }
 
-    private fun getListener(): Listener? {
-        // prefer targetFragment over activity
-        return targetFragment as? Listener
-                ?: activity as? Listener
-    }
-
     private fun getDateTimeFromArguments(): DateTime {
         return requireArguments().getSerializable(KEY_SELECTED_DATE_TIME) as DateTime
     }
 
     companion object {
-        private const val KEY_DIALOG_ID = "DTPF_dialogId"
+        const val KEY_DIALOG_RESULT_FIELD = "DateTimePickerFragmentField"
+        const val KEY_DIALOG_RESULT_DATE_TIME_MILLIS = "DateTimePickerFragmentDateTime"
+
+        private const val KEY_REQUEST_CODE = "DTPF_requestCode"
+        private const val KEY_FIELD_ID = "DTPF_fieldId"
         private const val KEY_PICK_MODE = "DTPF_pickMode"
         private const val KEY_SELECTED_DATE_TIME = "DTPF_selectedDateTime"
         private const val KEY_MIN_DATE_TIME = "DTPF_minDateTime"
         private const val KEY_MAX_DATE_TIME = "DTPF_maxDateTime"
 
-        fun create(dialogId: Int,
-                   selectedDate: org.joda.time.LocalDate,
-                   minDate: org.joda.time.LocalDate? = null,
-                   maxDate: org.joda.time.LocalDate? = null
+        fun create(
+            requestCode: String,
+            fieldId: Int,
+            selectedDate: LocalDate,
+            minDate: LocalDate? = null,
+            maxDate: LocalDate? = null
         ): DateTimePickerFragment {
             return create(
-                    dialogId = dialogId,
-                    pickMode = PickMode.DATE,
-                    selectedDateTime = selectedDate.toDateTime(LocalTime(12, 0, 0)),
-                    minDateTime = minDate?.toDateTime(LocalTime(0, 0, 0)),
-                    maxDateTime = maxDate?.toDateTime(LocalTime(23, 59, 59))
+                requestCode = requestCode,
+                fieldId = fieldId,
+                pickMode = PickMode.DATE,
+                selectedDateTime = selectedDate.toDateTime(LocalTime(12, 0, 0)),
+                minDateTime = minDate?.toDateTime(LocalTime(0, 0, 0)),
+                maxDateTime = maxDate?.toDateTime(LocalTime(23, 59, 59))
             )
         }
 
-        fun create(dialogId: Int,
-                   pickMode: PickMode,
-                   selectedDateTime: DateTime,
-                   minDateTime: DateTime?,
-                   maxDateTime: DateTime?
+        fun create(
+            requestCode: String,
+            fieldId: Int,
+            pickMode: PickMode,
+            selectedDateTime: DateTime,
+            minDateTime: DateTime?,
+            maxDateTime: DateTime?
         ): DateTimePickerFragment {
             return DateTimePickerFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(KEY_DIALOG_ID, dialogId)
+                    putString(KEY_REQUEST_CODE, requestCode)
+                    putInt(KEY_FIELD_ID, fieldId)
                     putString(KEY_PICK_MODE, pickMode.toString())
                     putSerializable(KEY_SELECTED_DATE_TIME, selectedDateTime)
                     minDateTime?.let {
@@ -186,15 +193,37 @@ class DateTimePickerFragment: DialogFragment(), DatePickerDialog.OnDateSetListen
     }
 }
 
+fun <T> T.registerDatePickerFragmentResultListener(
+    requestCode: String,
+) where T : Fragment, T : DateTimePickerFragment.Listener  {
+    requireActivity().supportFragmentManager.setFragmentResultListener(
+        requestCode,
+        viewLifecycleOwner,
+    ) { _, result ->
+        val fieldId = result.getInt(DateTimePickerFragment.KEY_DIALOG_RESULT_FIELD)
+        val dateTime = result.getLong(DateTimePickerFragment.KEY_DIALOG_RESULT_DATE_TIME_MILLIS)
+        onDateTimeSelected(fieldId, DateTime(dateTime))
+    }
+}
+
+fun <T> T.registerDatePickerFragmentResultListener(
+    requestCode: String,
+) where T : AppCompatActivity, T : DateTimePickerFragment.Listener {
+    supportFragmentManager.setFragmentResultListener(
+        requestCode,
+        this,
+    ) { _, result ->
+        val fieldId = result.getInt(DateTimePickerFragment.KEY_DIALOG_RESULT_FIELD)
+        val dateTime = result.getLong(DateTimePickerFragment.KEY_DIALOG_RESULT_DATE_TIME_MILLIS)
+        onDateTimeSelected(fieldId, DateTime(dateTime))
+    }
+}
 
 fun <T> T.showDatePickerFragment(
     datePickerFragment: DateTimePickerFragment,
-    requestCode: Int,
-) where T : Fragment, T : DateTimePickerFragment.Listener {
+) where T : Fragment {
     requireNotNull(tag) {
         "Fragment needs to have a tag in order to launch a DurationPickerFragment"
     }
-
-    datePickerFragment.setTargetFragment(this, requestCode)
     datePickerFragment.show(requireActivity().supportFragmentManager, datePickerFragment.tag)
 }

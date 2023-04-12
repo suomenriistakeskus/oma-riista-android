@@ -3,6 +3,7 @@
     <dimen name="log_image_size">50dp</dimen>
 
     <dimen name="padding_tiny">2dp</dimen>
+    <dimen name="padding_xsmall">4dp</dimen>
     <dimen name="padding_small">8dp</dimen>
     <dimen name="padding_medium">12dp</dimen>
     <dimen name="padding_medium_large">16dp</dimen>
@@ -62,9 +63,11 @@
 
     <dimen name="square_image_button_dimen">46dp</dimen>
     <dimen name="default_button_height">50dp</dimen>
+    <dimen name="min_button_height">40dp</dimen>
     <dimen name="default_button_height_plus_10dip">60dp</dimen>
     <dimen name="default_button_height_minus_borders">48dp</dimen>
-    <dimen name="radio_button_height">40dp</dimen>
+    <dimen name="radio_button_height">@dimen/min_button_height</dimen>
+
 
     <dimen name="antler_instructions_section_padding">36dp</dimen>
     <dimen name="antler_instructions_vertical_padding">8dp</dimen>

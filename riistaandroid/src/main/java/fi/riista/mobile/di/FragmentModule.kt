@@ -12,12 +12,16 @@ import fi.riista.mobile.feature.groupHunting.map.ListGroupDiaryEntriesDialogFrag
 import fi.riista.mobile.feature.groupHunting.observations.CreateGroupObservationFragment
 import fi.riista.mobile.feature.groupHunting.observations.EditGroupObservationFragment
 import fi.riista.mobile.feature.groupHunting.observations.ViewGroupObservationFragment
+import fi.riista.mobile.feature.harvest.CreateHarvestFragment
+import fi.riista.mobile.feature.harvest.EditHarvestFragment
+import fi.riista.mobile.feature.harvest.ViewHarvestFragment
 import fi.riista.mobile.feature.huntingControl.CreateHuntingControlEventFragment
 import fi.riista.mobile.feature.huntingControl.EditHuntingControlEventFragment
 import fi.riista.mobile.feature.huntingControl.ViewHuntingControlEventFragment
 import fi.riista.mobile.feature.login.EmailChangedFragment
 import fi.riista.mobile.feature.login.LoginFragment
 import fi.riista.mobile.feature.login.ResetPasswordFragment
+import fi.riista.mobile.feature.moreView.MoreViewFragment
 import fi.riista.mobile.feature.myDetails.MyDetailsHuntingClubMembershipsFragment
 import fi.riista.mobile.feature.myDetails.MyDetailsTrainingsFragment
 import fi.riista.mobile.feature.observation.CreateObservationFragment
@@ -31,7 +35,6 @@ import fi.riista.mobile.pages.ContactDetailsFragment
 import fi.riista.mobile.pages.GalleryFragment
 import fi.riista.mobile.pages.GameLogFragment
 import fi.riista.mobile.pages.GroupHuntingMapViewer
-import fi.riista.mobile.pages.HarvestFragment
 import fi.riista.mobile.pages.HomeViewFragment
 import fi.riista.mobile.pages.MapViewer
 import fi.riista.mobile.pages.MyDetailsFragment
@@ -59,6 +62,9 @@ abstract class FragmentModule {
     abstract fun contributeGameLogFragment(): GameLogFragment
 
     @ContributesAndroidInjector
+    abstract fun contributeMoreViewFragment(): MoreViewFragment
+
+    @ContributesAndroidInjector
     abstract fun contributeMapViewerFragment(): MapViewer
 
     @ContributesAndroidInjector
@@ -66,9 +72,6 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributeAnnouncementsFragment(): AnnouncementsFragment
-
-    @ContributesAndroidInjector
-    abstract fun contributeHarvestFragment(): HarvestFragment
 
     @ContributesAndroidInjector
     abstract fun contributePermitListFragment(): PermitList
@@ -197,4 +200,16 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributeCreateObservationFragment(): CreateObservationFragment
+
+
+    // Harvest
+
+    @ContributesAndroidInjector
+    abstract fun contributeViewHarvestFragment(): ViewHarvestFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeEditHarvestFragment(): EditHarvestFragment
+
+    @ContributesAndroidInjector
+    abstract fun contributeCreateHarvestFragment(): CreateHarvestFragment
 }

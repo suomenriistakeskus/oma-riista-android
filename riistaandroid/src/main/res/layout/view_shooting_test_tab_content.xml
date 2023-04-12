@@ -8,7 +8,7 @@
     tools:context="fi.riista.mobile.activity.ShootingTestMainActivity"
     tools:showIn="@layout/activity_shooting_test_main">
 
-    <fi.riista.mobile.ui.ShootingTestTabViewPager xmlns:android="http://schemas.android.com/apk/res/android"
+    <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/shooting_test_tab_content_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

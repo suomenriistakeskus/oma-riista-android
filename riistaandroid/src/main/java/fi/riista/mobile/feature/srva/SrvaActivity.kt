@@ -5,22 +5,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
-import fi.riista.common.extensions.deserializeJson
-import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.ui.modify.EditableSrvaEvent
+import fi.riista.common.extensions.deserializeJson
+import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
-import fi.riista.mobile.message.EventUpdateMessage
-import fi.riista.mobile.models.srva.SrvaEvent
 import fi.riista.mobile.pages.PageFragment
-import fi.riista.mobile.riistaSdkHelpers.toAppSrvaEvent
-import fi.riista.mobile.srva.SrvaDatabase
 import fi.riista.mobile.ui.BusyIndicatorView
-import fi.riista.mobile.utils.BaseDatabase
-import fi.riista.mobile.utils.DateTimeUtils
-import java.util.*
 
 class SrvaActivity
     : BaseActivity()
@@ -132,65 +124,42 @@ class SrvaActivity
         }
     }
 
+    override fun indicateBusy() {
+        busyIndicatorView.show()
+    }
+
+    override fun hideBusyIndicators(indicatorsDismissed: () -> Unit) {
+        busyIndicatorView.hide {
+            indicatorsDismissed()
+        }
+    }
+
     override fun cancelSrvaOperation() {
         onBackPressed()
     }
 
-    override fun onSaveSrvaEvent(srvaEvent: CommonSrvaEvent) {
-        saveSrvaEvent(srvaEvent) {
-            // pop the edit fragment
-            onBackPressed()
-        }
-    }
+    override fun onNewSrvaEventCreateCompleted(srvaEvent: CommonSrvaEvent) {
+        busyIndicatorView.hide {
+            this.srvaEvent = srvaEvent
+            srvaEventModifiedOrCreated = true
 
-    override fun onCreateSrvaEvent(srvaEvent: CommonSrvaEvent) {
-        saveSrvaEvent(srvaEvent) {
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
-                    ViewSrvaFragment.create(),
-                    Mode.VIEW.fragmentTag
+                    ViewSrvaFragment(),
+                    "VIEWSrvaFragment"
                 )
                 .commit()
         }
     }
 
-    private fun saveSrvaEvent(srvaEvent: CommonSrvaEvent, completion: () -> Unit) {
-        val appSrvaEvent = srvaEvent.toAppSrvaEvent(eventModified = true)
-        SrvaDatabase.getInstance().saveEvent(appSrvaEvent, object : BaseDatabase.SaveListener {
-            override fun onSaved(id: Long) {
-                onSrvaEventSaved(
-                    srvaEvent = srvaEvent.copy(localId = id),
-                    appSrvaEvent = appSrvaEvent.apply {
-                        localId = id
-                    },
-                    completion = completion
-                )
-            }
+    override fun onSrvaEventSaveCompleted(srvaEvent: CommonSrvaEvent) {
+        busyIndicatorView.hide {
+            this.srvaEvent = srvaEvent
+            srvaEventModifiedOrCreated = true
 
-            override fun onError() {
-                Toast.makeText(this@SrvaActivity, R.string.error_operation_failed, Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
-    }
-
-    private fun onSrvaEventSaved(
-        srvaEvent: CommonSrvaEvent,
-        appSrvaEvent: SrvaEvent,
-        completion: () -> Unit,
-    ) {
-        this.srvaEvent = srvaEvent
-        srvaEventModifiedOrCreated = true
-
-        val huntingYear = DateTimeUtils.getHuntingYearForCalendar(
-            appSrvaEvent.toDateTime().toCalendar(Locale.getDefault())
-        )
-        workContext.sendGlobalMessage(
-            EventUpdateMessage(appSrvaEvent.type, appSrvaEvent.localId, huntingYear)
-        )
-
-        completion()
+            supportFragmentManager.popBackStack()
+        }
     }
 
     override fun getSrvaEventForViewing(): CommonSrvaEvent {
@@ -210,24 +179,10 @@ class SrvaActivity
             .commit()
     }
 
-    override fun deleteSrvaEvent() {
-        val srvaEventToDelete = getSrvaEventForViewing()
-        SrvaDatabase.getInstance().deleteEvent(
-            srvaEventToDelete.localId,
-            srvaEventToDelete.remoteId,
-            false,
-            object : BaseDatabase.DeleteListener {
-                override fun onDelete() {
-                    srvaEvent = null // clear so that it won't be stored to result
-                    srvaEventModifiedOrCreated = true
-                    onBackPressed()
-                }
-
-                override fun onError() {
-                    // nop
-                }
-            }
-        )
+    override fun onSrvaEventDeleted() {
+        srvaEvent = null // clear so that it won't be stored to result
+        srvaEventModifiedOrCreated = true
+        onBackPressed()
     }
 
     companion object {

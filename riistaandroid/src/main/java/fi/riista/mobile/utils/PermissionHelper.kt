@@ -2,20 +2,17 @@ package fi.riista.mobile.utils
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import fi.riista.mobile.RiistaApplication
 
 object PermissionHelper {
     val photoPermissions = arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    val locationPermission = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
 
     @JvmStatic
-    fun hasPhotoPermissions(context: Context): Boolean {
-        return photoPermissions.fold(initial = true) { value, permission ->
-            value && checkIfGranted(context, permission)
-        }
-    }
+    fun hasPhotoPermissions() = photoPermissions.checkPermissions()
 
     @JvmStatic
     /**
@@ -24,14 +21,20 @@ object PermissionHelper {
      * user has to tap item again to use granted permission.
      */
     fun requestPhotoPermissions(activity: Activity, requestCode: Int) {
-        if (!hasPhotoPermissions(activity as Context)) {
+        if (!hasPhotoPermissions()) {
             ActivityCompat.requestPermissions(activity, photoPermissions, requestCode)
         }
     }
 
-    private fun checkIfGranted(context: Context, permission: String): Boolean {
-        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    fun hasLocationPermissions() = locationPermission.checkPermissions()
+
+    private fun Array<String>.checkPermissions() = this.fold(initial = true) { value, permission ->
+        value && checkIfGranted(permission)
     }
 
-
+    private fun checkIfGranted(permission: String) = ContextCompat.checkSelfPermission(
+        RiistaApplication.getInstance(),
+        permission
+    ) == PackageManager.PERMISSION_GRANTED
 }
+

@@ -5,8 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
-import dagger.android.AndroidInjection
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.observation.model.CommonObservation
 import fi.riista.common.domain.observation.ui.modify.EditableObservation
@@ -14,16 +12,8 @@ import fi.riista.common.extensions.deserializeJson
 import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
-import fi.riista.mobile.message.EventUpdateMessage
-import fi.riista.mobile.models.observation.GameObservation
-import fi.riista.mobile.observation.ObservationDatabase
 import fi.riista.mobile.pages.PageFragment
-import fi.riista.mobile.riistaSdkHelpers.toAppObservation
 import fi.riista.mobile.ui.BusyIndicatorView
-import fi.riista.mobile.utils.BaseDatabase
-import fi.riista.mobile.utils.DateTimeUtils
-import java.util.*
-import javax.inject.Inject
 
 class ObservationActivity
     : BaseActivity()
@@ -47,11 +37,7 @@ class ObservationActivity
 
     private lateinit var busyIndicatorView: BusyIndicatorView
 
-    @Inject
-    lateinit var observationDatabase: ObservationDatabase
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_observation)
 
@@ -141,71 +127,42 @@ class ObservationActivity
         }
     }
 
-    override fun cancelObservationOperation() {
-        onBackPressed()
-    }
+    override fun onCreateObservationCompleted(observation: CommonObservation) {
+        busyIndicatorView.hide {
+            this.observation = observation
+            observationModifiedOrCreated = true
 
-    override fun onSaveObservation(observation: CommonObservation) {
-        saveObservation(observation) {
-            // pop the edit fragment
-            onBackPressed()
-        }
-    }
-
-    override fun onCreateObservation(observation: CommonObservation) {
-        saveObservation(observation) {
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
-                    ViewObservationFragment.create(),
-                    Mode.VIEW.fragmentTag
+                    ViewObservationFragment(),
+                    Mode.VIEW.fragmentTag,
                 )
                 .commit()
         }
     }
 
-    private fun saveObservation(observation: CommonObservation, completion: () -> Unit) {
-        val appObservation = observation.toAppObservation(observationModified = true)
-        if (appObservation == null) {
-            Toast.makeText(this, R.string.error_operation_failed, Toast.LENGTH_SHORT)
-                .show()
-            return
-        }
-
-        observationDatabase.saveObservation(appObservation, object : BaseDatabase.SaveListener {
-            override fun onSaved(id: Long) {
-                onObservationSaved(
-                    observation = observation.copy(localId = id),
-                    appObservation = appObservation.apply {
-                        localId = id
-                    },
-                    completion = completion
-                )
-            }
-
-            override fun onError() {
-                Toast.makeText(this@ObservationActivity, R.string.error_operation_failed, Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
+    override fun indicateBusy() {
+        busyIndicatorView.show()
     }
 
-    private fun onObservationSaved(
-        observation: CommonObservation,
-        appObservation: GameObservation,
-        completion: () -> Unit,
-    ) {
-        this.observation = observation
-        observationModifiedOrCreated = true
+    override fun hideBusyIndicators(indicatorsDismissed: () -> Unit) {
+        busyIndicatorView.hide {
+            indicatorsDismissed()
+        }
+    }
 
-        val huntingYear = DateTimeUtils.getHuntingYearForCalendar(
-            appObservation.toDateTime().toCalendar(Locale.getDefault())
-        )
-        workContext.sendGlobalMessage(
-            EventUpdateMessage(appObservation.type, appObservation.localId, huntingYear)
-        )
+    override fun onObservationSaveCompleted(observation: CommonObservation) {
+        busyIndicatorView.hide {
+            this.observation = observation
+            observationModifiedOrCreated = true
 
-        completion()
+            supportFragmentManager.popBackStack()
+        }
+    }
+
+    override fun cancelObservationOperation() {
+        onBackPressed()
     }
 
     override fun getObservationForViewing(): CommonObservation {
@@ -225,24 +182,10 @@ class ObservationActivity
             .commit()
     }
 
-    override fun deleteObservation() {
-        val observationToDelete = getObservationForViewing()
-        observationDatabase.deleteObservation(
-            observationToDelete.localId,
-            observationToDelete.remoteId,
-            false,
-            object : BaseDatabase.DeleteListener {
-                override fun onDelete() {
-                    observation = null // clear so that it won't be stored to result
-                    observationModifiedOrCreated = true
-                    onBackPressed()
-                }
-
-                override fun onError() {
-                    // nop
-                }
-            }
-        )
+    override fun onObservationDeleted() {
+        observation = null // clear so that it won't be stored to result
+        observationModifiedOrCreated = true
+        onBackPressed()
     }
 
     companion object {

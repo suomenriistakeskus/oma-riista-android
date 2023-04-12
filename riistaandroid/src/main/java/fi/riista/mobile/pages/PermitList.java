@@ -263,10 +263,10 @@ public class PermitList extends PageFragment {
         @SuppressLint("SimpleDateFormat")
         private final SimpleDateFormat mDateFormat = new SimpleDateFormat(DATE_TIME_FORMAT);
 
-        private LayoutInflater mInflater;
+        private final LayoutInflater mInflater;
         private List<PermitListItem> mOriginalItems;
         private List<PermitListItem> mFilteredItems;
-        private PermitItemFilter mFilter = new PermitItemFilter();
+        private final PermitItemFilter mFilter = new PermitItemFilter();
 
         PermitListAdapter(final Context context, final List<PermitListItem> items) {
             mOriginalItems = items;
@@ -390,14 +390,14 @@ public class PermitList extends PageFragment {
     }
 
     private class PermitListItem {
-        private String permitType;
-        private String permitNumber;
-        private Integer gameSpeciesCode;
-        private Double amount;
-        private LocalDate beginDate;
-        private LocalDate endDate;
-        private LocalDate beginDate2;
-        private LocalDate endDate2;
+        private final String permitType;
+        private final String permitNumber;
+        private final Integer gameSpeciesCode;
+        private final Double amount;
+        private final LocalDate beginDate;
+        private final LocalDate endDate;
+        private final LocalDate beginDate2;
+        private final LocalDate endDate2;
 
         PermitListItem(final String permitType,
                        final String permitNumber,

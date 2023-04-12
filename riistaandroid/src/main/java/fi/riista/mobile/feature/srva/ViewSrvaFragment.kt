@@ -26,11 +26,15 @@ import fi.riista.mobile.feature.specimens.SpecimensActivity
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.sync.SyncConfig
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.CanIndicateBusy
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.FullScreenEntityImageDialog
 import fi.riista.mobile.ui.FullScreenEntityImageDialogLauncher
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.ui.dataFields.viewHolder.*
-import fi.riista.mobile.utils.EditUtils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -44,23 +48,35 @@ class ViewSrvaFragment
     , DataFieldViewHolderTypeResolver<SrvaEventField>
     , MapOpener
     , FullScreenEntityImageDialogLauncher
-    , SpecimensActivityLauncher<SrvaEventField> {
+    , SpecimensActivityLauncher<SrvaEventField>
+{
 
-    interface Manager {
+    interface Manager: CanIndicateBusy {
         fun getSrvaEventForViewing(): CommonSrvaEvent
         fun startEditSrvaEvent(editableSrvaEvent: EditableSrvaEvent)
-        fun deleteSrvaEvent()
+        fun onSrvaEventDeleted()
     }
 
     @Inject
     lateinit var speciesResolver: SpeciesResolver
+
+    @Inject
+    lateinit var syncConfig: SyncConfig
+
+    private lateinit var dialogListener: AlertDialogFragment.Listener
 
     private lateinit var adapter: DataFieldRecyclerViewAdapter<SrvaEventField>
 
     private lateinit var manager: Manager
 
     private val controller: ViewSrvaEventController by lazy {
+        val srvaEventId = requireNotNull(manager.getSrvaEventForViewing().localId) {
+            "Manager is required to provide srva event"
+        }
+
         ViewSrvaEventController(
+            srvaEventId = srvaEventId,
+            srvaContext = RiistaSDK.srvaContext,
             metadataProvider = RiistaSDK.metadataProvider,
             stringProvider = ContextStringProviderFactory.createForContext(requireContext())
         )
@@ -100,7 +116,11 @@ class ViewSrvaFragment
             }
 
         setHasOptionsMenu(true)
-
+        dialogListener = DelegatingAlertDialogListener(requireActivity()).apply {
+            registerPositiveCallback(AlertDialogId.VIEW_SRVA_FRAGMENT_DELETE_ENTRY_CONFIRMATION) {
+                deleteSrvaEvent()
+            }
+        }
         return view
     }
 
@@ -123,7 +143,7 @@ class ViewSrvaFragment
                 true
             }
             R.id.item_delete -> {
-                deleteSrvaEvent()
+                askDeleteSrvaEventConfirmation()
                 true
             }
             else -> false
@@ -168,7 +188,7 @@ class ViewSrvaFragment
 
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<SrvaEventField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(
                     mapOpener = this@ViewSrvaFragment,
@@ -218,7 +238,6 @@ class ViewSrvaFragment
 
     private fun loadSrvaEvent() {
         MainScope().launch {
-            controller.srvaEvent = manager.getSrvaEventForViewing()
             controller.loadViewModel(refresh = false)
         }
     }
@@ -231,12 +250,28 @@ class ViewSrvaFragment
         }
     }
 
+    private fun askDeleteSrvaEventConfirmation() {
+        AlertDialogFragment.Builder(requireContext(), AlertDialogId.VIEW_SRVA_FRAGMENT_DELETE_ENTRY_CONFIRMATION)
+            .setTitle(R.string.delete_entry_caption)
+            .setMessage(R.string.deleta_entry_text)
+            .setPositiveButton(android.R.string.ok)
+            .setNegativeButton(android.R.string.cancel)
+            .build()
+            .show(requireActivity().supportFragmentManager)
+    }
+
     private fun deleteSrvaEvent() {
-        EditUtils.showDeleteDialog(requireContext(), object : EditUtils.OnDeleteListener {
-            override fun onDelete() {
-                manager.deleteSrvaEvent()
+        manager.indicateBusy()
+
+        MainScope().launch {
+            val deleted = controller.deleteSrvaEvent(updateToBackend = syncConfig.isAutomatic())
+
+            manager.hideBusyIndicators {
+                if (deleted) {
+                    manager.onSrvaEventDeleted()
+                }
             }
-        })
+        }
     }
 
     override fun openMap(location: Location) {
@@ -244,6 +279,7 @@ class ViewSrvaFragment
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, false)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_SHOW_ITEMS, false)
         startActivity(intent)
     }
 

@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.huntingControl
 
-import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -21,6 +20,8 @@ import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.mobile.R
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import kotlinx.coroutines.*
@@ -87,6 +88,7 @@ class EditHuntingControlEventFragment : ModifyHuntingControlEventFragment<EditHu
                 }
             }
 
+        registerFragmentResultListeners()
         return view
     }
 
@@ -160,11 +162,14 @@ class EditHuntingControlEventFragment : ModifyHuntingControlEventFragment<EditHu
                 interactionManager.onHuntingControlEventSaveCompleted(true)
             } else {
                 interactionManager.onHuntingControlEventSaveCompleted(false) {
-                    AlertDialog.Builder(requireContext())
+                    AlertDialogFragment.Builder(
+                        requireContext(),
+                        AlertDialogId.EDIT_HUNTING_CONTROL_EVENT_FRAGMENT_SAVE_FAILED
+                    )
                         .setMessage(R.string.hunting_control_event_save_failed_generic)
-                        .setPositiveButton(R.string.ok, null)
-                        .create()
-                        .show()
+                        .setPositiveButton(R.string.ok)
+                        .build()
+                        .show(requireActivity().supportFragmentManager)
                 }
             }
         }

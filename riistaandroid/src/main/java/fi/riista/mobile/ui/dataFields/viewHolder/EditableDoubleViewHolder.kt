@@ -3,6 +3,7 @@ package fi.riista.mobile.ui.dataFields.viewHolder
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
+import android.text.method.DigitsKeyListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,11 @@ import fi.riista.common.logging.getLogger
 import fi.riista.common.ui.dataField.DataFieldId
 import fi.riista.common.ui.dataField.DoubleEventDispatcher
 import fi.riista.common.ui.dataField.DoubleField
-import fi.riista.common.util.letWith
 import fi.riista.mobile.R
-import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
 import fi.riista.mobile.ui.Label
-import java.lang.Math.abs
+import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
+import fi.riista.mobile.utils.DecimalValueFilter
+import fi.riista.mobile.utils.MaxValueFilter
 
 class EditableDoubleViewHolder<FieldId : DataFieldId>(
     private val dataFieldEventDispatcher: DoubleEventDispatcher<FieldId>,
@@ -24,6 +25,8 @@ class EditableDoubleViewHolder<FieldId : DataFieldId>(
 
     private val labelView: Label = view.findViewById(R.id.v_label)
     private val editText: AppCompatEditText = view.findViewById(R.id.et_editable_text)
+    private val decimalValueFilter = DecimalValueFilter(maxDecimals = null)
+    private val maxValueFilter = MaxValueFilter()
 
     init {
         editText.addTextChangedListener(object : TextWatcher {
@@ -35,20 +38,28 @@ class EditableDoubleViewHolder<FieldId : DataFieldId>(
                 // nop
             }
 
-            override fun afterTextChanged(s: Editable?) {
+            override fun afterTextChanged(editable: Editable?) {
                 if (isBinding) {
                     // prevent dispatching change events when we're actually binding
                     // the new value
                     return
+                } else if (editable == null) {
+                    return
                 }
 
-                boundDataField?.letWith(s) { dataField, editable ->
-                    dataFieldEventDispatcher.dispatchDoubleChanged(dataField.id, stringToDouble(editable.toString()))
+                boundDataField?.let { dataField ->
+                    dataFieldEventDispatcher.dispatchDoubleChanged(
+                        fieldId = dataField.id,
+                        value = stringToDouble(editable.toString())
+                    )
                 }
             }
         })
         editText.setOnEditorActionListener(FocusingOnEditorActionListener())
-        editText.inputType = InputType.TYPE_CLASS_NUMBER
+
+        editText.filters = arrayOf(decimalValueFilter, maxValueFilter)
+        editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        editText.keyListener = DigitsKeyListener.getInstance(decimalValueFilter.allowedDigits)
     }
 
     override fun onBeforeUpdateBoundData(dataField: DoubleField<FieldId>) {
@@ -65,6 +76,16 @@ class EditableDoubleViewHolder<FieldId : DataFieldId>(
             labelView.visibility = View.INVISIBLE
         }
 
+        decimalValueFilter.maxDecimals = dataField.settings.decimals
+
+        val maxValue = dataField.settings.maxValue
+        maxValueFilter.enabled = if (maxValue != null) {
+            maxValueFilter.maxValue = maxValue.toFloat()
+            true
+        } else {
+            false
+        }
+
         logger.v { "Binding data field. Current '$currentText', updated '$updatedText'" }
         // guard against updating the value when we just dispatched the changes by ourselves
         if (!equalsDelta(stringToDouble(currentText), dataField.value)) {
@@ -75,7 +96,8 @@ class EditableDoubleViewHolder<FieldId : DataFieldId>(
 
     private fun stringToDouble(value: String?): Double? {
         return try {
-            value?.toDouble()
+            // replace in case we're displaying value using commas
+            value?.replace(',', '.')?.toDouble()
         } catch (e: NumberFormatException) {
             null
         }
@@ -93,7 +115,7 @@ class EditableDoubleViewHolder<FieldId : DataFieldId>(
 
     private fun equalsDelta(first: Double?, second: Double?): Boolean {
         if (first != null && second != null) {
-            return abs(first - second) < 0.000001
+            return kotlin.math.abs(first - second) < 0.000001
         } else if (first == null && second == null) {
             return true
         }

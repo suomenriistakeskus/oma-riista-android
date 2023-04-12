@@ -62,6 +62,7 @@ public class HarvestDbHelper extends SQLiteOpenHelper {
     static final String COLUMN_IMAGEURI = "imageurl";
     static final String COLUMN_IMAGEID = "imageid";
     static final String COLUMN_IMAGESTATUS = "imagestatus";
+    static final String COLUMN_COMMON_LOCAL_ID = "commonLocalId";
 
     static final int IMAGETYPE_URI = 1;
     static final int IMAGETYPE_ID = 2;
@@ -69,7 +70,7 @@ public class HarvestDbHelper extends SQLiteOpenHelper {
     static final int IMAGESTATUS_DELETED = 2;
 
     private static final String DATABASE_NAME = "diary.db";
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 12;
 
     // Database creation SQL statement
     private static final String DIARY_CREATE = "CREATE TABLE IF NOT EXISTS "
@@ -102,7 +103,8 @@ public class HarvestDbHelper extends SQLiteOpenHelper {
             + COLUMN_USERNAME + " varchar(100), "
             + COLUMN_MOBILEREFID + " integer, "
             + COLUMN_PENDINGOPERATION + " integer, "
-            + COLUMN_SPECIMENDATA + " blob"
+            + COLUMN_SPECIMENDATA + " blob, "
+            + COLUMN_COMMON_LOCAL_ID + " integer"
             + ")";
 
     private static final String GEOLOCATION_CREATE = "CREATE TABLE IF NOT EXISTS "
@@ -178,6 +180,9 @@ public class HarvestDbHelper extends SQLiteOpenHelper {
             db.execSQL(
                     "ALTER TABLE " + TABLE_DIARY + " ADD COLUMN " + COLUMN_DEER_HUNTING_OTHER_TYPE_DESCRIPTION + " text");
         }
+        if (oldVersion <= 11) {
+            db.execSQL("ALTER TABLE " + TABLE_DIARY + " ADD COLUMN " + COLUMN_COMMON_LOCAL_ID + " integer");
+        }
 
         onCreate(db);
     }
@@ -188,7 +193,7 @@ public class HarvestDbHelper extends SQLiteOpenHelper {
         UPDATE(2),
         DELETE(3);
 
-        private static Map<Integer, UpdateType> valueMap = new HashMap<>();
+        private static final Map<Integer, UpdateType> valueMap = new HashMap<>();
 
         static {
             for (final UpdateType value : UpdateType.values()) {

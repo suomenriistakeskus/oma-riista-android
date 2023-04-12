@@ -1,6 +1,7 @@
 package fi.riista.mobile.ui.dataFields.viewHolder
 
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
@@ -12,8 +13,8 @@ import fi.riista.common.ui.dataField.StringEventDispatcher
 import fi.riista.common.ui.dataField.StringField
 import fi.riista.common.util.letWith
 import fi.riista.mobile.R
-import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
 import fi.riista.mobile.ui.Label
+import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
 
 class EditableTextViewHolder<FieldId : DataFieldId>(
     private val dataFieldEventDispatcher: StringEventDispatcher<FieldId>,
@@ -45,12 +46,21 @@ class EditableTextViewHolder<FieldId : DataFieldId>(
                 }
             }
         })
+
         editText.setOnEditorActionListener(FocusingOnEditorActionListener())
     }
 
     override fun onBeforeUpdateBoundData(dataField: StringField<FieldId>) {
         val currentText: String = editText.text.toString()
         val updatedText = dataField.value
+
+        if (dataField.settings.singleLine) {
+            editText.maxLines = 1
+            editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_NORMAL
+        } else {
+            editText.maxLines = Int.MAX_VALUE
+            editText.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+        }
 
         val label = dataField.settings.label
         if (label != null) {

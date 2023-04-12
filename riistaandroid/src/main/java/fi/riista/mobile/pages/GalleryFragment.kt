@@ -10,22 +10,24 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import dagger.android.support.AndroidSupportInjection
+import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.harvest.model.CommonHarvest
+import fi.riista.common.domain.model.getHuntingYear
+import fi.riista.common.domain.observation.model.CommonObservation
+import fi.riista.common.domain.srva.model.CommonSrvaEvent
+import fi.riista.common.reactive.DisposeBag
+import fi.riista.common.reactive.disposeBy
 import fi.riista.mobile.R
 import fi.riista.mobile.adapter.GalleryAdapter
 import fi.riista.mobile.adapter.GalleryAdapter.GalleryItem
-import fi.riista.mobile.database.HarvestDatabase
-import fi.riista.mobile.models.GameHarvest
 import fi.riista.mobile.models.GameLog
-import fi.riista.mobile.models.GameLogImage
-import fi.riista.mobile.models.observation.GameObservation
-import fi.riista.mobile.models.srva.SrvaEvent
-import fi.riista.mobile.observation.ObservationDatabase
-import fi.riista.mobile.srva.SrvaDatabase
 import fi.riista.mobile.ui.GameLogFilterView
-import fi.riista.mobile.utils.DateTimeUtils
+import fi.riista.mobile.ui.toGameLogImage
 import fi.riista.mobile.utils.UiUtils
 import fi.riista.mobile.utils.UserInfoStore
 import fi.riista.mobile.viewmodel.GameLogViewModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() {
@@ -36,17 +38,16 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
     @Inject
     internal lateinit var userInfoStore: UserInfoStore
 
-    @Inject
-    internal lateinit var harvestDatabase: HarvestDatabase
-
-    @Inject
-    internal lateinit var observationDatabase: ObservationDatabase
-
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: GalleryAdapter
     private lateinit var viewModel: GameLogViewModel
 
     private lateinit var filterView: GameLogFilterView
+
+    private val disposeBag = DisposeBag()
+    private val harvestProvider = RiistaSDK.harvestContext.harvestProvider
+    private val srvaEventProvider = RiistaSDK.srvaContext.srvaEventProvider
+    private val observationProvider = RiistaSDK.observationContext.observationProvider
 
     // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     override fun onAttach(context: Context) {
@@ -62,7 +63,7 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
 
         recyclerView = view.findViewById(R.id.recycler_view)
 
-        adapter = GalleryAdapter(context, harvestDatabase, observationDatabase)
+        adapter = GalleryAdapter(context)
 
         val layoutManager = GridLayoutManager(context, 2)
         recyclerView.layoutManager = layoutManager
@@ -72,7 +73,7 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
         filterView = view.findViewById(R.id.gallery_filter_view)
         filterView.listener = this
 
-        viewModel = ViewModelProvider(requireActivity(), viewModelFactory).get(GameLogViewModel::class.java)
+        viewModel = ViewModelProvider(requireActivity(), viewModelFactory)[GameLogViewModel::class.java]
 
         filterView.setupTypes(
             showSrva = UiUtils.isSrvaVisible(userInfoStore.getUserInfo()),
@@ -82,23 +83,57 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
         filterView.setupSeasons(viewModel.getSeasons().value, viewModel.getSeasonSelected().value)
         filterView.setupSpecies(viewModel.getSpeciesSelected().value!!, viewModel.getCategorySelected().value)
 
-        viewModel.getTypeSelected().observe(viewLifecycleOwner, androidx.lifecycle.Observer { type ->
-            refreshList(type, viewModel.getSeasonSelected().value, viewModel.getSpeciesSelected().value)
-        })
-        viewModel.getSeasonSelected().observe(viewLifecycleOwner, androidx.lifecycle.Observer { season ->
-            refreshList(viewModel.getTypeSelected().value, season, viewModel.getSpeciesSelected().value)
-        })
-        viewModel.getSpeciesSelected().observe(viewLifecycleOwner, androidx.lifecycle.Observer { species ->
+        viewModel.getTypeSelected().observe(viewLifecycleOwner) { type ->
+            refreshList(type)
+        }
+        viewModel.getSeasonSelected().observe(viewLifecycleOwner) {
+            refreshList(viewModel.getTypeSelected().value)
+        }
+        viewModel.getSpeciesSelected().observe(viewLifecycleOwner) { species ->
             filterView.setupSpecies(species, viewModel.getCategorySelected().value)
-            refreshList(viewModel.getTypeSelected().value, viewModel.getSeasonSelected().value, species)
-        })
-        viewModel.getSeasons().observe(viewLifecycleOwner, androidx.lifecycle.Observer { seasons ->
+            refreshList(viewModel.getTypeSelected().value)
+        }
+        viewModel.getSeasons().observe(viewLifecycleOwner) { seasons ->
             filterView.setupSeasons(seasons, viewModel.getSeasonSelected().value)
-        })
+        }
         return view
     }
 
-    private fun refreshList(type: String?, season: Int?, species: List<Int>?) {
+    override fun onResume() {
+        super.onResume()
+        harvestProvider.loadStatus.bind { status ->
+            val type = viewModel.getTypeSelected().value
+            if (status.loaded && type == GameLog.TYPE_HARVEST) {
+                val harvests = harvestProvider.getHarvestsHavingImages()
+                adapter.setDataSet(harvestItemsWithImageMatchingSpeciesFilter(harvests))
+            }
+        }.disposeBy(disposeBag)
+        srvaEventProvider.loadStatus.bind { status ->
+            val type = viewModel.getTypeSelected().value
+            if (status.loaded && type == GameLog.TYPE_SRVA) {
+                val srvaEvents = srvaEventProvider.getEventsHavingImages()
+                adapter.setDataSet(srvaItemsMatchingFilter(srvaEvents))
+            }
+        }.disposeBy(disposeBag)
+        observationProvider.loadStatus.bind { status ->
+            val type = viewModel.getTypeSelected().value
+            if (status.loaded && type == GameLog.TYPE_OBSERVATION) {
+                val observations = observationProvider.getObservationsHavingImages()
+                adapter.setDataSet(observationItemsMatchingFilter(observations))
+            }
+        }.disposeBy(disposeBag)
+
+        refreshList(viewModel.getTypeSelected().value)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        disposeBag.disposeAll()
+    }
+
+    private fun refreshList(type: String?) {
+        if (!isResumed) return
+
         when (type) {
             GameLog.TYPE_HARVEST -> harvestsSelected()
             GameLog.TYPE_OBSERVATION -> observationsSelected()
@@ -107,25 +142,31 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
     }
 
     private fun harvestsSelected() {
-        val seasonStartYear = viewModel.getSeasonSelected().value
-        val harvests = harvestDatabase.getHarvestsByHuntingYear(seasonStartYear!!)
-
-        adapter.setDataSet(harvestItemsWithImageMatchingSpeciesFilter(harvests))
+        MainScope().launch {
+            harvestProvider.fetch(refresh = true)
+        }
     }
 
-    private fun harvestItemsWithImageMatchingSpeciesFilter(items: List<GameHarvest>): ArrayList<GalleryItem> {
+    private fun harvestItemsWithImageMatchingSpeciesFilter(items: List<CommonHarvest>): ArrayList<GalleryItem> {
         val data = arrayListOf<GalleryItem>()
 
+        val seasonStartYear = viewModel.getSeasonSelected().value
         val species = viewModel.getSpeciesSelected().value
 
         if (species != null) {
             val speciesNotSelected = species.isEmpty()
 
-            // Reverse ordering to descending
-            for (harvest in items.reversed()) {
-                if (harvest.mImages.isNotEmpty() && (speciesNotSelected || species.contains(harvest.mSpeciesID))) {
-                    val item = GalleryItem(GameLog.TYPE_HARVEST, harvest.mLocalId.toLong(), GameLogImage(harvest.mImages[0].uuid))
-                    data.add(item)
+            for (harvest in items) {
+                if (seasonStartYear == harvest.pointOfTime.date.getHuntingYear()
+                    && (speciesNotSelected || species.contains(harvest.species.knownSpeciesCodeOrNull()))) {
+
+                    val localId = harvest.localId
+                    val image = harvest.images.primaryImage?.toGameLogImage()
+                    if (localId != null && image != null) {
+                        val item = GalleryItem(GameLog.TYPE_HARVEST, localId, image)
+                        data.add(item)
+                    }
+
                 }
             }
         }
@@ -134,12 +175,12 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
     }
 
     private fun observationsSelected() {
-        observationDatabase.loadObservationsWithAnyImages { observations ->
-            adapter.setDataSet(observationItemsMatchingFilter(observations))
+        MainScope().launch {
+            observationProvider.fetch(refresh = true)
         }
     }
 
-    private fun observationItemsMatchingFilter(items: List<GameObservation>): ArrayList<GalleryItem> {
+    private fun observationItemsMatchingFilter(items: List<CommonObservation>): ArrayList<GalleryItem> {
         val data = arrayListOf<GalleryItem>()
 
         val seasonStartYear = viewModel.getSeasonSelected().value
@@ -149,11 +190,15 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
             val speciesNotSelected = species.isEmpty()
 
             for (obs in items) {
-                if (seasonStartYear == DateTimeUtils.getHuntingYearForDate(obs.toDateTime().toLocalDate())
-                        && (speciesNotSelected || species.contains(obs.gameSpeciesCode))) {
+                if (seasonStartYear == obs.pointOfTime.date.getHuntingYear()
+                        && (speciesNotSelected || species.contains(obs.species.knownSpeciesCodeOrNull()))) {
 
-                    val item = GalleryItem(GameLog.TYPE_OBSERVATION, obs.localId, GameLogImage(obs.images[0].uuid))
-                    data.add(item)
+                    val localId = obs.localId
+                    val image = obs.images.primaryImage?.toGameLogImage()
+                    if (localId != null && image != null) {
+                        val item = GalleryItem(GameLog.TYPE_OBSERVATION, localId, image)
+                        data.add(item)
+                    }
                 }
             }
         }
@@ -162,12 +207,12 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
     }
 
     private fun srvaEventsSelected() {
-        SrvaDatabase.getInstance().loadEventsWithAnyImages { srvaEvents ->
-            adapter.setDataSet(srvaItemsMatchingFilter(srvaEvents))
+        MainScope().launch {
+            srvaEventProvider.fetch(refresh = true)
         }
     }
 
-    private fun srvaItemsMatchingFilter(items: List<SrvaEvent>): ArrayList<GalleryItem> {
+    private fun srvaItemsMatchingFilter(items: List<CommonSrvaEvent>): ArrayList<GalleryItem> {
         val data = arrayListOf<GalleryItem>()
 
         val seasonStartYear = viewModel.getSeasonSelected().value
@@ -177,11 +222,15 @@ class GalleryFragment : GameLogFilterView.GameLogFilterListener, PageFragment() 
             val speciesNotSelected = species.isEmpty()
 
             for (srvaEvent in items) {
-                if (seasonStartYear == srvaEvent.toDateTime().year
-                        && (speciesNotSelected || species.contains(srvaEvent.gameSpeciesCode))) {
+                if (seasonStartYear == srvaEvent.pointOfTime.year
+                        && (speciesNotSelected || species.contains(srvaEvent.species.knownSpeciesCodeOrNull()))) {
 
-                    val item = GalleryItem(GameLog.TYPE_SRVA, srvaEvent.localId, GameLogImage(srvaEvent.images[0].uuid))
-                    data.add(item)
+                    val localId = srvaEvent.localId
+                    val image = srvaEvent.images.primaryImage?.toGameLogImage()
+                    if (localId != null && image != null) {
+                        val item = GalleryItem(GameLog.TYPE_SRVA, localId, image)
+                        data.add(item)
+                    }
                 }
             }
         }

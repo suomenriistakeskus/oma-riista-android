@@ -1,6 +1,7 @@
 package fi.riista.mobile.activity
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -10,11 +11,13 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.textfield.TextInputEditText
 import dagger.android.AndroidInjection
+import fi.riista.common.util.letWith
 import fi.riista.mobile.R
 import fi.riista.mobile.adapter.MapAreaAdapter
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
@@ -23,12 +26,16 @@ import fi.riista.mobile.models.ClubAreaMap
 import fi.riista.mobile.network.FetchClubAreaMapTask
 import fi.riista.mobile.network.FetchUserMapAreasTask
 import fi.riista.mobile.network.ListAreasTask
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.utils.*
 import fi.riista.mobile.vectormap.VectorTileProvider
 import fi.vincit.androidutilslib.context.WorkContext
 import fi.vincit.androidutilslib.task.NetworkTask
 import javax.inject.Inject
 import javax.inject.Named
+
 
 class MapAreaListActivity : BaseActivity() {
 
@@ -49,7 +56,14 @@ class MapAreaListActivity : BaseActivity() {
     private lateinit var addWithAreaCodeButton: Button
 
     private var mClubAreas: MutableList<ClubAreaMap> = ArrayList()
-    private var areaCodeDialog: AlertDialog? = null
+
+    val dialogListener: AlertDialogFragment.Listener = DelegatingAlertDialogListener(this).apply {
+        registerPositiveCallback(AlertDialogId.MAP_AREA_LIST_ACTIVITY_REMOVE_AREA) { value ->
+            value?.let { areaId ->
+                doRemoveArea(areaId)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
@@ -96,6 +110,16 @@ class MapAreaListActivity : BaseActivity() {
         addWithAreaCodeButton.visibility = if (VectorTileProvider.AreaType.SEURA == areaType) View.VISIBLE else View.GONE
         addWithAreaCodeButton.setOnClickListener { showAddWithAreaCodeDialog() }
 
+        supportFragmentManager.setFragmentResultListener(
+            AlertDialogId.MAP_AREA_LIST_ACTIVITY_FETCH_AREA.name,
+            this,
+        ) { _, result ->
+            val areaId = result.getString(AreaCodeDialogFragment.KEY_AREA_ID)
+            areaId?.let {
+                fetchClubAreaMap(areaId)
+            }
+        }
+
         refreshList()
     }
 
@@ -120,20 +144,23 @@ class MapAreaListActivity : BaseActivity() {
     }
 
     private fun removeArea(areaId: String) {
-        AlertDialog.Builder(this)
+        AlertDialogFragment.Builder(this, AlertDialogId.MAP_AREA_LIST_ACTIVITY_REMOVE_AREA)
             .setMessage(getString(R.string.map_settings_remove_area_confirm))
             .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton(R.string.yes) { _, _ ->
-                val selectedAreaId = AppPreferences.getSelectedClubAreaMapId(this@MapAreaListActivity)
-                if (selectedAreaId == areaId) {
-                    AppPreferences.setSelectedClubAreaMapId(this@MapAreaListActivity, null)
-                }
-                ClubAreaUtils.removeRemoteAreaMapFromList(areaId, mClubAreas)
-                mClubAreaHelper.saveAreasToFile(mClubAreas)
-                refreshClubAreaList()
-            }
-            .setNegativeButton(R.string.no, null)
-            .show()
+            .setPositiveButton(R.string.yes, areaId)
+            .setNegativeButton(R.string.no)
+            .build()
+            .show(supportFragmentManager)
+    }
+
+    private fun doRemoveArea(areaId: String) {
+        val selectedAreaId = AppPreferences.getSelectedClubAreaMapId(this@MapAreaListActivity)
+        if (selectedAreaId == areaId) {
+            AppPreferences.setSelectedClubAreaMapId(this@MapAreaListActivity, null)
+        }
+        ClubAreaUtils.removeRemoteAreaMapFromList(areaId, mClubAreas)
+        mClubAreaHelper.saveAreasToFile(mClubAreas)
+        refreshClubAreaList()
     }
 
     private fun refreshList() {
@@ -263,52 +290,8 @@ class MapAreaListActivity : BaseActivity() {
     }
 
     private fun showAddWithAreaCodeDialog() {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle(getString(R.string.map_add_area))
-
-        val view = layoutInflater.inflate(R.layout.view_dialog_text_input, null)
-        val input = view.findViewById<TextInputEditText>(R.id.dialog_text_input)
-        input.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(p0: Editable?) {
-                refreshDialogButtonState(input)
-            }
-
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            }
-        })
-        builder.setView(view)
-
-        builder.setPositiveButton(R.string.ok) { _, _ ->
-            val areaId = input.text.toString()
-                .trim()
-                .uppercase(LocaleUtil.localeFromLanguageSetting(this))
-            fetchClubAreaMap(areaId)
-        }
-        builder.setNegativeButton(R.string.cancel) { _, _ ->
-            areaCodeDialog = null
-        }
-        builder.setOnDismissListener { KeyboardUtils.hideSoftKeyboard(this) }
-
-        areaCodeDialog = builder.create()
-        areaCodeDialog.let { dialog ->
-            dialog?.setOnShowListener {
-                refreshDialogButtonState(input)
-                KeyboardUtils.showSoftKeyboard(this@MapAreaListActivity, input)
-            }
-            dialog?.setOnDismissListener {
-                KeyboardUtils.hideSoftKeyboard(this@MapAreaListActivity)
-            }
-        }
-        areaCodeDialog.let { dialog -> dialog?.show() }
-    }
-
-    private fun refreshDialogButtonState(input: EditText) {
-        val text = input.text
-        val button = areaCodeDialog?.getButton(AlertDialog.BUTTON_POSITIVE)
-        button?.isEnabled = (text?.length ?: 0) >= 10
+        val dialog = AreaCodeDialogFragment()
+        dialog.show(supportFragmentManager, "AreaCodeDialogFragment")
     }
 
     private fun fetchClubAreaMap(externalId: String) {
@@ -338,12 +321,11 @@ class MapAreaListActivity : BaseActivity() {
 
     private fun showAddAreaErrorDialog() {
         if (!this.isFinishing) {
-            val builder = AlertDialog.Builder(this)
-            builder.setMessage(getString(R.string.map_add_area_error))
-            builder.setPositiveButton(R.string.ok) { _, _ ->
-                // Do nothing
-            }
-            builder.show()
+            AlertDialogFragment.Builder(this, AlertDialogId.MAP_AREA_LIST_ACTIVITY_AREA_ERROR_DIALOG)
+                .setMessage(getString(R.string.map_add_area_error))
+                .setPositiveButton(R.string.ok)
+                .build()
+                .show(supportFragmentManager)
         }
     }
 
@@ -355,5 +337,72 @@ class MapAreaListActivity : BaseActivity() {
         const val REQUEST_SELECT_AREA_CLUB: Int = 201
         const val REQUEST_SELECT_AREA_PIENRIISTA: Int = 202
         const val REQUEST_SELECT_AREA_MOOSE: Int = 203
+    }
+}
+
+class AreaCodeDialogFragment : DialogFragment() {
+    private var areaCodeDialog: AlertDialog? = null
+    private var input: TextInputEditText? = null
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle(getString(R.string.map_add_area))
+
+        val view = layoutInflater.inflate(R.layout.view_dialog_text_input, null)
+        input = view.findViewById(R.id.dialog_text_input)
+        input?.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(p0: Editable?) {
+                input?.let { input ->
+                    refreshDialogButtonState(input)
+                }
+            }
+
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+        })
+        builder.setView(view)
+
+        builder.setPositiveButton(R.string.ok) { _, _ ->
+            hideKeyboard()
+
+            val areaId = input?.text.toString()
+                .trim()
+                .uppercase(LocaleUtil.localeFromLanguageSetting(requireContext()))
+            val bundle = Bundle().also {
+                it.putString(KEY_AREA_ID, areaId)
+            }
+            requireActivity().supportFragmentManager.setFragmentResult(AlertDialogId.MAP_AREA_LIST_ACTIVITY_FETCH_AREA.name, bundle)
+        }
+        builder.setNegativeButton(R.string.cancel) { _, _ ->
+            hideKeyboard()
+        }
+
+        val dialog = builder.create()
+        areaCodeDialog = dialog
+        dialog.setOnShowListener {
+            refreshDialogButtonState(input)
+            SoftInputService(context, input).show()
+        }
+
+        return dialog
+    }
+
+    private fun refreshDialogButtonState(input: EditText?) {
+        val button = areaCodeDialog?.getButton(AlertDialog.BUTTON_POSITIVE)
+        val text = input?.text
+        button?.isEnabled = (text?.length ?: 0) >= 10
+    }
+
+    private fun hideKeyboard() {
+        context?.letWith(input) { context, input ->
+            SoftInputService.hide(context, input.windowToken)
+        }
+    }
+
+    companion object {
+        const val KEY_AREA_ID = "AreaCodeDialogFragment_AREA_ID"
     }
 }

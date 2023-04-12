@@ -145,7 +145,7 @@ public class ImageUtils {
             return getOrientationCorrectedImage(image, orientation);
 
         } catch (final FileNotFoundException e) {
-            Log.d(TAG, "File not found: " + uri.toString());
+            Log.d(TAG, "File not found: " + uri);
         } catch (final IOException e) {
             Log.d(TAG, "Closing stream failed: " + e.getMessage());
         }
@@ -172,7 +172,7 @@ public class ImageUtils {
             return getOrientationCorrectedImage(image, orientation);
 
         } catch (final FileNotFoundException e) {
-            Log.d(TAG, "File not found: " + uri.toString());
+            Log.d(TAG, "File not found: " + uri);
         } catch (final IOException e) {
             Log.d(TAG, "Closing stream failed: " + e.getMessage());
         }
@@ -180,7 +180,7 @@ public class ImageUtils {
     }
 
     private static int deduceOrientation(final Context context, final Uri uri) {
-        return uri.toString().substring(0, 10).equals("content://")
+        return uri.toString().startsWith("content://")
                 ? getOrientationFromImage(context, uri)
                 : getOrientationFromImage(uri.getPath());
     }

@@ -21,17 +21,20 @@ public class DateTimeUtils {
     public static final TimeZone JAVA_TZ_FINLAND = TimeZone.getTimeZone(ConstantsKt.TIMEZONE_ID_FINLAND);
     public static final DateTimeZone JODA_TZ_FINLAND = DateTimeZone.forID(ConstantsKt.TIMEZONE_ID_FINLAND);
 
-    private static final DateTimeFormatter DATETIME_FMT_DEFAULT = DateTimeFormat.forPattern(ConstantsKt.ISO_8601);
+    private static final DateTimeFormatter DATETIME_FMT_DEFAULT =
+            DateTimeFormat.forPattern(ConstantsKt.ISO_8601).withLocale(Locales.FI);
     private static final DateTimeFormatter DATETIME_FMT_NO_MILLISECONDS =
-            DateTimeFormat.forPattern(ConstantsKt.ISO_8601_NO_MILLISECONDS);
+            DateTimeFormat.forPattern(ConstantsKt.ISO_8601_NO_MILLISECONDS).withLocale(Locales.FI);
 
-    private static final DateTimeFormatter DATE_FMT_DEFAULT = DateTimeFormat.forPattern(ConstantsKt.DATE_FORMAT_STD);
+    private static final DateTimeFormatter DATE_FMT_DEFAULT =
+            DateTimeFormat.forPattern(ConstantsKt.DATE_FORMAT_STD).withLocale(Locales.FI);
     private static final DateTimeFormatter DATE_FMT_FINNISH_SHORT =
-            DateTimeFormat.forPattern(ConstantsKt.DATE_FORMAT_FINNISH_SHORT);
+            DateTimeFormat.forPattern(ConstantsKt.DATE_FORMAT_FINNISH_SHORT).withLocale(Locales.FI);
     private static final DateTimeFormatter DATE_FMT_FINNISH_LONG =
-            DateTimeFormat.forPattern(ConstantsKt.DATE_FORMAT_FINNISH_LONG);
+            DateTimeFormat.forPattern(ConstantsKt.DATE_FORMAT_FINNISH_LONG).withLocale(Locales.FI);
 
-    private static final DateTimeFormatter TIME_FMT_FINNISH = DateTimeFormat.forPattern(ConstantsKt.TIME_FORMAT);
+    private static final DateTimeFormatter TIME_FMT_FINNISH =
+            DateTimeFormat.forPattern(ConstantsKt.TIME_FORMAT).withLocale(Locales.FI);
 
     private static final int HUNTING_YEAR_BEGIN_MONTH = 8;
 

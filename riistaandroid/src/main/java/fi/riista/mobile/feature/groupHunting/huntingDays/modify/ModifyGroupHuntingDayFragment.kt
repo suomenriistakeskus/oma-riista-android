@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.groupHunting.huntingDays.modify
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,9 +8,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.domain.groupHunting.GroupHuntingDayUpdateResponse
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
-import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayViewModel
 import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.GroupHuntingDayField
 import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayController
+import fi.riista.common.domain.groupHunting.ui.huntingDays.modify.ModifyGroupHuntingDayViewModel
 import fi.riista.common.model.HoursAndMinutes
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.reactive.DisposeBag
@@ -19,18 +18,42 @@ import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DateAndTimeField
+import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.SelectDurationField
+import fi.riista.common.ui.dataField.StringListField
 import fi.riista.mobile.R
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
-import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.feature.groupHunting.huntingDays.ViewOrEditGroupHuntingDayFragmentManager
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.fromJodaDateTime
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
-import fi.riista.mobile.ui.*
-import fi.riista.mobile.ui.dataFields.viewHolder.*
-import kotlinx.coroutines.*
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
+import fi.riista.mobile.ui.DateTimePickerFragment
+import fi.riista.mobile.ui.DurationPickerFragment
+import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
+import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.DateTimePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.DurationPickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableDateAndTimeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.IntFieldViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SelectDurationViewHolder
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
+import fi.riista.mobile.ui.registerDurationPickerFragmentResultListener
+import fi.riista.mobile.ui.showDatePickerFragment
+import fi.riista.mobile.ui.showDurationPickerFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import org.joda.time.DateTime
 
 /**
@@ -42,7 +65,8 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
     , DurationPickerFragmentLauncher<GroupHuntingDayField>
     , DurationPickerFragment.Listener
     , DateTimePickerFragmentLauncher<GroupHuntingDayField>
-    , DateTimePickerFragment.Listener {
+    , DateTimePickerFragment.Listener
+{
 
     interface Manager: ViewOrEditGroupHuntingDayFragmentManager {
 
@@ -111,6 +135,8 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
                 }
             }
 
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
+        registerDurationPickerFragmentResultListener(DURATION_PICKER_REQUEST_CODE)
         return view
     }
 
@@ -139,11 +165,14 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
                             return@onHuntingDaySaveCompleted
                         }
 
-                        AlertDialog.Builder(requireContext())
+                        AlertDialogFragment.Builder(
+                            requireContext(),
+                            AlertDialogId.MODIFY_GROUP_HUNTING_DAY_FRAGMENT_HUNTING_DAY_SAVE_FAILED,
+                        )
                             .setMessage(R.string.group_hunting_day_save_failed_generic)
-                            .setPositiveButton(R.string.ok, null)
-                            .create()
-                            .show()
+                            .setPositiveButton(R.string.ok)
+                            .build()
+                            .show(requireActivity().supportFragmentManager)
                     }
                 }
             }
@@ -166,7 +195,7 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
 
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<GroupHuntingDayField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 EditableDateAndTimeViewHolder.Factory(
                     pickerLauncher = this@ModifyGroupHuntingDayFragment
@@ -191,18 +220,19 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
         selectedDuration: HoursAndMinutes
     ) {
         val durationPickerFragment = DurationPickerFragment.create(
-                dialogId = fieldId.toInt(),
-                dialogTitle = requireContext().getString(R.string.group_hunting_day_select_break_duration),
-                possibleDurations = possibleDurations,
-                selectedDuration = selectedDuration,
+            requestCode = DURATION_PICKER_REQUEST_CODE,
+            fieldId = fieldId.toInt(),
+            dialogTitle = requireContext().getString(R.string.group_hunting_day_select_break_duration),
+            possibleDurations = possibleDurations,
+            selectedDuration = selectedDuration,
         )
 
-        showDurationPickerFragment(durationPickerFragment, fieldId.toInt())
+        showDurationPickerFragment(durationPickerFragment)
     }
 
-    override fun onDurationSelected(dialogId: Int, duration: HoursAndMinutes) {
-        GroupHuntingDayField.fromInt(dialogId)?.let { fieldId ->
-            controller.eventDispatchers.durationEventDispatcher.dispatchHoursAndMinutesChanged(fieldId, duration)
+    override fun onDurationSelected(fieldId: Int, duration: HoursAndMinutes) {
+        GroupHuntingDayField.fromInt(fieldId)?.let {
+            controller.eventDispatchers.durationEventDispatcher.dispatchHoursAndMinutesChanged(it, duration)
         }
     }
 
@@ -214,20 +244,22 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
         maxDateTime: LocalDateTime?
     ) {
         val datePickerFragment = DateTimePickerFragment.create(
-                dialogId = fieldId.toInt(),
+                requestCode = DATE_PICKER_REQUEST_CODE,
+                fieldId = fieldId.toInt(),
                 pickMode = pickMode,
                 selectedDateTime = currentDateTime.toJodaDateTime(),
                 minDateTime = minDateTime?.toJodaDateTime(),
                 maxDateTime = maxDateTime?.toJodaDateTime()
         )
 
-        showDatePickerFragment(datePickerFragment, fieldId.toInt())
+        showDatePickerFragment(datePickerFragment)
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
-        GroupHuntingDayField.fromInt(dialogId)?.let { fieldId ->
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
+        GroupHuntingDayField.fromInt(fieldId)?.let {
             controller.eventDispatchers.dateTimeEventDispatcher.dispatchLocalDateTimeChanged(
-                    fieldId, LocalDateTime.fromJodaDateTime(dateTime))
+                it, LocalDateTime.fromJodaDateTime(dateTime)
+            )
         }
     }
 
@@ -274,5 +306,7 @@ abstract class ModifyGroupHuntingDayFragment<M : ModifyGroupHuntingDayFragment.M
 
     companion object {
         private const val CONTROLLER_STATE_PREFIX = "MGHDF_controller"
+        private const val DATE_PICKER_REQUEST_CODE = "MGHDF_date_picker_request_code"
+        private const val DURATION_PICKER_REQUEST_CODE = "MGHDF_duration_picker_request_code"
     }
 }

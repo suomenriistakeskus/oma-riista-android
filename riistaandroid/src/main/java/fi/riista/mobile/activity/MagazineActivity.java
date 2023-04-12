@@ -1,6 +1,9 @@
 package fi.riista.mobile.activity;
 
+import static fi.riista.mobile.ExternalUrls.getHunterMagazineUrl;
+
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -8,6 +11,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import fi.riista.mobile.R;
+import fi.riista.mobile.utils.AppPreferences;
 
 public class MagazineActivity extends BaseActivity {
     static final String EXTRA_URL = "extra_url";
@@ -38,7 +42,7 @@ public class MagazineActivity extends BaseActivity {
             }
         });
 
-        setTitle(R.string.menu_show_magazine);
+        setTitle(R.string.more_show_magazine);
         this.setContentView(mWebView);
     }
 
@@ -49,5 +53,11 @@ public class MagazineActivity extends BaseActivity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    static Intent getLaunchIntent(final Context context) {
+        final Intent intent = new Intent(context, MagazineActivity.class);
+        intent.putExtra(EXTRA_URL, getHunterMagazineUrl(AppPreferences.getLanguageCodeSetting(context)));
+        return intent;
     }
 }

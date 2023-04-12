@@ -11,7 +11,7 @@
      Use a transparent background as ripple is positioned incorrectly for
      right aligned checkboxes -> transparent bg removes the ripple
     -->
-    <androidx.appcompat.widget.AppCompatCheckBox
+    <fi.riista.mobile.ui.ClickableCheckbox
         android:id="@+id/checkbox"
         style="@style/DatafieldCheckBox"
         android:layout_width="match_parent"

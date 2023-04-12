@@ -72,6 +72,7 @@ class AnnouncementsFragment : PageFragment() {
 
     private fun setupPullToRefresh() {
         mSwipeContainer.setOnRefreshListener { syncAndRefresh() }
+        mSwipeContainer.setColorSchemeResources(R.color.colorPrimary)
     }
 
     private fun syncAndRefresh() = announcementSync.sync {

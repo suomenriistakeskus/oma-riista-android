@@ -24,7 +24,7 @@ class TrainingViewHolder(
     fun bind(training: TrainingViewModel.JhtTraining) {
         trainingTypeTextView.text = "${training.occupationType} (${training.trainingType})"
         trainingDateTextView.text = dateFormat.print(training.date.toJodaLocalDate())
-        trainingPlaceTextView.text = training.location
+        trainingPlaceTextView.text = training.location ?: "-"
         trainingPlaceTextView.visibility = View.VISIBLE
         trainingPlaceTitleTextView.visibility = View.VISIBLE
     }

@@ -64,6 +64,7 @@ class MyDetailsMhPermitListFragment : DialogFragment(), View.OnClickListener {
 
         toolbar = view.findViewById(R.id.toolbar)
         swipeContainer = view.findViewById(R.id.my_details_mh_permits)
+        swipeContainer.setColorSchemeResources(R.color.colorPrimary)
 
         recyclerView = view.findViewById(R.id.my_details_mh_permit_list)
         recyclerView.layoutManager = LinearLayoutManager(activity)
@@ -75,12 +76,12 @@ class MyDetailsMhPermitListFragment : DialogFragment(), View.OnClickListener {
         listViewModel = ViewModelProvider(this, viewModelFactory)
             .get(MetsahallitusPermitListViewModel::class.java)
         listViewModel.setUsername(username)
-        listViewModel.metsahallitusPermits.observe(viewLifecycleOwner, { permits ->
+        listViewModel.metsahallitusPermits.observe(viewLifecycleOwner) { permits ->
             permitList.clear()
             permitList.addAll(permits)
 
             adapter.notifyDataSetChanged()
-        })
+        }
 
         return view
     }
@@ -89,8 +90,7 @@ class MyDetailsMhPermitListFragment : DialogFragment(), View.OnClickListener {
         val viewHolder = view.tag as RecyclerView.ViewHolder
         val position = viewHolder.adapterPosition
         val permit = permitList[position]
-        val detailsDialog =
-                MyDetailsMhPermitDetailsFragment.newInstance(permit.permitIdentifier)
+        val detailsDialog = MyDetailsMhPermitDetailsFragment.newInstance(permit.permitIdentifier)
         val tx = (context as AppCompatActivity).supportFragmentManager.beginTransaction()
         detailsDialog.show(tx, TAG)
     }

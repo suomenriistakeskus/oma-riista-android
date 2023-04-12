@@ -187,5 +187,17 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/settings_accessibility_btn" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/settings_unregister_account_btn"
+            style="@style/OutlineButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/default_button_height"
+            android:layout_marginTop="@dimen/item_spacing_normal"
+            android:text="@string/settings_unregister_user_account"
+            android:textAllCaps="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/settings_licences_btn" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

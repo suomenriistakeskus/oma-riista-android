@@ -1,6 +1,7 @@
 package fi.riista.mobile.utils
 
 import android.webkit.MimeTypeMap
+import java.io.File
 import java.net.URLEncoder
 
 
@@ -15,4 +16,6 @@ object FileUtils {
         }
         return type
     }
+
+    fun fileExists(path: String?) = path?.let { File(it).exists() } ?: false
 }

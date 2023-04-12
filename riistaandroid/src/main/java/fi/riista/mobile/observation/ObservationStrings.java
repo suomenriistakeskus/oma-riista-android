@@ -13,7 +13,7 @@ import fi.riista.mobile.models.specimen.MooseFitnessClass;
 
 public class ObservationStrings {
 
-    private static HashMap<String, Integer> sMapping;
+    private static final HashMap<String, Integer> sMapping;
 
     static {
         sMapping = new HashMap<>();
@@ -22,6 +22,8 @@ public class ObservationStrings {
 
         // Observation types
         sMapping.put(ObservationType.NAKO.name(), R.string.type_sight);
+        sMapping.put(ObservationType.POIKUE.name(), R.string.type_poikue);
+        sMapping.put(ObservationType.PARI.name(), R.string.type_pari);
         sMapping.put(ObservationType.JALKI.name(), R.string.type_track);
         sMapping.put(ObservationType.ULOSTE.name(), R.string.type_excrement);
         sMapping.put(ObservationType.AANI.name(), R.string.type_sound);

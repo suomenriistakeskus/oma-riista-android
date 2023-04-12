@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <androidx.cardview.widget.CardView
+        style="@style/CardView.Default"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintDimensionRatio="3:1"
+        android:layout_marginStart="@dimen/padding_medium"
+        android:layout_marginEnd="@dimen/padding_medium"
+        android:clickable="true"
+        android:focusable="true"
+        app:cardUseCompatPadding="true">
+
+        <LinearLayout
+            android:id="@+id/button_content"
+            style="@style/HomeViewButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintVertical_weight="0.4"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="UseCompoundDrawables">
+
+            <ImageView
+                android:id="@+id/buttonImage"
+                android:layout_width="@dimen/home_view_icon_size"
+                android:layout_height="0dp"
+                android:layout_weight="0.55"
+                android:gravity="center_horizontal|bottom"
+                android:scaleType="fitEnd"
+                android:contentDescription="@null"
+                android:padding="4dp"
+                android:src="@drawable/qr_code_2"
+                app:layout_constraintVertical_weight="0.5"
+                app:tint="@color/colorText" />
+
+            <TextView
+                android:id="@+id/buttonText"
+                style="@style/HomeViewMainButtonText"
+                android:textColor="@color/colorText"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="0.45"
+                android:gravity="center_horizontal|top"
+                android:layout_marginTop="4dp"
+                android:maxLines="2"
+                android:text="@string/shooting_test_search_with_qr"
+                app:layout_constraintVertical_weight="0.5" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+</androidx.constraintlayout.widget.ConstraintLayout>

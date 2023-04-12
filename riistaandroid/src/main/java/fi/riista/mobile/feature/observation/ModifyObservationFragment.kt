@@ -1,6 +1,7 @@
 package fi.riista.mobile.feature.observation
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -12,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
+import fi.riista.common.domain.observation.ObservationOperationResponse
 import fi.riista.common.domain.observation.model.CommonObservation
 import fi.riista.common.domain.observation.ui.CommonObservationField
 import fi.riista.common.domain.observation.ui.modify.ModifyObservationController
@@ -51,16 +53,39 @@ import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.fromJodaDateTime
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
+import fi.riista.mobile.sync.AppSync
+import fi.riista.mobile.sync.PreventAppSyncWhileModifyingSynchronizableEntry
+import fi.riista.mobile.sync.SyncConfig
+import fi.riista.mobile.ui.CanIndicateBusy
 import fi.riista.mobile.ui.DateTimePickerFragment
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.ui.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.DateTimePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableDateAndTimeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.InstructionsViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.IntFieldViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.LocationOnMapViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.MapOpener
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SelectSpeciesAndImageViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SpeciesSelectionLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.SpecimensActivityLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.SpecimensViewHolder
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
 import fi.riista.mobile.ui.showDatePickerFragment
 import fi.riista.mobile.utils.ChangeImageHelper
 import fi.riista.mobile.utils.EditUtils
 import fi.riista.mobile.utils.MapUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import org.joda.time.DateTime
 import javax.inject.Inject
 
@@ -80,12 +105,18 @@ abstract class ModifyObservationFragment<
     , ChoiceViewLauncher<CommonObservationField>
     , SpecimensActivityLauncher<CommonObservationField> {
 
-    interface BaseManager {
+    interface BaseManager: CanIndicateBusy {
         fun cancelObservationOperation()
     }
 
     @Inject
     lateinit var speciesResolver: SpeciesResolver
+
+    @Inject
+    lateinit var appSync: AppSync
+
+    @Inject
+    lateinit var syncConfig: SyncConfig
 
     private lateinit var adapter: DataFieldRecyclerViewAdapter<CommonObservationField>
     private lateinit var saveButton: MaterialButton
@@ -94,6 +125,8 @@ abstract class ModifyObservationFragment<
     protected abstract val controller: Controller
 
     private val disposeBag = DisposeBag()
+    private var saveScope: CoroutineScope? = null
+
 
     private val locationRequestActivityResultLaunch = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -127,21 +160,84 @@ abstract class ModifyObservationFragment<
     }
 
     private val changeImageHelper = ChangeImageHelper()
+    private lateinit var appSyncPreventer: PreventAppSyncWhileModifyingSynchronizableEntry
 
     // functionality required from subclass
-
-    protected abstract fun onSaveButtonClicked()
+    protected abstract fun notifyManagerAboutSuccessfulSave(observation: CommonObservation)
     protected abstract fun getManagerFromContext(context: Context): Manager
 
+
+    private fun onSaveButtonClicked() {
+        manager.indicateBusy()
+
+        val scope = MainScope()
+
+        scope.launch {
+            val result = controller.saveObservation(updateToBackend = syncConfig.isAutomatic())
+
+            // allow cancellation to take effect i.e don't continue updating UI
+            // if saveScope has been cancelled
+            yield()
+
+            if (!isResumed) {
+                return@launch
+            }
+
+            val networkResponse = result.networkSaveResponse
+            val databaseResponse = result.databaseSaveResponse
+
+            if (networkResponse is ObservationOperationResponse.NetworkFailure &&
+                networkResponse.statusCode == CONFLICT_STATUS_CODE
+            ) {
+                onSaveFailed(
+                    networkStatusCode = networkResponse.statusCode,
+                    debugMessage = networkResponse.errorMessage
+                )
+            } else if (databaseResponse is ObservationOperationResponse.Success) {
+                notifyManagerAboutSuccessfulSave(observation = databaseResponse.observation)
+            } else {
+                onSaveFailed(networkStatusCode = null, debugMessage = result.errorMessage)
+            }
+        }
+
+        saveScope = scope
+    }
+
+    private fun onSaveFailed(networkStatusCode: Int?, debugMessage: String?) {
+        debugMessage?.let {
+            logger.d { "Save failed: $it" }
+        }
+
+        val message = when (networkStatusCode) {
+            CONFLICT_STATUS_CODE -> R.string.eventoutdated
+            else -> R.string.eventeditfailed
+        }
+
+        manager.hideBusyIndicators {
+            AlertDialog.Builder(requireContext())
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, null)
+                .create()
+                .show()
+        }
+    }
 
     override fun onAttach(context: Context) {
         AndroidSupportInjection.inject(this)
         super.onAttach(context)
         manager = getManagerFromContext(context)
 
+        appSyncPreventer = PreventAppSyncWhileModifyingSynchronizableEntry(appSync, observedFragment = this)
+        parentFragmentManager.registerFragmentLifecycleCallbacks(appSyncPreventer, false)
+
         changeImageHelper.initialize(fragment = this) { image ->
             controller.eventDispatchers.imageEventDispatcher.setEntityImage(image)
         }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        parentFragmentManager.unregisterFragmentLifecycleCallbacks(appSyncPreventer)
     }
 
     override fun onCreateView(
@@ -179,6 +275,7 @@ abstract class ModifyObservationFragment<
                 }
             }
 
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
         return view
     }
 
@@ -205,7 +302,7 @@ abstract class ModifyObservationFragment<
 
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<CommonObservationField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 SelectSpeciesAndImageViewHolder.Factory(
                     speciesResolver = speciesResolver,
@@ -263,6 +360,8 @@ abstract class ModifyObservationFragment<
     override fun onPause() {
         super.onPause()
         disposeBag.disposeAll()
+        saveScope?.cancel()
+        saveScope = null
     }
 
     private fun updateBasedOnViewModel(
@@ -320,18 +419,19 @@ abstract class ModifyObservationFragment<
         maxDateTime: LocalDateTime?
     ) {
         val datePickerFragment = DateTimePickerFragment.create(
-                dialogId = fieldId.toInt(),
+                requestCode = DATE_PICKER_REQUEST_CODE,
+                fieldId = fieldId.toInt(),
                 pickMode = pickMode,
                 selectedDateTime = currentDateTime.toJodaDateTime(),
                 minDateTime = minDateTime?.toJodaDateTime(),
                 maxDateTime = maxDateTime?.toJodaDateTime()
         )
 
-        showDatePickerFragment(datePickerFragment, fieldId.toInt())
+        showDatePickerFragment(datePickerFragment)
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
-        CommonObservationField.fromInt(dialogId)?.let { fieldId ->
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
+        CommonObservationField.fromInt(fieldId)?.let { fieldId ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
                     fieldId, LocalDateTime.fromJodaDateTime(dateTime))
         }
@@ -342,6 +442,7 @@ abstract class ModifyObservationFragment<
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, true)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_SHOW_ITEMS, false)
         locationRequestActivityResultLaunch.launch(intent)
     }
 
@@ -443,6 +544,8 @@ abstract class ModifyObservationFragment<
     companion object {
         private const val PREFIX = "ModifyObservationFragment"
         private const val CONTROLLER_STATE_PREFIX = "${PREFIX}_controller"
+        private const val CONFLICT_STATUS_CODE = 409
+        private const val DATE_PICKER_REQUEST_CODE = "MOF_date_picker_request_code"
 
         private val logger by getLogger(ModifyObservationFragment::class)
     }

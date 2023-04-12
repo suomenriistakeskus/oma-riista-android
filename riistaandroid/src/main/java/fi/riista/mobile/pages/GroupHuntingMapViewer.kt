@@ -59,7 +59,7 @@ interface GroupHuntingDiaryListener {
     fun updateFilter()
 }
 
-class GroupHuntingMapViewer()
+class GroupHuntingMapViewer
     : DetailsPageFragment(), LocationListener, OnMapReadyCallback, MapViewerInterface, GroupHuntingDiaryListener,
     DiaryFilterDialog.DiaryFilterDialogListener {
 

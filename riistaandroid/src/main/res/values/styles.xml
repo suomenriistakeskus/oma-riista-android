@@ -107,7 +107,7 @@
         <item name="android:textSize">15sp</item>
     </style>
 
-    <style name="SelectPermitButton" parent="Widget.MaterialComponents.Button.TextButton">
+    <style name="TextLinkButton" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:gravity">left|center_vertical</item>

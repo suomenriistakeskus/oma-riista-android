@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.season.HarvestSeasons
 import fi.riista.common.model.*
+import fi.riista.common.ui.dataField.ActionEventDispatcher
 import fi.riista.common.ui.dataField.DataFieldId
 import fi.riista.common.ui.dataField.LabelField
 import fi.riista.mobile.models.GeoLocation
@@ -12,7 +13,9 @@ import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.ui.dataFields.viewHolder.CaptionViewHolder
 import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
 import fi.riista.mobile.ui.dataFields.viewHolder.ErrorLabelViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.IndicatorViewHolder
 import fi.riista.mobile.ui.dataFields.viewHolder.InfoViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.LinkLabelViewHolder
 import org.joda.time.DateTime
 
 fun LocalDate.toJodaLocalDate(): org.joda.time.LocalDate {
@@ -108,11 +111,19 @@ fun <T : DataFieldId> LabelField<T>.determineViewHolderType(): DataFieldViewHold
         LabelField.Type.CAPTION -> DataFieldViewHolderType.LABEL_CAPTION
         LabelField.Type.ERROR -> DataFieldViewHolderType.LABEL_ERROR
         LabelField.Type.INFO -> DataFieldViewHolderType.LABEL_INFO
+        LabelField.Type.LINK -> DataFieldViewHolderType.LABEL_LINK
+        LabelField.Type.INDICATOR -> DataFieldViewHolderType.LABEL_INDICATOR
     }
 }
 
-fun <FieldId : DataFieldId> DataFieldRecyclerViewAdapter<FieldId>.registerLabelFieldViewHolderFactories() {
+fun <FieldId : DataFieldId> DataFieldRecyclerViewAdapter<FieldId>.registerLabelFieldViewHolderFactories(
+    linkActionEventDispatcher: ActionEventDispatcher<FieldId>?
+) {
     registerViewHolderFactory(CaptionViewHolder.Factory())
     registerViewHolderFactory(ErrorLabelViewHolder.Factory())
     registerViewHolderFactory(InfoViewHolder.Factory())
+    registerViewHolderFactory(
+        LinkLabelViewHolder.Factory(eventDispatcher = linkActionEventDispatcher)
+    )
+    registerViewHolderFactory(IndicatorViewHolder.Factory())
 }

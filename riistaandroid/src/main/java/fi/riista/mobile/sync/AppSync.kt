@@ -3,17 +3,15 @@ package fi.riista.mobile.sync
 import android.os.Handler
 import android.util.Log
 import fi.riista.common.RiistaSDK
-import fi.riista.common.domain.userInfo.LoginStatus
+import fi.riista.common.logging.getLogger
+import fi.riista.common.reactive.AppObservable
 import fi.riista.mobile.AppConfig
 import fi.riista.mobile.AppLifecycleHandler
-import fi.riista.mobile.database.HarvestDatabase
 import fi.riista.mobile.database.PermitManager
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
-import fi.riista.mobile.service.harvest.HarvestEventEmitter
 import fi.riista.mobile.utils.Authenticator
 import fi.riista.mobile.utils.Authenticator.AuthSuccessCallback
 import fi.riista.mobile.utils.CredentialsStore
-import fi.riista.mobile.utils.Utils
 import fi.vincit.androidutilslib.context.WorkContext
 import fi.vincit.androidutilslib.network.SynchronizedCookieStore
 import fi.vincit.androidutilslib.task.TextTask
@@ -21,42 +19,129 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-import kotlin.collections.ArrayList
 
 @Singleton
 class AppSync @Inject constructor(
-        @Named(APPLICATION_WORK_CONTEXT_NAME) private val syncWorkContext: WorkContext,
-        private val syncConfig: SyncConfig,
-        private val harvestSync: HarvestSync,
-        private val observationSync: ObservationSync,
-        private val announcementSync: AnnouncementSync,
-        private val metsaHallitusPermitSync: MetsaHallitusPermitSync,
-        private val localImageRemover: LocalImageRemover,
-        private val harvestDatabase: HarvestDatabase,
-        private val harvestEventEmitter: HarvestEventEmitter,
-        private val permitManager: PermitManager,
-        private val appLifecycleHandler: AppLifecycleHandler,
-        private val cookieStore: SynchronizedCookieStore,
-        private val credentialsStore: CredentialsStore,
-        private val authenticator: Authenticator) {
+    @Named(APPLICATION_WORK_CONTEXT_NAME) private val syncWorkContext: WorkContext,
+    private val syncConfig: SyncConfig,
+    private val announcementSync: AnnouncementSync,
+    private val metsaHallitusPermitSync: MetsaHallitusPermitSync,
+    private val localImageRemover: LocalImageRemover,
+    private val permitManager: PermitManager,
+    private val appLifecycleHandler: AppLifecycleHandler,
+    private val cookieStore: SynchronizedCookieStore,
+    private val credentialsStore: CredentialsStore,
+    private val authenticator: Authenticator,
+) {
 
     interface AppSyncListener {
         fun onSyncStarted()
         fun onSyncCompleted()
     }
 
-    private val srvaSync = SrvaSync(syncWorkContext)
+    enum class SyncPrecondition {
+        /**
+         * Network has been at least once reachable
+         */
+        CONNECTED_TO_NETWORK,
+
+        /**
+         * Has the automatic sync been enabled?
+         */
+        AUTOMATIC_SYNC_ENABLED,
+
+        /**
+         * Is the user doing something else than editing or creating an entry (harvest, observation, srva,
+         * hunting control event) that will be synchronized during [AppSync]?
+         *
+         * Allows preventing synchronization while entry has been saved to database (and possibly synchronized
+         * internally) and thus eliminating simultaneous synchronizations that could occur in rare
+         * circumstances i.e. when AppSync is performed right when user is saving the entry.
+         */
+        USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY,
+
+        /**
+         * Credentials exist and preliminary tests show that they are valid i.e.
+         * login call either succeeds or at least won't return 401 or 403.
+         **/
+        CREDENTIALS_VERIFIED,
+
+        /**
+         * UI has been navigated beyond login screen (appsync shouldn't be performed there)
+         */
+        HOME_SCREEN_REACHED,
+
+        /**
+         * Migrations from legacy app database to Riista SDK database has been run.
+         */
+        DATABASE_MIGRATION_FINISHED,
+        ;
+
+        private val requiredForManualSync: Boolean
+            get() {
+                return when (this) {
+                    CONNECTED_TO_NETWORK,
+                    AUTOMATIC_SYNC_ENABLED,
+                    USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY -> false
+                    CREDENTIALS_VERIFIED,
+                    HOME_SCREEN_REACHED,
+                    DATABASE_MIGRATION_FINISHED -> true
+                }
+            }
+
+        private val requiredForAutomaticSync: Boolean
+            get() {
+                return when (this) {
+                    CONNECTED_TO_NETWORK,
+                    AUTOMATIC_SYNC_ENABLED,
+                    USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY,
+                    CREDENTIALS_VERIFIED,
+                    HOME_SCREEN_REACHED,
+                    DATABASE_MIGRATION_FINISHED -> true
+                }
+            }
+
+        /**
+         * Should the automatic sync be performed immediately when precondition is enabled
+         * (assuming other conditions are met)?
+         */
+        val triggersImmediateAutomaticSyncWhenEnabled: Boolean
+            get() {
+                return when (this) {
+                    USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY -> false
+                    CONNECTED_TO_NETWORK,
+                    AUTOMATIC_SYNC_ENABLED,
+                    CREDENTIALS_VERIFIED,
+                    HOME_SCREEN_REACHED,
+                    DATABASE_MIGRATION_FINISHED -> true
+                }
+            }
+
+        fun requiredFor(syncMode: SyncMode): Boolean =
+            when (syncMode) {
+                SyncMode.SYNC_MANUAL ->     requiredForManualSync
+                SyncMode.SYNC_AUTOMATIC ->  requiredForAutomaticSync
+            }
+
+        companion object {
+            fun getRequiredFor(syncMode: SyncMode): Set<SyncPrecondition> {
+                return values().filter {
+                        it.requiredFor(syncMode = syncMode)
+                    }.toSet()
+            }
+        }
+
+    }
+
+    private var syncPreconditions = mutableSetOf<SyncPrecondition>()
 
     private val syncHandler = Handler()
     private val syncTask: Runnable
@@ -68,23 +153,36 @@ class AppSync @Inject constructor(
     @Volatile
     private var isSyncRunning = false
 
+    /**
+     * Is the manual synchronization possible?
+     */
+    val manualSynchronizationPossible: AppObservable<Boolean> = AppObservable(false)
+
     init {
         syncTask = Runnable {
-            isSyncRunning = true
+            setSyncRunning(running = true)
 
             syncListeners.forEach { it.onSyncStarted() }
 
             fetchGameLogYearsAndThenSyncAll(true)
         }
+
+        if (syncConfig.isAutomatic()) {
+            enableSyncPrecondition(SyncPrecondition.AUTOMATIC_SYNC_ENABLED)
+        }
+
+        enableSyncPrecondition(SyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
     }
 
-    fun addSyncListener(listener: AppSyncListener) {
+    fun addSyncListener(listener: AppSyncListener, notifyImmediately: Boolean) {
         syncListeners.add(listener)
 
-        if (isSyncRunning) {
-            listener.onSyncStarted()
-        } else {
-            listener.onSyncCompleted()
+        if (notifyImmediately) {
+            if (isSyncRunning) {
+                listener.onSyncStarted()
+            } else {
+                listener.onSyncCompleted()
+            }
         }
     }
 
@@ -92,49 +190,78 @@ class AppSync @Inject constructor(
         syncListeners.remove(listener)
     }
 
-    fun isSyncRunning() = isSyncRunning
+    @Synchronized
+    private fun setSyncRunning(running: Boolean) {
+        isSyncRunning = running
+        updateManualSynchronizationPossible()
+    }
 
     @Synchronized
     fun enableAutomaticSync() {
         syncConfig.syncMode = SyncMode.SYNC_AUTOMATIC
-        initSyncInternal(0)
+        enableSyncPrecondition(SyncPrecondition.AUTOMATIC_SYNC_ENABLED)
     }
 
     @Synchronized
     fun disableAutomaticSync() {
         syncConfig.syncMode = SyncMode.SYNC_MANUAL
-        stopAutomaticSyncInternal()
+        disableSyncPrecondition(SyncPrecondition.AUTOMATIC_SYNC_ENABLED)
+    }
+
+
+    /**
+     * Enables given [SyncPrecondition] and queues sync if all preconditions are met.
+     */
+    @Synchronized
+    fun enableSyncPrecondition(precondition: SyncPrecondition) {
+        if (!syncPreconditions.contains(precondition)) {
+            logger.v { "Enable sync precondition: $precondition" }
+            syncPreconditions.add(precondition)
+            updateManualSynchronizationPossible()
+        } else {
+            logger.v { "Sync precondition $precondition already enabled!" }
+        }
+
+        // try to queue automatic sync even if sync condition was already met beforehand
+        // -> this ensures automatic sync is queued e.g. when resuming the app as HOME_SCREEN_REACHED
+        //    probably won't be cleared when MainActivity is paused
+        queueAutomaticSyncIfPreconditionsMet(
+            synchronizeImmediately = precondition.triggersImmediateAutomaticSyncWhenEnabled
+        )
     }
 
     /**
-     * Synchronizes harvests, observations, SRVA events, announcements, Metsähallitus permits and images.
-     *
-     * This function is called on init and when the synchronization settings change.
-     *
-     * @param initialWait Wait time before making first synchronization in milliseconds
+     * Disables the given [SyncPrecondition]. Also ensures sync won't continue running.
      */
     @Synchronized
-    fun initAutomaticSync(initialWait: Int) {
-        if (syncConfig.isAutomatic()) {
-            initSyncInternal(initialWait)
-        }
-    }
+    fun disableSyncPrecondition(precondition: SyncPrecondition) {
+        if (syncPreconditions.contains(precondition)) {
+            logger.v { "Disable sync precondition: $precondition. Stopping automatic sync." }
+            syncPreconditions.remove(precondition)
+            updateManualSynchronizationPossible()
 
-    private fun initSyncInternal(initialWait: Int) {
-        if (!isSyncQueued) {
-            isSyncQueued = true
-            syncHandler.postDelayed(syncTask, initialWait.toLong())
+            if (!areSyncPreconditionsMet(syncMode = SyncMode.SYNC_AUTOMATIC)) {
+                stopAutomaticSync()
+            }
+        } else {
+            logger.v { "Sync precondition $precondition was already disabled" }
         }
     }
 
     @Synchronized
-    fun stopAutomaticSync() {
-        stopAutomaticSyncInternal()
+    fun synchronizeUsing(syncMode: SyncMode): Boolean {
+        return if (areSyncPreconditionsMet(syncMode)) {
+            syncImmediately()
+        } else {
+            logger.d { "Refusing to synchronize, preconditions not met" }
+            false
+        }
     }
 
-    private fun stopAutomaticSyncInternal() {
-        syncHandler.removeCallbacks(syncTask)
-        isSyncQueued = false
+    fun syncImmediatelyIfAutomaticSyncEnabled() {
+        if (areSyncPreconditionsMet(syncMode = SyncMode.SYNC_AUTOMATIC)) {
+            syncImmediately()
+        }
     }
 
     /**
@@ -153,10 +280,56 @@ class AppSync @Inject constructor(
         return false
     }
 
-    fun syncImmediatelyIfAutomaticSyncEnabled() {
-        if (syncConfig.isAutomatic()) {
-            syncImmediately()
+    private fun updateManualSynchronizationPossible() {
+        manualSynchronizationPossible.set(
+            value = !isSyncRunning && areSyncPreconditionsMet(syncMode = SyncMode.SYNC_MANUAL)
+        )
+    }
+
+    private fun queueAutomaticSyncIfPreconditionsMet(synchronizeImmediately: Boolean) {
+        if (areSyncPreconditionsMet(syncMode = SyncMode.SYNC_AUTOMATIC)) {
+            queueAutomaticSync(synchronizeImmediately)
         }
+    }
+
+    private fun areSyncPreconditionsMet(syncMode: SyncMode): Boolean {
+        val requiredSyncPreconditions = SyncPrecondition.getRequiredFor(syncMode)
+        return (requiredSyncPreconditions - syncPreconditions).isEmpty().also {
+            logger.v { "Sync preconditions met for $syncMode = $it" }
+        }
+    }
+
+    /**
+     * Synchronizes harvests, observations, SRVA events, announcements, Metsähallitus permits and images.
+     *
+     * This function is called on init and when the synchronization settings change.
+     */
+    @Synchronized
+    private fun queueAutomaticSync(synchronizeImmediately: Boolean) {
+        if (!syncConfig.isAutomatic()) {
+            logger.v { "Not queueing sync (automatic sync disabled)" }
+            return
+        }
+
+        if (!isSyncQueued) {
+            logger.v { "Queueing automatic sync to be performed" }
+            isSyncQueued = true
+            val delayMillis = if (synchronizeImmediately) {
+                500L // not immediate but almost
+            } else {
+                SYNC_INTERVAL_MILLISECONDS
+            }
+
+            syncHandler.postDelayed(syncTask, delayMillis)
+        } else {
+            logger.v { "Automatic sync already queued" }
+        }
+    }
+
+    @Synchronized
+    private fun stopAutomaticSync() {
+        syncHandler.removeCallbacks(syncTask)
+        isSyncQueued = false
     }
 
     /**
@@ -175,7 +348,7 @@ class AppSync @Inject constructor(
             override fun onError() {
                 // If error happened to any other reason than network being unreachable, try logging in again
                 if (httpStatusCode != -1 && retry) {
-                    tryLogin()
+                    tryLogin(httpStatusCode)
                 } else {
                     Log.d(TAG, "Fetching game log years failed")
                     completeSync()
@@ -196,9 +369,7 @@ class AppSync @Inject constructor(
                 val userInfoJson = JSONObject(userInfoText)
                 val username = userInfoJson.getString("username")
 
-                val harvestAndObservationYears = getHarvestAndObservationYears(userInfoJson)
-
-                syncAll(username, harvestAndObservationYears.first, harvestAndObservationYears.second)
+                syncAll(username)
             }
         } catch (e: JSONException) {
             Log.d(TAG, "Error while parsing user info JSON: ${e.message}")
@@ -212,62 +383,19 @@ class AppSync @Inject constructor(
     // Preload permits in IO thread.
     private suspend fun preloadPermits() = withContext(IO) { permitManager.preloadPermits() }
 
-    @Throws(JSONException::class)
-    private suspend fun getHarvestAndObservationYears(userInfoJson: JSONObject): Pair<List<Int>, List<Int>> {
-        val harvestYears = filterHarvestYears(
-                findHuntingYearsOfLocalHarvests(), parseYears(userInfoJson.getJSONArray("harvestYears")))
-        val observationYears = parseYears(userInfoJson.getJSONArray("observationYears"))
-
-        return Pair(harvestYears, observationYears)
-    }
-
-    // Use IO dispatcher for database access.
-    private suspend fun findHuntingYearsOfLocalHarvests(): List<Int> = withContext(IO) { harvestDatabase.huntingYearsOfHarvests }
-
-    private fun filterHarvestYears(localYears: List<Int>, remoteYears: List<Int>): List<Int> {
-        val combinedYears: Set<Int> = localYears union remoteYears
-        val filteredYears = ArrayList<Int>(combinedYears.size)
-
-        for (year in combinedYears) {
-            val date: Date? = harvestDatabase.getUpdateTimeForHarvestYear(year)
-
-            if (date == null || !Utils.isRecentTime(date, SYNC_MIN_INTERVAL)) {
-                filteredYears.add(year)
-            }
-        }
-        filteredYears.sort()
-        return filteredYears
-    }
-
     /**
      * Synchronizes announcements, observations, SRVA events, Metsähallitus Permits, harvests and finally images.
      *
      * @param username - Username of the logged in user
-     * @param harvestYears - Years to take into account while syncing harvests
-     * @param observationYears - Years to take into account while syncing observations
      */
-    private suspend fun syncAll(username: String,
-                                harvestYears: List<Int>,
-                                observationYears: List<Int>) = withContext(Main) {
+    private suspend fun syncAll(username: String) = withContext(Main) {
 
-        MainScope().launch {
-            RiistaSDK.synchronizeAllDataPieces()
-        }
+        RiistaSDK.synchronizeAllDataPieces()
 
         announcementSync.sync {
-            observationSync.sync(observationYears) {
-                srvaSync.sync {
-                    metsaHallitusPermitSync.sync(username, Runnable {
-                        harvestSync.sync(harvestYears) { harvestChangeEvents ->
-
-                            harvestEventEmitter.emit(harvestChangeEvents)
-
-                            localImageRemover.removeDeletedImagesLocallyAsync()
-
-                            completeSync()
-                        }
-                    })
-                }
+            metsaHallitusPermitSync.sync(username) {
+                localImageRemover.removeDeletedImagesLocallyAsync()
+                completeSync()
             }
         }
     }
@@ -285,12 +413,12 @@ class AppSync @Inject constructor(
 
             if (inForeground && automaticSyncEnabled) {
                 isSyncQueued = true
-                syncHandler.postDelayed(syncTask, SYNC_INTERVAL_SECONDS * 1000.toLong())
+                syncHandler.postDelayed(syncTask, SYNC_INTERVAL_MILLISECONDS)
             } else {
                 isSyncQueued = false
             }
 
-            isSyncRunning = false
+            setSyncRunning(running = false)
         }
 
         if (!inForeground) {
@@ -304,15 +432,18 @@ class AppSync @Inject constructor(
      * Tries to login using stored credentials if not already logged in
      * If the login doesn't succeed, user is forced to log out
      */
-    private fun tryLogin() {
-        if (credentialsStore.isCredentialsSaved() && RiistaSDK.currentUserContext.loginStatus.value !is LoginStatus.LoggedIn) {
+    private fun tryLogin(statusCode: Int) {
+        if (credentialsStore.isCredentialsSaved() && statusCode == 401) {
             CoroutineScope(Main).launch {
-                authenticator.reauthenticate(object : AuthSuccessCallback() {
-                    override fun onLoginSuccessful(userInfo: String?) {
-                        // Try syncing once again.
-                        fetchGameLogYearsAndThenSyncAll(false)
-                    }
-                })
+                authenticator.reauthenticate(
+                    callback = object : AuthSuccessCallback() {
+                        override fun onLoginSuccessful(userInfo: String?) {
+                            // Try syncing once again.
+                            fetchGameLogYearsAndThenSyncAll(false)
+                        }
+                    },
+                    timeoutSeconds = Authenticator.DEFAULT_AUTHENTICATION_TIMEOUT_SECONDS
+                )
             }
         } else {
             fetchGameLogYearsAndThenSyncAll(false)
@@ -337,18 +468,8 @@ class AppSync @Inject constructor(
     companion object {
 
         private const val TAG = "AppSync"
-        private const val SYNC_INTERVAL_SECONDS = 300
-        private const val SYNC_MIN_INTERVAL = 0.5f
+        private const val SYNC_INTERVAL_MILLISECONDS = 5 * 60 * 1000L
 
-        @Throws(JSONException::class)
-        private fun parseYears(jArray: JSONArray): List<Int> {
-            val years: MutableList<Int> = ArrayList()
-
-            for (i in 0 until jArray.length()) {
-                val year = jArray.getInt(i)
-                years.add(year)
-            }
-            return years
-        }
+        private val logger by getLogger(AppSync::class)
     }
 }

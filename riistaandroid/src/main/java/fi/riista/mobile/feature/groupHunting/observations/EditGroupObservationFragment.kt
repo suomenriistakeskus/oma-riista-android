@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.groupHunting.observations
 
-import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,6 +21,8 @@ import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.mobile.R
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import kotlinx.coroutines.*
 
@@ -165,11 +166,14 @@ class EditGroupObservationFragment
                 interactionManager.onProposedObservationSaveCompleted(true)
             } else {
                 interactionManager.onProposedObservationSaveCompleted(false) {
-                    AlertDialog.Builder(requireContext())
+                    AlertDialogFragment.Builder(
+                        requireContext(),
+                        AlertDialogId.EDIT_GROUP_OBSERVATION_FRAGMENT_OBSERVATION_SAVE_FAILED
+                    )
                         .setMessage(R.string.group_hunting_observation_save_failed_generic)
-                        .setPositiveButton(R.string.ok, null)
-                        .create()
-                        .show()
+                        .setPositiveButton(R.string.ok)
+                        .build()
+                        .show(requireActivity().supportFragmentManager)
                 }
             }
         }
@@ -181,7 +185,7 @@ class EditGroupObservationFragment
     }
 
     override fun getController(): EditGroupObservationController {
-        return controller;
+        return controller
     }
 
     companion object {

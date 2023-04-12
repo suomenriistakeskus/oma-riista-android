@@ -54,7 +54,7 @@ class HuntingControlEventActivity
     override val viewHuntingControlEventController: ViewHuntingControlEventController
         get() {
             return ViewHuntingControlEventController(
-                huntingControlContext = RiistaSDK.currentUserContext.huntingControlContext,
+                huntingControlContext = RiistaSDK.huntingControlContext,
                 huntingControlEventTarget = huntingControlEventTarget,
                 stringProvider = ContextStringProviderFactory.createForContext(this),
             )
@@ -62,7 +62,7 @@ class HuntingControlEventActivity
     override val createHuntingControlEventController: CreateHuntingControlEventController
         get() {
             return CreateHuntingControlEventController(
-                huntingControlContext = RiistaSDK.currentUserContext.huntingControlContext,
+                huntingControlContext = RiistaSDK.huntingControlContext,
                 huntingControlRhyTarget = huntingControlRhyTarget,
                 stringProvider = ContextStringProviderFactory.createForContext(this),
                 commonFileProvider = RiistaSDK.commonFileProvider,
@@ -72,7 +72,7 @@ class HuntingControlEventActivity
     override val editHuntingControlEventController: EditHuntingControlEventController
         get() {
             return EditHuntingControlEventController(
-                huntingControlContext = RiistaSDK.currentUserContext.huntingControlContext,
+                huntingControlContext = RiistaSDK.huntingControlContext,
                 huntingControlEventTarget = huntingControlEventTarget,
                 stringProvider = ContextStringProviderFactory.createForContext(this),
                 commonFileProvider = RiistaSDK.commonFileProvider,
@@ -182,6 +182,7 @@ class HuntingControlEventActivity
                 )
                 .commit()
         } else {
+            indicatorsDismissed()
             supportFragmentManager.popBackStack()
         }
     }
@@ -191,12 +192,17 @@ class HuntingControlEventActivity
     }
 
     override fun onSavingHuntingControlEvent() {
-        // NO op
+        // No op
     }
 
     override fun onHuntingControlEventSaveCompleted(success: Boolean, indicatorsDismissed: () -> Unit) {
-        if (!isFinishing && success) {
+        if (isFinishing) {
+            return
+        }
+        if (success) {
             finish()
+        } else {
+            indicatorsDismissed()
         }
     }
 

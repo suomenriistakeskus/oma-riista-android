@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
@@ -113,9 +114,14 @@ public class RiistaApplication extends WorkApplication implements HasAndroidInje
         final String versionName = packageInfo != null ? packageInfo.versionName : BuildConfig.VERSION_NAME;
         final int versionCode = packageInfo != null ? packageInfo.versionCode : BuildConfig.VERSION_CODE;
 
-        final RiistaSdkBuilder builder = RiistaSdkBuilder
-                .with(versionName, String.valueOf(versionCode), AppConfig.getBaseAddress())
+        final RiistaSdkBuilder builder = RiistaSdkBuilder.with(
+                        versionName,
+                        String.valueOf(versionCode),
+                        AppConfig.getBaseAddress(),
+                        this::recordExceptionToCrashlytics
+                )
                 .registerApplicationContext(getApplicationContext());
+
         RiistaSdkBuilderKt.setAllowRedirectsToAbsoluteHosts(builder, BuildInfo.isTestBuild())
                 .initializeRiistaSDK();
 
@@ -137,8 +143,18 @@ public class RiistaApplication extends WorkApplication implements HasAndroidInje
             RiistaSDK.groupHuntingIntroMessageHandler()
                     .parseMessageFromJson(RemoteConfig.getGroupHuntingIntroMessage());
 
+            RiistaSDK.getAppStartupMessageHandler()
+                    .parseAppStartupMessageFromJson(RemoteConfig.getAppStartupMessage());
+
             RiistaSDK.getCommonFileProvider().removeTemporaryFiles();
         });
+    }
+
+    private void recordExceptionToCrashlytics(final Throwable throwable, final String message) {
+        if (message != null) {
+            FirebaseCrashlytics.getInstance().log(message);
+        }
+        FirebaseCrashlytics.getInstance().recordException(throwable);
     }
 
     private void adjustBitmapCache() {

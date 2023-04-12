@@ -24,7 +24,7 @@ import java.util.List;
 
 import fi.riista.mobile.R;
 import fi.riista.mobile.observation.ObservationStrings;
-import fi.riista.mobile.utils.TextValueFilter;
+import fi.riista.mobile.utils.MaxValueFilter;
 import fi.riista.mobile.utils.UiUtils;
 
 public class ChoiceView<T> extends LinearLayout {
@@ -250,7 +250,7 @@ public class ChoiceView<T> extends LinearLayout {
     }
 
     public void setEditTextMaxValue(final float value) {
-        mEditText.setFilters(new InputFilter[]{new TextValueFilter(value)});
+        mEditText.setFilters(new InputFilter[]{new MaxValueFilter(value)});
     }
 
     public void setLocalizationAlias(final String value, final int stringId) {

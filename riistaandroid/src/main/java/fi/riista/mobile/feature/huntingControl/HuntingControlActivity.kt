@@ -1,6 +1,7 @@
 package fi.riista.mobile.feature.huntingControl
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.Menu
@@ -43,6 +44,7 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
     private lateinit var noEventsView: TextView
     private lateinit var adapter: HuntingControlEventRecyclerViewAdapter
     private lateinit var rhyChoice: StringWithIdChoiceView
+    private lateinit var checkHunterButton: NotificationButton
     private lateinit var newEventButton: NotificationButton
     private lateinit var progressBar: ProgressBar
 
@@ -57,7 +59,7 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
         setCustomTitle(getString(R.string.hunting_control_main_page_title))
 
         controller = SelectHuntingControlEventController(
-            huntingControlContext = RiistaSDK.currentUserContext.huntingControlContext,
+            huntingControlContext = RiistaSDK.huntingControlContext,
             languageProvider = AppLanguageProvider(this),
             stringProvider = ContextStringProviderFactory.createForContext(this),
         )
@@ -87,8 +89,13 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
         rhyChoice = findViewById(R.id.cv_rhy)
         rhyChoice.setTitle(getString(R.string.huntint_control_rhy))
 
-        newEventButton = findViewById<NotificationButton>(R.id.btn_add_event).also {
-            findViewById<View>(R.id.button_content).setOnClickListener {
+        checkHunterButton = findViewById<NotificationButton>(R.id.btn_check_hunter).also { button ->
+            button.findViewById<View>(R.id.button_content).setOnClickListener {
+                onHunterCheckClicked()
+            }
+        }
+        newEventButton = findViewById<NotificationButton>(R.id.btn_add_event).also { button ->
+            button.findViewById<View>(R.id.button_content).setOnClickListener {
                 onNewEventClicked()
             }
         }
@@ -229,6 +236,10 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
         MainScope().launch {
             controller.fetchRhyDataIfNeeded(refresh = refresh)
         }
+    }
+
+    private fun onHunterCheckClicked() {
+        startActivity(Intent(this, HuntingControlHunterInfoActivity::class.java))
     }
 
     private fun onNewEventClicked() {

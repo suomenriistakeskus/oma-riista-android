@@ -29,11 +29,27 @@
             android:layout_height="wrap_content">
 
             <fi.riista.mobile.ui.NotificationButton
+                android:id="@+id/btn_check_hunter"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintHeight_min="@dimen/default_button_height"
+                app:layout_constraintDimensionRatio="3:1"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginStart="@dimen/padding_medium"
+                android:layout_marginEnd="@dimen/padding_medium"
+                app:buttonImage="@drawable/ic_calendar"
+                app:buttonText="@string/hunting_control_check_hunter"
+                app:notificationVisibility="gone" />
+
+            <fi.riista.mobile.ui.NotificationButton
                 android:id="@+id/btn_add_event"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintDimensionRatio="2:1"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintHeight_min="@dimen/default_button_height"
+                app:layout_constraintDimensionRatio="3:1"
+                app:layout_constraintTop_toBottomOf="@id/btn_check_hunter"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginStart="@dimen/padding_medium"

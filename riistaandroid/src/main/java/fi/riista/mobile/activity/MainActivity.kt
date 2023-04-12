@@ -1,6 +1,9 @@
 package fi.riista.mobile.activity
 
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.location.LocationManager
@@ -8,52 +11,83 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.view.*
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.WindowManager
 import android.widget.ProgressBar
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.android.AndroidInjection
 import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.userInfo.LoginStatus
+import fi.riista.common.reactive.AppObservable
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
-import fi.riista.common.domain.userInfo.LoginStatus
 import fi.riista.mobile.ExternalUrls.Companion.getEventSearchUrl
-import fi.riista.mobile.ExternalUrls.Companion.getHunterMagazineUrl
 import fi.riista.mobile.ExternalUrls.Companion.getHuntingSeasonsUrl
 import fi.riista.mobile.NetworkConnectivityReceiver
 import fi.riista.mobile.R
 import fi.riista.mobile.database.HarvestDatabase
-import fi.riista.mobile.database.PermitManager
+import fi.riista.mobile.database.HarvestDatabaseMigrationToRiistaSDK
 import fi.riista.mobile.database.SpeciesInformation
 import fi.riista.mobile.feature.groupHunting.GroupHuntingActivity
 import fi.riista.mobile.feature.huntingControl.HuntingControlActivity
 import fi.riista.mobile.feature.login.LoginActivity
-import fi.riista.mobile.pages.*
+import fi.riista.mobile.feature.moreView.MoreItemType
+import fi.riista.mobile.feature.moreView.MoreViewFragment
+import fi.riista.mobile.feature.unregister.UnregisterUserAccountActivityLauncher
+import fi.riista.mobile.observation.ObservationDatabase
+import fi.riista.mobile.observation.ObservationDatabaseMigrationToRiistaSDK
+import fi.riista.mobile.pages.AnnouncementsFragment
+import fi.riista.mobile.pages.ContactDetailsFragment
+import fi.riista.mobile.pages.GalleryFragment
+import fi.riista.mobile.pages.GameLogFragment
+import fi.riista.mobile.pages.HomeViewFragment
+import fi.riista.mobile.pages.MapViewer
 import fi.riista.mobile.pages.MapViewer.FullScreenExpand
+import fi.riista.mobile.pages.MyDetailsFragment
+import fi.riista.mobile.pages.SettingsFragment
+import fi.riista.mobile.pages.ShootingTestCalendarEventListFragment
+import fi.riista.mobile.srva.SrvaDatabaseMigrationToRiistaSDK
 import fi.riista.mobile.sync.AnnouncementSync
 import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.sync.AppSync.AppSyncListener
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.utils.AppPreferences
+import fi.riista.mobile.utils.BackgroundOperationStatus
 import fi.riista.mobile.utils.CredentialsStore
+import fi.riista.mobile.utils.LogoutHelper
 import fi.riista.mobile.utils.UserInfoStore
 import fi.riista.mobile.utils.Utils
+import fi.riista.mobile.utils.openInBrowser
+import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
+class MainActivity
+  : BaseActivity(),
+    AppSyncListener,
+    FullScreenExpand,
+    MoreViewFragment.InteractionManager
+{
     @Inject
     lateinit var harvestDatabase: HarvestDatabase
 
     @Inject
-    lateinit var permitManager: PermitManager
+    lateinit var observationDatabase: ObservationDatabase
 
     @Inject
     lateinit var appSync: AppSync
+
+    @Inject
+    lateinit var logoutHelper: LogoutHelper
 
     @Inject
     lateinit var announcementsSync: AnnouncementSync
@@ -64,12 +98,25 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     @Inject
     lateinit var userInfoStore: UserInfoStore
 
+    @Inject
+    lateinit var backgroundOperationStatus: BackgroundOperationStatus
+
+    @Suppress("unused")
+    private val dialogListener = DelegatingAlertDialogListener(this).apply {
+        registerPositiveCallback(AlertDialogId.MAIN_ACTIVITY_LOGOUT_CONFIRMATION) {
+            logout()
+        }
+        registerPositiveCallback(AlertDialogId.MAIN_ACTIVITY_GPS_PROMPT) {
+            startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        }
+    }
+
     private var connectivityReceiver: BroadcastReceiver? = null
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var progressBar: ProgressBar
     private var syncOnResume = true
-    private var groupHuntingAvailable = false
-    private var huntingControlAvailable = false
+    override var groupHuntingAvailable = AppObservable(false)
+    override var huntingControlAvailable = AppObservable(false)
     private val disposeBag = DisposeBag()
 
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +128,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
         progressBar = findViewById(R.id.progress_horizontal)
         checkIntentForSyncExtra(intent)
         initDatabase()
-        replacePageFragment(HomeViewFragment.newInstance())
+        replacePageFragment(HomeViewFragment())
         setupNavigationView()
         val manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -96,6 +143,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
         registerLoginStatus()
         registerGroupHuntingStatus()
         registerHuntingControlStatus()
+        indicateBackgroundOperationStatus()
     }
 
     private fun registerLoginStatus() {
@@ -105,6 +153,8 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
 
                 // ensure hunting control gets updated data from the backend by refreshing
                 checkHuntingControlAvailability(refresh = true)
+
+                UnregisterUserAccountActivityLauncher.launchIfAccountUnregistrationRequested(parentActivity = this)
             }
         }.disposeBy(disposeBag)
     }
@@ -112,7 +162,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     private fun registerGroupHuntingStatus() {
         RiistaSDK.currentUserContext.groupHuntingContext
             .clubContextsProvider.loadStatus.bindAndNotify {
-                groupHuntingAvailable = RiistaSDK.currentUserContext.groupHuntingContext.groupHuntingAvailable
+                groupHuntingAvailable.set(RiistaSDK.currentUserContext.groupHuntingContext.groupHuntingAvailable)
             }
             .disposeBy(disposeBag)
     }
@@ -124,16 +174,24 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     }
 
     private fun registerHuntingControlStatus() {
-        RiistaSDK.currentUserContext.huntingControlContext
+        RiistaSDK.huntingControlContext
             .huntingControlRhyProvider.loadStatus.bindAndNotify {
-                huntingControlAvailable = RiistaSDK.currentUserContext.huntingControlContext.huntingControlAvailable
+                huntingControlAvailable.set(RiistaSDK.huntingControlContext.huntingControlAvailable)
+            }
+            .disposeBy(disposeBag)
+    }
+
+    private fun indicateBackgroundOperationStatus() {
+        backgroundOperationStatus.backgroundOperationInProgress
+            .bindAndNotify { backgroundOperationInProgress ->
+                progressBar.visibility = backgroundOperationInProgress.toVisibility()
             }
             .disposeBy(disposeBag)
     }
 
     private fun checkHuntingControlAvailability(refresh: Boolean = false) {
         CoroutineScope(Dispatchers.Main).launch {
-            RiistaSDK.currentUserContext.huntingControlContext.checkAvailability(refresh)
+            RiistaSDK.huntingControlContext.checkAvailability(refresh)
         }
     }
 
@@ -146,6 +204,17 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
         val credentials = credentialsStore.get()
         val username = credentials?.username
         harvestDatabase.setUser(username)
+
+        // Run migrations from app databases to Riista SDK database
+        backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.DATABASE_MIGRATION)
+        SrvaDatabaseMigrationToRiistaSDK.copyEvents {
+            ObservationDatabaseMigrationToRiistaSDK.copyObservations(observationDatabase) {
+                HarvestDatabaseMigrationToRiistaSDK.copyHarvests(harvestDatabase) {
+                    backgroundOperationStatus.finishOperation(BackgroundOperationStatus.Operation.DATABASE_MIGRATION)
+                    appSync.enableSyncPrecondition(AppSync.SyncPrecondition.DATABASE_MIGRATION_FINISHED)
+                }
+            }
+        }
     }
 
     fun replacePageFragment(fragment: Fragment?) {
@@ -162,82 +231,46 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     private fun setupNavigationView() {
         bottomNavigationView = findViewById(R.id.bottom_navigation)
         bottomNavigationView.setOnNavigationItemSelectedListener { menuItem: MenuItem ->
-            var fragment: Fragment? = null
-            when (menuItem.itemId) {
-                R.id.menu_home -> fragment = HomeViewFragment.newInstance()
-                R.id.menu_game_log -> fragment = GameLogFragment.newInstance()
-                R.id.menu_map -> {
-                    fragment = MapViewer.newInstance(enablePois = true)
-                    // Map fragment is used in many places with different titles, so set the title manually.
-                    setCustomTitle(getString(R.string.map_title))
-                }
-                R.id.menu_announcements -> fragment = AnnouncementsFragment.newInstance(true)
-                R.id.menu_more -> {
-                }
+            val fragment = when (menuItem.itemId) {
+                R.id.menu_home -> HomeViewFragment()
+                R.id.menu_game_log -> GameLogFragment()
+                R.id.menu_map -> createMapFragment()
+                R.id.menu_announcements -> AnnouncementsFragment.newInstance(true)
+                R.id.menu_more -> createMoreViewFragment()
+                else -> null
             }
             replacePageFragment(fragment)
             true
         }
-        bottomNavigationView.menu.getItem(MORE_ITEM_INDEX).setOnMenuItemClickListener {
-            displayMorePopupMenu()
-            true
-        }
     }
 
-    private fun displayMorePopupMenu() {
-        onDisplayingMorePopupMenu()
-        selectItem(R.id.menu_more)
-        val popupMenu = PopupMenu(this@MainActivity, bottomNavigationView)
-        popupMenu.menuInflater.inflate(R.menu.menu_main_more, popupMenu.menu)
-        popupMenu.setOnMenuItemClickListener { item: MenuItem ->
-            var innerFragment: Fragment? = null
-            when (item.itemId) {
-                R.id.menu_my_details -> innerFragment = MyDetailsFragment.newInstance()
-                R.id.menu_gallery -> innerFragment = GalleryFragment.newInstance()
-                R.id.menu_contact -> innerFragment = ContactDetailsFragment.newInstance()
-                R.id.menu_settings -> innerFragment = SettingsFragment.newInstance()
-                R.id.menu_shooting_test_list -> innerFragment = ShootingTestCalendarEventListFragment.newInstance()
-                R.id.menu_hunting_group_leader -> {
-                    startActivity(Intent(this, GroupHuntingActivity::class.java))
-                }
-                R.id.menu_hunting_control -> {
-                    startActivity(Intent(this, HuntingControlActivity::class.java))
-                }
-                R.id.menu_event_search -> {
-                    val eventSearchUrl = getEventSearchUrl(languageCode)
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(eventSearchUrl)))
-                }
-                R.id.menu_magazine -> {
-                    val magazineUrl = getHunterMagazineUrl(languageCode)
-                    val intent = Intent(this@MainActivity, MagazineActivity::class.java)
-                    intent.putExtra(MagazineActivity.EXTRA_URL, magazineUrl)
-                    startActivity(intent)
-                }
-                R.id.menu_hunting_seasons -> {
-                    val huntingSeasonsUrl = getHuntingSeasonsUrl(languageCode)
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(huntingSeasonsUrl)))
-                }
-                R.id.menu_logout -> confirmLogout()
-            }
-            replacePageFragment(innerFragment)
-            true
-        }
-        popupMenu.menu.findItem(R.id.menu_hunting_group_leader).isVisible = groupHuntingAvailable
-        popupMenu.menu.findItem(R.id.menu_hunting_control).isVisible = huntingControlAvailable
-        val userInfo = userInfoStore.getUserInfo()
-        val displayShootingTests = userInfo != null && userInfo.enableShootingTests
-        popupMenu.menu.findItem(R.id.menu_shooting_test_list).isVisible = displayShootingTests
-        popupMenu.gravity = Gravity.END
-        popupMenu.show()
-    }
-
-    private fun onDisplayingMorePopupMenu() {
-        // check results won't affect the current popup menu instance being shown. They
-        // may, however, be available when menu is displayed next time
-        // - this helps the case when availability information has not been fetched when
-        //   user opens the menu the first time (e.g. login call failed due to timeout)
+    private fun createMoreViewFragment(): Fragment {
         checkGroupHuntingAvailability()
         checkHuntingControlAvailability()
+        return MoreViewFragment()
+    }
+
+    private fun createMapFragment(): Fragment {
+        val fragment = MapViewer.newInstance(enablePois = true)
+        // Map fragment is used in many places with different titles, so set the title manually.
+        setCustomTitle(getString(R.string.map_title))
+        return fragment
+    }
+
+    override fun moreItemClicked(type: MoreItemType) {
+        when (type) {
+            MoreItemType.MY_DETAILS -> replacePageFragment(MyDetailsFragment.newInstance())
+            MoreItemType.GALLERY -> replacePageFragment(GalleryFragment.newInstance())
+            MoreItemType.CONTACT_DETAILS -> replacePageFragment(ContactDetailsFragment.newInstance())
+            MoreItemType.SHOOTING_TESTS -> replacePageFragment(ShootingTestCalendarEventListFragment())
+            MoreItemType.SETTINGS -> replacePageFragment(SettingsFragment.newInstance())
+            MoreItemType.HUNTING_DIRECTOR -> startActivity(Intent(this, GroupHuntingActivity::class.java))
+            MoreItemType.HUNTING_CONTROL -> startActivity(Intent(this, HuntingControlActivity::class.java))
+            MoreItemType.EVENT_SEARCH -> Uri.parse(getEventSearchUrl(languageCode)).openInBrowser(this)
+            MoreItemType.MAGAZINE -> startActivity(MagazineActivity.getLaunchIntent(this))
+            MoreItemType.SEASONS -> Uri.parse(getHuntingSeasonsUrl(languageCode)).openInBrowser(this)
+            MoreItemType.LOGOUT -> confirmLogout()
+        }
     }
 
     private val languageCode: String
@@ -248,40 +281,36 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     }
 
     private fun confirmLogout() {
-        AlertDialog.Builder(this)
-                .setMessage(getString(R.string.logout) + "?")
-                .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int -> logout() }
-                .setNegativeButton(android.R.string.cancel) { _: DialogInterface?, _: Int -> }
-                .show()
+        AlertDialogFragment.Builder(this, AlertDialogId.MAIN_ACTIVITY_LOGOUT_CONFIRMATION)
+            .setMessage(getString(R.string.logout) + "?")
+            .setPositiveButton(android.R.string.ok)
+            .setNegativeButton(android.R.string.cancel)
+            .build()
+            .show(supportFragmentManager)
     }
 
     private fun logout() {
-        RiistaSDK.logout()
+        logoutHelper.logout(context = this)
 
-        appSync.stopAutomaticSync()
-        harvestDatabase.clearUpdateTimes()
-        credentialsStore.clear()
-        AppPreferences.clearAll(this)
-        permitManager.clearPermits()
-        Utils.unregisterNotificationsAsync()
         val intent = Intent(this, LoginActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
 
     private fun createGPSPrompt() {
-        AlertDialog.Builder(this)
-                .setMessage(getString(R.string.gps_prompt))
-                .setPositiveButton(R.string.yes) { _: DialogInterface?, _: Int -> startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }
-                .setNegativeButton(R.string.no) { _: DialogInterface?, _: Int -> }
-                .create()
-                .show()
+        AlertDialogFragment.Builder(this, AlertDialogId.MAIN_ACTIVITY_GPS_PROMPT)
+            .setMessage(getString(R.string.gps_prompt))
+            .setPositiveButton(R.string.yes)
+            .setNegativeButton(R.string.no)
+            .build()
+            .show(supportFragmentManager)
     }
 
     private fun registerConnectivityReceiver() {
         if (syncOnResume) {
             val intentFilter = IntentFilter()
             intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION)
+            Log.d("MainActivity", "Registering connectivity receiver")
             connectivityReceiver = NetworkConnectivityReceiver(appSync)
             registerReceiver(connectivityReceiver, intentFilter)
         }
@@ -303,6 +332,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+
         checkIntentForSyncExtra(intent)
         registerConnectivityReceiver()
         checkIntentForAnnouncementExtra(intent)
@@ -310,7 +340,7 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
 
     override fun onStart() {
         super.onStart()
-        appSync.addSyncListener(this)
+        appSync.addSyncListener(listener = this, notifyImmediately = true)
     }
 
     override fun onResume() {
@@ -318,8 +348,10 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
 
         // Handle resuming sync when returning to app.
         if (syncOnResume) {
-            appSync.initAutomaticSync(500)
+            appSync.enableSyncPrecondition(AppSync.SyncPrecondition.HOME_SCREEN_REACHED)
         }
+
+        UnregisterUserAccountActivityLauncher.launchIfAccountUnregistrationRequested(parentActivity = this)
     }
 
     override fun onStop() {
@@ -329,7 +361,9 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
 
     override fun onDestroy() {
         super.onDestroy()
-        appSync.stopAutomaticSync()
+
+        appSync.disableSyncPrecondition(AppSync.SyncPrecondition.HOME_SCREEN_REACHED)
+
         if (connectivityReceiver != null) {
             unregisterReceiver(connectivityReceiver)
         }
@@ -353,6 +387,8 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     override fun onBackPressed() {
         val selectedId = bottomNavigationView.selectedItemId
         if (selectedId == R.id.menu_home) {
+            // task may live longer, ensure notification is displayed again when resuming
+            UnregisterUserAccountActivityLauncher.resetCooldown()
             finish()
         } else {
             bottomNavigationView.selectedItemId = R.id.menu_home
@@ -375,11 +411,11 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
     }
 
     override fun onSyncStarted() {
-        progressBar.visibility = View.VISIBLE
+        backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
     }
 
     override fun onSyncCompleted() {
-        progressBar.visibility = View.GONE
+        backgroundOperationStatus.finishOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
     }
 
     /**
@@ -394,6 +430,5 @@ class MainActivity : BaseActivity(), AppSyncListener, FullScreenExpand {
 
     companion object {
         const val DO_NOT_INITIATE_SYNC = "doNotInitiateSync"
-        private const val MORE_ITEM_INDEX = 4
     }
 }

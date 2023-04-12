@@ -3,6 +3,8 @@ package fi.riista.mobile.models.observation
 enum class ObservationType {
 
     NAKO,
+    POIKUE,
+    PARI,
     JALKI,
     ULOSTE,
     AANI,

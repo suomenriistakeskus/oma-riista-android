@@ -33,28 +33,34 @@
     <string name="add">Lisää</string>
     <string name="edit">Muokkaa</string>
     <string name="try_again">Yritä uudelleen</string>
+    <string name="attention">Huomio</string>
 
     <!-- common errors -->
     <string name="error_date_not_allowed">Päiväys ei ole sallittu</string>
+    <string name="error_datetime_in_future">Päivämäärä ei saa olla tulevaisuudessa</string>
+    <string name="no_web_browser">Selainta ei löytynyt</string>
+    <string name="operation_failed">Toiminto epäonnistui</string>
 
     <!-- Page/navigation item titles -->
     <string name="menu_front_page">Etusivu</string>
     <string name="menu_game_log">Riistaloki</string>
     <string name="menu_map">Kartta</string>
-    <string name="menu_my_details">Omat tiedot</string>
     <string name="menu_announcements">Viestit</string>
-    <string name="menu_settings">Asetukset</string>
-    <string name="menu_shooting_test_list">Ampumakokeet</string>
-    <string name="menu_hunting_group_leader">@string/group_hunting_main_page_title</string>
-    <string name="menu_hunting_control">@string/hunting_control_main_page_title</string>
-    <string name="menu_event_search">Tapahtumahaku</string>
-    <string name="menu_contact_details">Yhteystiedot</string>
-    <string name="menu_show_magazine">Lue viimeisin Metsästäjä-lehti</string>
-    <string name="menu_view_hunting_seasons">Metsästysajat</string>
-    <string name="menu_gallery">Galleria</string>
     <string name="menu_more">Lisää</string>
-    <string name="menu_add_item">Lisää</string>
+
+    <string name="more_my_details">Omat tiedot</string>
+    <string name="more_settings">Asetukset</string>
+    <string name="more_shooting_test_list">Ampumakokeet</string>
+    <string name="more_hunting_group_leader">@string/group_hunting_main_page_title</string>
+    <string name="more_hunting_control">@string/hunting_control_main_page_title</string>
+    <string name="more_event_search">Tapahtumahaku</string>
+    <string name="more_contact_details">Yhteystiedot</string>
+    <string name="more_show_magazine">Lue viimeisin Metsästäjä-lehti</string>
+    <string name="more_view_hunting_seasons">Metsästysajat</string>
+    <string name="more_gallery">Galleria</string>
     <string name="logout">Kirjaudu ulos</string>
+
+    <string name="menu_add_item">Lisää</string>
 
     <string name="title_front_page">Etusivu</string>
     <string name="title_game_log">Riistaloki</string>
@@ -97,6 +103,9 @@
     <string name="minutes_format">%1$d&#160;min</string>
     <string name="centimeters_format">%1$d&#160;cm</string>
     <string name="hours_and_minutes">%1$s&#160;%2$s</string>
+    <string name="double_format_zero_decimals">%.0f</string>
+    <string name="double_format_one_decimal">%.1f</string>
+    <string name="date_format_short">%1$d.%2$d.%3$d</string>
 
     <string-array name="months">
         <item>Tammikuu</item>
@@ -132,6 +141,7 @@
     <string name="settings_terms_of_service">Käyttöehdot</string>
     <string name="settings_accessibility">Saavutettavuusseloste</string>
     <string name="settings_third_party_libraries">Kolmannen osapuolen kirjastot</string>
+    <string name="settings_unregister_user_account">@string/unregister_account_title</string>
 
     <!-- Contact details page -->
     <string name="feedback">Palaute</string>
@@ -206,6 +216,14 @@
     <string name="occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa">RHY:n edustaja riistavahinkojen maastokatselmuksessa</string>
     <string name="occupation_type_petoyhdyshenkilo">Petoyhdyshenkilö</string>
 
+    <string name="unregister_account_title">Poista käyttäjätili</string>
+    <string name="unregister_account_message">Haluan poistaa vapaaehtoiset riistatietoni, käyttäjätilini sekä henkilötietoni Oma\u00A0riista\u00A0-palvelusta.\n\nYmmärrän, että tietojani ei voida palauttaa poistamisen jälkeen.</string>
+    <string name="unregister_account_question">Oletko varma, että haluat poistaa käyttäjätilisi?</string>
+    <string name="unregister_account_request_sent_title_short">Pyyntö lähetetty</string>
+    <string name="unregister_account_request_sent_title">Käyttäjätilin poistopyyntö on lähetetty</string>
+    <string name="unregister_account_request_sent_message_at_timeime">Käyttäjätilin poistopyynnöstä on lähetetty automaattinen sähköpostiviesti Oma riista -palvelun ylläpitoon %1$s sekä kopio viestistä on välitetty myös omissa tiedoissasi määriteltyyn sähköpostiosoitteeseen. Tyypillisesti käyttäjätili poistetaan ylläpidon toimesta kahden viikon\u00A0kuluessa.\n\nOle hyvä ja ota yhteyttä asiakaspalveluun oma@riista.fi, mikäli pyysit käyttäjätilin poistoa erheellisesti.</string>
+    <string name="unregister_account_continue_using">Jatka palvelun käyttöä</string>
+
     <!-- New diary entry page -->
     <string name="species">Laji</string>
     <string name="species_other">Muu laji</string>
@@ -265,6 +283,7 @@
     <string name="harvest_permit_accepted">Hyväksytty lupaan</string>
     <string name="harvest_permit_rejected">Hylätty luvasta</string>
 
+    <string name="harvest_permit_information_label">Lupa</string>
     <string name="permit_list_page_title">Valitse lupa</string>
     <string name="permit_list_input_prompt">Etsi lupanumerolla</string>
     <string name="permit_list_button">Hae tiedot</string>
@@ -409,6 +428,8 @@
     <string name="observation_category_within_moose_hunting">@string/within_moose_hunting</string>
     <string name="observation_category_within_deer_hunting">@string/within_deer_hunting</string>
 
+    <string name="error_observation_specimen_amount_at_least_two">Yksilöitä täyty olla vähintään kaksi</string>
+
     <!-- Antlers instructions page -->
     <string name="instructions">Ohje</string>
     <string name="instructions_format">Ohje: %s</string>
@@ -427,6 +448,8 @@
     <string name="observation_unknown">Tuntematon</string>
 
     <string name="type_sight">Näkö</string>
+    <string name="type_poikue">Poikue</string>
+    <string name="type_pari">Pari</string>
     <string name="type_track">Jälki</string>
     <string name="type_excrement">Uloste</string>
     <string name="type_sound">Ääni</string>
@@ -449,7 +472,7 @@
     <string name="type_caves">Luolasto</string>
     <string name="type_nesting_islet">Pesimäluoto</string>
     <string name="type_resting_islet">Lepäilyluoto</string>
-    <string name="type_nesting_swamp">Pesimäsuo</string>
+    <string name="type_nesting_swamp">Sulkimispaikka</string>
     <string name="type_migration_resting_area">Muuton aikainen lepäilyalue</string>
     <string name="type_game_path">Riistankulkupaikka</string>
     <string name="type_poikueymparisto">Poikueympäristö</string>
@@ -500,8 +523,8 @@
     <string name="mooselike_unknown_within_deer_hunting">@string/mooselike_unknown</string>
 
     <!-- Tassu fields -->
-    <string name="tassu_paw_length">Etutassun pituus</string>
-    <string name="tassu_paw_width">Etutassun leveys</string>
+    <string name="tassu_paw_length">Etutassun pituus (cm)</string>
+    <string name="tassu_paw_width">Etutassun leveys (cm)</string>
 
     <string name="tassu_observer_name">Petohavaitsijan nimi</string>
     <string name="tassu_observer_phone_number">Petohavaitsijan puhelinnumero</string>
@@ -614,7 +637,7 @@
     <string name="shooting_test_state_closed">Suljettu</string>
     <string name="shooting_test_state_ongoing">Käynnissä</string>
     <string name="shooting_test_state_waiting">Odottaa</string>
-    <string name="hunting_licence_qr_code_invalid_format">QR koodin lukeminen epäonnitui tai ei metsästäjäkortti</string>
+    <string name="hunting_licence_qr_code_invalid_format">QR-koodin lukeminen epäonnistui tai ei metsästäjäkortti</string>
     <string name="hunting_licence_search_with_scanned_number">Etsi metsästäjänumerolla: %s</string>
     <string name="hunting_licence_search_with_scanned_ssn">Etsi henkilötunnuksella: %s</string>
     <string name="shooting_test_register_types_title">Valitse aiottu koemuoto</string>
@@ -775,6 +798,7 @@
 
     <!-- Hunting control -->
     <string name="hunting_control_main_page_title">Metsästyksenvalvonta</string>
+    <string name="hunting_control_check_hunter">Tarkasta</string>
     <string name="hunting_control_add_event">Luo tapahtuma</string>
     <string name="hunting_control_my_events">Omat tapahtumat</string>
     <string name="hunting_control_no_events">Ei tapahtumia</string>
@@ -808,6 +832,24 @@
     <string name="hunting_control_add_attachment">Lisää liite</string>
     <string name="hunting_control_select_attachment">Valitse liite</string>
 
+    <string name="hunting_control_hunter_details">Henkilötiedot</string>
+    <string name="hunting_control_hunter_name">@string/my_details_name</string>
+    <string name="hunting_control_hunter_date_of_birth">@string/my_details_date_of_birth</string>
+    <string name="hunting_control_hunter_home_municipality">@string/my_details_home_municipality</string>
+    <string name="hunting_control_hunter_number">@string/my_details_hunter_id</string>
+    <string name="hunting_control_hunting_license">@string/my_details_title_hunting_license</string>
+    <string name="hunting_control_hunting_license_status">Tila</string>
+    <string name="hunting_control_hunting_license_status_active">Voimassa</string>
+    <string name="hunting_control_hunting_license_status_inactive">Ei voimassa</string>
+    <string name="hunting_control_hunting_license_date_of_payment">Maksettu</string>
+    <string name="hunting_control_shooting_tests">@string/my_details_shooting_tests_title</string>
+    <string name="hunting_control_ssn">Henkilötunnus</string>
+    <string name="hunting_control_searching_hunter">Haetaan henkilön tietoja</string>
+    <string name="hunting_control_reset_hunter_info">Uusi haku</string>
+    <string name="hunting_control_hunter_not_found">Haulla ei löytynyt henkilöä.</string>
+    <string name="hunting_control_network_error">Verkkovirhe, yritä uudestaan.</string>
+    <string name="hunting_control_retry">Hae uudestaan</string>
+
     <string name="download_manager_downloading_file">Tiedostoa ladataan</string>
     <string name="download_manager_download_complete">Löydät ladatun tiedoston %1$s ilmoituksista</string>
     <string name="download_manager_download_failed">Tiedoston %1$s lataus epäonnistui</string>
@@ -824,4 +866,5 @@
     <string name="hunting_control_event_type_waterfowl">Vesilintujen metsästyksen valvonta</string>
     <string name="hunting_control_event_type_dog_discipline">Koirakurin valvonta</string>
     <string name="hunting_control_event_type_other">Muu valvonta</string>
+
 </resources>

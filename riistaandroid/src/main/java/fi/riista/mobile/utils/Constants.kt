@@ -25,4 +25,7 @@ object Constants {
         longitude = 25.48
     }
     const val DEFAULT_MAP_ZOOM_LEVEL: Float = 5.5F
+
+    // Disabled UI element alpha in range [0..255]
+    const val DISABLED_ALPHA: Int = 128
 }

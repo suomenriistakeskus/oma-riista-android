@@ -17,7 +17,7 @@ public class Rhy {
     @JsonProperty("name")
     private Map<String, String> name;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<>();
+    private final Map<String, Object> additionalProperties = new HashMap<>();
 
     @JsonProperty("id")
     public Integer getId() {

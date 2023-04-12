@@ -21,7 +21,7 @@ public class MyInfoWindowAdapter implements InfoWindowAdapter, LocationInterface
 
     private final View contentView;
     private final int GOOD_ACCURACY = 50; // meters
-    private Context mContext;
+    private final Context mContext;
     private Location mLocation = null;
 
     public MyInfoWindowAdapter(Context context) {
@@ -36,8 +36,8 @@ public class MyInfoWindowAdapter implements InfoWindowAdapter, LocationInterface
 
     @Override
     public View getInfoWindow(Marker marker) {
-        ImageView qualityImage = (ImageView) contentView.findViewById(R.id.loc_quality_image);
-        TextView qualityText = (TextView) contentView.findViewById(R.id.loc_quality_text);
+        ImageView qualityImage = contentView.findViewById(R.id.loc_quality_image);
+        TextView qualityText = contentView.findViewById(R.id.loc_quality_text);
         if (mLocation != null && mLocation.getAccuracy() < GOOD_ACCURACY) {
             qualityImage.setImageDrawable(mContext.getResources().getDrawable(R.drawable.ic_small_gps_good));
             qualityText.setText(mContext.getResources().getString(R.string.gps_good));

@@ -7,7 +7,9 @@ import androidx.appcompat.widget.AppCompatCheckBox
 import fi.riista.common.ui.dataField.BooleanEventDispatcher
 import fi.riista.common.ui.dataField.BooleanField
 import fi.riista.common.ui.dataField.DataFieldId
+import fi.riista.common.util.letWith
 import fi.riista.mobile.R
+import fi.riista.mobile.ui.ClickableCheckbox
 import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
 
 class BooleanAsCheckboxViewHolder<FieldId : DataFieldId>(
@@ -15,15 +17,15 @@ class BooleanAsCheckboxViewHolder<FieldId : DataFieldId>(
     view: View,
 ) : DataFieldViewHolder<FieldId, BooleanField<FieldId>>(view) {
 
-    private val checkbox: AppCompatCheckBox = view.findViewById(R.id.checkbox)
+    private val checkbox: ClickableCheckbox = view.findViewById(R.id.checkbox)
 
     init {
-        checkbox.setOnCheckedChangeListener { _, checked ->
-            if (!isBinding) {
-                boundDataField?.let {
-                    eventDispatcher.dispatchBooleanChanged(it.id, checked)
-                }
+        checkbox.clickListener = {
+            boundDataField?.let { field ->
+                val currentlyChecked = field.value == true
+                eventDispatcher.dispatchBooleanChanged(field.id, !currentlyChecked)
             }
+            true
         }
     }
 

@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.groupHunting.observations
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -24,6 +23,9 @@ import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
 import fi.riista.mobile.pages.MapExternalIdProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.ui.dataFields.viewHolder.*
 import fi.riista.mobile.utils.toVisibility
@@ -35,7 +37,8 @@ class ViewGroupObservationFragment
     : DataFieldPageFragment<GroupObservationField>()
     , DataFieldViewHolderTypeResolver<GroupObservationField>
     , MapOpener
-    , MapExternalIdProvider {
+    , MapExternalIdProvider
+{
 
     interface InteractionManager {
         val viewGroupObservationController: ViewGroupObservationController
@@ -47,6 +50,8 @@ class ViewGroupObservationFragment
 
     @Inject
     lateinit var speciesResolver: SpeciesResolver
+
+    private lateinit var dialogListener: AlertDialogFragment.Listener
 
     private lateinit var adapter: DataFieldRecyclerViewAdapter<GroupObservationField>
     private lateinit var interactionManager: InteractionManager
@@ -108,6 +113,11 @@ class ViewGroupObservationFragment
             interactionManager.startApproveGroupObservation()
         }
 
+        dialogListener = DelegatingAlertDialogListener(requireActivity()).apply {
+            registerPositiveCallback(AlertDialogId.VIEW_GROUP_OBSERVATION_FRAGMENT_REJECT_OBSERVATION_QUESTION) {
+                rejectObservation()
+            }
+        }
         setHasOptionsMenu(true)
         return view
     }
@@ -156,7 +166,7 @@ class ViewGroupObservationFragment
                     mapExternalIdProvider = this@ViewGroupObservationFragment,
                 ),
             )
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(SpeciesNameAndIconViewHolder.Factory(speciesResolver))
             registerViewHolderFactory(ReadOnlyDateAndTimeViewHolder.Factory())
             registerViewHolderFactory(ReadOnlySingleLineTextViewHolder.Factory())
@@ -220,33 +230,42 @@ class ViewGroupObservationFragment
                 true
             }
             R.id.item_reject_observation -> {
-                AlertDialog.Builder(requireContext())
+                AlertDialogFragment.Builder(
+                    requireContext(),
+                    AlertDialogId.VIEW_GROUP_OBSERVATION_FRAGMENT_REJECT_OBSERVATION_QUESTION
+                )
                     .setTitle(getString(R.string.group_hunting_are_you_sure))
                     .setMessage(getString(R.string.group_hunting_reject_proposed_observation_question))
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setPositiveButton(R.string.yes) { _, _ ->
-                        MainScope().launch {
-                            val response = controller.rejectObservation()
-                            if (!isResumed) {
-                                return@launch
-                            }
-                            if (response is GroupHuntingObservationOperationResponse.Success) {
-                                interactionManager.groupObservationRejected()
-                            } else {
-                                AlertDialog.Builder(requireContext())
-                                    .setMessage(R.string.group_hunting_operation_failed)
-                                    .setPositiveButton(R.string.ok, null)
-                                    .create()
-                                    .show()
-                            }
-                        }
-                    }
-                    .setNegativeButton(R.string.no, null)
-                    .show()
+                    .setPositiveButton(R.string.yes)
+                    .setNegativeButton(R.string.no)
+                    .build()
+                    .show(requireActivity().supportFragmentManager)
                 true
             }
             else -> {
                 false
+            }
+        }
+    }
+
+    private fun rejectObservation() {
+        MainScope().launch {
+            val response = controller.rejectObservation()
+            if (!isResumed) {
+                return@launch
+            }
+            if (response is GroupHuntingObservationOperationResponse.Success) {
+                interactionManager.groupObservationRejected()
+            } else {
+                AlertDialogFragment.Builder(
+                    requireContext(),
+                    AlertDialogId.VIEW_GROUP_OBSERVATION_FRAGMENT_DIALOG_ID_OPERATION_FAILED
+                )
+                    .setMessage(R.string.group_hunting_operation_failed)
+                    .setPositiveButton(R.string.ok)
+                    .build()
+                    .show(requireActivity().supportFragmentManager)
             }
         }
     }

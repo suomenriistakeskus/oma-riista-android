@@ -24,6 +24,13 @@
         <intent>
             <action android:name="android.intent.action.GET_CONTENT" />
         </intent>
+
+        <!-- Open links in browser -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
     </queries>
 
     <application
@@ -60,6 +67,9 @@
             android:name=".feature.huntingControl.HuntingControlActivity"
             android:exported="false" />
         <activity
+            android:name=".feature.huntingControl.HuntingControlHunterInfoActivity"
+            android:exported="false" />
+        <activity
             android:name=".feature.poi.PoiLocationActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|locale" />
         <activity
@@ -76,15 +86,6 @@
             android:name=".activity.ChooseSpeciesActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|locale"
             android:screenOrientation="portrait" />
-        <activity
-            android:name=".activity.HarvestActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|locale"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".activity.HarvestSpecimensActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize|locale"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".activity.HarvestPermitActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|locale"
@@ -161,6 +162,10 @@
             android:configChanges="orientation|keyboardHidden|screenSize|locale"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".feature.harvest.HarvestActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|locale"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".feature.specimens.SpecimensActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|locale"
             android:screenOrientation="portrait" />
@@ -168,6 +173,9 @@
             android:name=".activity.SelectStringWithIdActivity"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".feature.unregister.UnregisterUserAccountActivity"
+            android:screenOrientation="portrait" />
 
         <service
             android:name=".firebase.RiistaFirebaseMessagingService"

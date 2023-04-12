@@ -7,16 +7,20 @@ import android.content.Intent
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.core.util.component1
-import androidx.core.util.component2
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.LocationListener
@@ -34,31 +38,37 @@ import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
+import fi.riista.common.util.toLocation
 import fi.riista.mobile.EntryMapView
 import fi.riista.mobile.LocationClient
 import fi.riista.mobile.R
-import fi.riista.mobile.activity.*
-import fi.riista.mobile.database.HarvestDatabase
+import fi.riista.mobile.activity.BaseActivity
+import fi.riista.mobile.activity.MainActivity
+import fi.riista.mobile.activity.MapSettingsActivity
+import fi.riista.mobile.activity.MapViewerActivity
+import fi.riista.mobile.feature.harvest.HarvestActivity
 import fi.riista.mobile.feature.observation.ObservationActivity
 import fi.riista.mobile.feature.poi.PoiFilterFragment
 import fi.riista.mobile.feature.poi.PoiLocationActivity
 import fi.riista.mobile.feature.srva.SrvaActivity
 import fi.riista.mobile.models.GameLog
-import fi.riista.mobile.models.observation.GameObservation
-import fi.riista.mobile.models.srva.SrvaEvent
-import fi.riista.mobile.observation.ObservationDatabase
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
-import fi.riista.mobile.riistaSdkHelpers.toCommonObservation
-import fi.riista.mobile.riistaSdkHelpers.toCommonSrvaEvent
-import fi.riista.mobile.srva.SrvaDatabase
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.GameLogFilterView
 import fi.riista.mobile.ui.GameLogFilterView.GameLogFilterListener
 import fi.riista.mobile.ui.MapOverlayView
 import fi.riista.mobile.ui.MapOverlayView.MapViewerInterface
-import fi.riista.mobile.utils.*
+import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.AppPreferences.MapLocation
 import fi.riista.mobile.utils.CacheClearTracker.shouldClearBackgroundCache
 import fi.riista.mobile.utils.CacheClearTracker.shouldClearVectorCaches
+import fi.riista.mobile.utils.MapMarkerClusterManager
+import fi.riista.mobile.utils.MapMarkerItem
+import fi.riista.mobile.utils.MapMarkerRenderer
+import fi.riista.mobile.utils.UiUtils
+import fi.riista.mobile.utils.UserInfoStore
+import fi.riista.mobile.utils.toVisibility
 import fi.riista.mobile.viewmodel.GameLogViewModel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -75,20 +85,15 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     @Inject
     lateinit var userInfoStore: UserInfoStore
 
-    @Inject
-    lateinit var harvestDatabase: HarvestDatabase
-
-    @Inject
-    lateinit var observationDatabase: ObservationDatabase
-
-    lateinit var displayMarkersButton: AppCompatImageButton
-    lateinit var displayMarkersTitle: TextView
+    private lateinit var displayMarkersButton: AppCompatImageButton
+    private lateinit var displayMarkersTitle: TextView
 
     private var isExpanded = false
     private var editMode = false
     private var mapExternalId: String? = null
     private var startLocation: Location? = null
     private var newItem = false
+    private var showItems = true
     private var locationSource: String? = null
     private var mapView: EntryMapView? = null
     private var locationClient: LocationClient? = null
@@ -113,10 +118,26 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     private val disposeBag = DisposeBag()
     private var poiViewModel: PoiViewModel? = null
     private lateinit var stringProvider: StringProvider
+    private val srvaEventProvider = RiistaSDK.srvaContext.srvaEventProvider
+    private val observationProvider = RiistaSDK.observationContext.observationProvider
+    private val harvestProvider = RiistaSDK.harvestContext.harvestProvider
 
-    private val resultLauncher = PoiLocationActivity.registerForActivityResult(this) { location ->
+    private val poiResultLaunch = PoiLocationActivity.registerForActivityResult(this) { location ->
         centerMapTo(location)
     }
+
+    private val harvestActivityResultLaunch =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            onHarvestActivityResult(result.resultCode, result.data)
+        }
+    private val observationActivityResultLaunch =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            onObservationActivityResult(result.resultCode, result.data)
+        }
+    private val srvaActivityResultLaunch =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            onSrvaActivityResult(result.resultCode, result.data)
+        }
 
     /**
      * Toggle map view fullscreen mode
@@ -149,8 +170,10 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         editMode = arguments.getBoolean(MapViewerActivity.EXTRA_EDIT_MODE, false)
         startLocation = arguments.getParcelable(MapViewerActivity.EXTRA_START_LOCATION)
         newItem = arguments.getBoolean(MapViewerActivity.EXTRA_NEW, false)
+        showItems = arguments.getBoolean(MapViewerActivity.EXTRA_SHOW_ITEMS, true)
         locationSource = arguments.getString(MapViewerActivity.EXTRA_LOCATION_SOURCE, GameLog.LOCATION_SOURCE_MANUAL)
         mapExternalId = arguments.getString(MapViewerActivity.EXTRA_EXTERNAL_ID)
+
         if (overlayMode) {
             val loc = AppPreferences.getLastMapLocation(context)
             if (loc != null) {
@@ -194,9 +217,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             poiFilterFragment.show(requireActivity().supportFragmentManager, poiFilterFragment.tag)
         }
 
-        model = ViewModelProvider(requireActivity(), viewModelFactory).get(
-            GameLogViewModel::class.java
-        )
+        model = ViewModelProvider(requireActivity(), viewModelFactory)[GameLogViewModel::class.java]
         if (enableMarkers) {
             model.refreshSeasons()
             filterView.setupTypes(
@@ -207,16 +228,15 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             filterView.setupSeasons(model.getSeasons().value, model.getSeasonSelected().value)
             filterView.setupSpecies(model.getSpeciesSelected().value!!, model.getCategorySelected().value)
         }
-        model.getTypeSelected().observe(viewLifecycleOwner, { populateMarkerItems() })
-        model.getSeasonSelected().observe(viewLifecycleOwner, { populateMarkerItems() })
-        model.getSpeciesSelected().observe(viewLifecycleOwner, { speciesIds: List<Int?>? ->
+        model.getTypeSelected().observe(viewLifecycleOwner) { populateMarkerItems() }
+        model.getSeasonSelected().observe(viewLifecycleOwner) { populateMarkerItems() }
+        model.getSpeciesSelected().observe(viewLifecycleOwner) { speciesIds: List<Int?>? ->
             filterView.setupSpecies(speciesIds!!, model.getCategorySelected().value)
             populateMarkerItems()
-        })
-        model.getSeasons().observe(
-            viewLifecycleOwner,
-            { seasons: List<Int>? -> filterView.setupSeasons(seasons, model.getSeasonSelected().value) }
-        )
+        }
+        model.getSeasons().observe(viewLifecycleOwner) { seasons ->
+            filterView.setupSeasons(seasons, model.getSeasonSelected().value)
+        }
 
         if (enablePois) {
             val externalId = AppPreferences.getSelectedClubAreaMapId(requireContext())
@@ -372,19 +392,55 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 }
             }
         }?.disposeBy(disposeBag)
+        srvaEventProvider.loadStatus.bind { status ->
+            val type = model.getTypeSelected().value
+            if (status.loaded && type == GameLog.TYPE_SRVA) {
+                populateMarkerItems()
+            }
+        }.disposeBy(disposeBag)
+        harvestProvider.loadStatus.bind { status ->
+            val type = model.getTypeSelected().value
+            if (status.loaded && type == GameLog.TYPE_HARVEST) {
+                populateMarkerItems()
+            }
+        }.disposeBy(disposeBag)
+        observationProvider.loadStatus.bind { status ->
+            val type = model.getTypeSelected().value
+            if (status.loaded && type == GameLog.TYPE_OBSERVATION) {
+                populateMarkerItems()
+            }
+        }.disposeBy(disposeBag)
 
         loadPoisIfNotLoaded()
+        loadSrvasIfNotLoaded()
+        loadObservationsIfNotLoaded()
+        loadHarvestsIfNotLoaded()
 
         super.onResume()
     }
 
     private fun loadPoisIfNotLoaded() {
-        if (poiController?.getLoadedViewModelOrNull() != null) {
-            return
-        }
-
         MainScope().launch {
             poiController?.loadViewModel(refresh = false)
+        }
+    }
+
+    private fun loadSrvasIfNotLoaded() {
+        MainScope().launch {
+            // If a srva event has been edited then provider will force refresh
+            srvaEventProvider.fetch(refresh = false)
+        }
+    }
+
+    private fun loadObservationsIfNotLoaded() {
+        MainScope().launch {
+            observationProvider.fetch(refresh = false)
+        }
+    }
+
+    private fun loadHarvestsIfNotLoaded() {
+        MainScope().launch {
+            harvestProvider.fetch(refresh = false)
         }
     }
 
@@ -587,25 +643,17 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
 
     private fun navigateToLogItem(mapMarkerItem: MapMarkerItem) {
         when (mapMarkerItem.type) {
-            GameLog.TYPE_HARVEST -> {
-                val harvest = harvestDatabase.getHarvestByLocalId(mapMarkerItem.localId.toInt())
-                val intent = Intent(context, HarvestActivity::class.java)
-                intent.putExtra(HarvestActivity.EXTRA_HARVEST, harvest)
-                startActivity(intent)
+            GameLog.TYPE_HARVEST -> harvestProvider.getByLocalId(mapMarkerItem.localId)?.let { harvest ->
+                val intent = HarvestActivity.getLaunchIntentForViewing(requireActivity(), harvest)
+                harvestActivityResultLaunch.launch(intent)
             }
-            GameLog.TYPE_OBSERVATION -> observationDatabase.loadObservation(mapMarkerItem.localId) { observation: GameObservation? ->
-                observation?.toCommonObservation()
-                    ?.let {
-                        val intent = ObservationActivity.getLaunchIntentForViewing(requireActivity(), it)
-                        startActivity(intent)
-                    }
+            GameLog.TYPE_OBSERVATION -> observationProvider.getByLocalId(mapMarkerItem.localId)?.let { observation ->
+                val intent = ObservationActivity.getLaunchIntentForViewing(requireActivity(), observation)
+                observationActivityResultLaunch.launch(intent)
             }
-            GameLog.TYPE_SRVA -> SrvaDatabase.getInstance().loadEvent(mapMarkerItem.localId) { srvaEvent: SrvaEvent? ->
-                srvaEvent?.toCommonSrvaEvent()
-                    ?.let {
-                        val intent = SrvaActivity.getLaunchIntentForViewing(requireActivity(), it)
-                        startActivity(intent)
-                    }
+            GameLog.TYPE_SRVA -> srvaEventProvider.getByLocalId(mapMarkerItem.localId)?.let { srvaEvent ->
+                val intent = SrvaActivity.getLaunchIntentForViewing(requireActivity(), srvaEvent)
+                srvaActivityResultLaunch.launch(intent)
             }
             GameLog.TYPE_POI -> {
                 val poiGroupAndLocation = poiController?.findPoiLocationAndItsGroup(mapMarkerItem.localId)
@@ -619,7 +667,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                         poiLocationGroup = poiLocationGroup,
                         poiLocation = poiLocation,
                     )
-                    resultLauncher.launch(intent)
+                    poiResultLaunch.launch(intent)
                 }
             }
             else -> {
@@ -628,7 +676,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     }
 
     private fun populateMarkerItems() {
-        if (clusterManager == null) {
+        if (clusterManager == null || !showItems) {
             return
         } else if (!displayMarkers) {
             clusterManager?.clearItems()
@@ -638,51 +686,63 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         clusterManager?.clearItems()
         when (Objects.requireNonNull(model.getTypeSelected().value)) {
             GameLog.TYPE_HARVEST -> {
-                val harvests = harvestDatabase.allHarvests
-                for (harvest in model.filterHarvestsWithCurrent(harvests)) {
-                    val item = MapMarkerItem(
-                        harvest.mLocation.latitude,
-                        harvest.mLocation.longitude,
-                        GameLog.TYPE_HARVEST,
-                        harvest.mLocalId.toLong()
-                    )
-                    clusterManager?.addItem(item)
+                harvestProvider.harvests?.let { harvests ->
+                    for (harvest in model.filterHarvestsWithCurrent(harvests)) {
+                        harvest.localId?.let { localId ->
+                            val location = harvest.geoLocation.toLocation()
+                            val item = MapMarkerItem(
+                                location.latitude,
+                                location.longitude,
+                                GameLog.TYPE_HARVEST,
+                                localId,
+                            )
+                            clusterManager?.addItem((item))
+                        }
+                    }
                 }
                 clusterManager?.cluster()
             }
-            GameLog.TYPE_OBSERVATION -> observationDatabase.loadAllObservations { observations: List<GameObservation> ->
-                for (observation in model.filterObservationsWithCurrent(observations)) {
-                    val item = MapMarkerItem(
-                        observation.toLocation().latitude,
-                        observation.toLocation().longitude,
-                        observation.type,
-                        observation.localId
-                    )
-                    clusterManager?.addItem(item)
+            GameLog.TYPE_OBSERVATION -> {
+                observationProvider.observations?.let { observations ->
+                    for (observation in model.filterObservationsWithCurrent(observations)) {
+                        observation.localId?.let { localId ->
+                            val location = observation.location.toLocation()
+                            val item = MapMarkerItem(
+                                location.latitude,
+                                location.longitude,
+                                GameLog.TYPE_OBSERVATION,
+                                localId
+                            )
+                            clusterManager?.addItem(item)
+                        }
+                    }
+                    clusterManager?.cluster()
                 }
-                clusterManager?.cluster()
             }
-            GameLog.TYPE_SRVA -> SrvaDatabase.getInstance().loadAllEvents { events: List<SrvaEvent> ->
-                for (srva in model.filterSrvasWithCurrent(events)) {
-                    val item = MapMarkerItem(
-                        srva.toLocation().latitude,
-                        srva.toLocation().longitude,
-                        srva.type,
-                        srva.localId
-                    )
-                    clusterManager?.addItem(item)
+            GameLog.TYPE_SRVA -> {
+                srvaEventProvider.srvaEvents?.let { events ->
+                    for (srva in model.filterSrvasWithCurrent(events)) {
+                        srva.localId?.let { localId ->
+                            val location = srva.location.toLocation()
+                            val item = MapMarkerItem(
+                                location.latitude,
+                                location.longitude,
+                                GameLog.TYPE_SRVA,
+                                localId
+                            )
+                            clusterManager?.addItem(item)
+                        }
+                    }
+                    clusterManager?.cluster()
                 }
-                clusterManager?.cluster()
             }
             GameLog.TYPE_POI -> {
                 poiViewModel?.filteredPois?.forEach { poi ->
                     poi.locations.forEach { poiLoc ->
-                        val (latitude, longitude) = with(poiLoc.geoLocation) {
-                            MapUtils.ETRMStoWGS84(latitude.toLong(), longitude.toLong())
-                        }
+                        val location = poiLoc.geoLocation.toLocation()
                         val item = MapMarkerItem(
-                            lat = latitude,
-                            lon = longitude,
+                            lat = location.latitude,
+                            lon = location.longitude,
                             type = GameLog.TYPE_POI,
                             id = poiLoc.id,
                             poiText = "${poi.visibleId}-${poiLoc.visibleId}",
@@ -708,14 +768,13 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
 
         if (type == GameLog.TYPE_POI) {
             poiFilterButton.visibility = View.VISIBLE
-            poiFilterButtonText.text = poiFilterText(poiViewModel?.filter?.poiFilterType  ?: PoiFilter.PoiFilterType.ALL)
+            poiFilterButtonText.text = poiFilterText(poiViewModel?.filter?.poiFilterType ?: PoiFilter.PoiFilterType.ALL)
             if (AppPreferences.getSelectedClubAreaMapId(requireContext()) == null) {
-                AlertDialog.Builder(requireContext())
+                AlertDialogFragment.Builder(requireContext(), AlertDialogId.MAP_VIEWER_POI_INFO)
                     .setMessage(getString(R.string.poi_select_external_id))
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        // Do nothing
-                    }
-                    .show()
+                    .setPositiveButton(R.string.ok)
+                    .build()
+                    .show(parentFragmentManager)
             }
         } else {
             poiFilterButton.visibility = View.GONE
@@ -753,6 +812,31 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         }
     }
 
+    private fun onHarvestActivityResult(resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (HarvestActivity.getHarvestCreatedOrModified(data.extras)) {
+                loadHarvestsIfNotLoaded()
+            }
+        }
+    }
+
+    private fun onObservationActivityResult(resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (ObservationActivity.getObservationCreatedOrModified(data.extras)) {
+                loadObservationsIfNotLoaded()
+            }
+        }
+    }
+
+    private fun onSrvaActivityResult(resultCode: Int, data: Intent?) {
+        if (resultCode == Activity.RESULT_OK && data != null) {
+            if (SrvaActivity.getSrvaEventCreatedOrModified(data.extras)) {
+                // assume srva is already saved, no need for automatic sync
+                loadSrvasIfNotLoaded()
+            }
+        }
+    }
+
     companion object {
         private const val MAPVIEW_BUNDLE_KEY = "MapViewBundleKey"
         private const val MARKER_DEFAULT_RADIUS = 0.0007
@@ -768,7 +852,6 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             instance.markerItemsCache[MARKER_DELETE_LIST] = ArrayList()
             instance.enableMarkers = true
             return instance
-
         }
     }
 }

@@ -33,28 +33,34 @@
     <string name="add">Lägg till</string>
     <string name="edit">Redigera</string>
     <string name="try_again">Försök igen</string>
+    <string name="attention">Uppmärksamhet</string>
 
     <!-- common errors -->
     <string name="error_date_not_allowed">Datum är inte tillåtet</string>
+    <string name="error_datetime_in_future">Datum får inte vara i framtiden</string>
+    <string name="no_web_browser">Ingen webbläsare hittades</string>
+    <string name="operation_failed">Operationen misslyckades</string>
 
     <!-- Page/navigation item titles -->
     <string name="menu_front_page">Hems.</string>
     <string name="menu_game_log">Viltlogg</string>
     <string name="menu_map">Karta</string>
-    <string name="menu_my_details">Egna uppgifter</string>
     <string name="menu_announcements">Meddelanden</string>
-    <string name="menu_settings">Inställningar</string>
-    <string name="menu_shooting_test_list">Skjutprov</string>
-    <string name="menu_hunting_group_leader">@string/group_hunting_main_page_title</string>
-    <string name="menu_hunting_control">@string/hunting_control_main_page_title</string>
-    <string name="menu_event_search">Sök evenemang</string>
-    <string name="menu_contact_details">Kontaktuppgifter</string>
-    <string name="menu_show_magazine">Läs senaste numret av Jägaren</string>
-    <string name="menu_view_hunting_seasons">Jakttider</string>
-    <string name="menu_gallery">Galleri</string>
     <string name="menu_more">Mer</string>
-    <string name="menu_add_item">Lägg till</string>
+
+    <string name="more_my_details">Egna uppgifter</string>
+    <string name="more_settings">Inställningar</string>
+    <string name="more_shooting_test_list">Skjutprov</string>
+    <string name="more_hunting_group_leader">@string/group_hunting_main_page_title</string>
+    <string name="more_hunting_control">@string/hunting_control_main_page_title</string>
+    <string name="more_event_search">Sök evenemang</string>
+    <string name="more_contact_details">Kontaktuppgifter</string>
+    <string name="more_show_magazine">Läs senaste numret av Jägaren</string>
+    <string name="more_view_hunting_seasons">Jakttider</string>
+    <string name="more_gallery">Galleri</string>
     <string name="logout">Logga ut</string>
+
+    <string name="menu_add_item">Lägg till</string>
 
     <string name="title_front_page">Första sidan</string>
     <string name="title_game_log">Viltlogg</string>
@@ -97,6 +103,9 @@
     <string name="minutes_format">%1$d&#160;min</string>
     <string name="centimeters_format">%1$d&#160;cm</string>
     <string name="hours_and_minutes">%1$s&#160;%2$s</string>
+    <string name="double_format_zero_decimals">%.0f</string>
+    <string name="double_format_one_decimal">%.1f</string>
+    <string name="date_format_short">%1$d.%2$d.%3$d</string>
 
     <string-array name="months">
         <item>Januari</item>
@@ -132,6 +141,7 @@
     <string name="settings_terms_of_service">Användarvillkor</string>
     <string name="settings_accessibility">Tillgänglighetsutlåtande</string>
     <string name="settings_third_party_libraries">Tredjeparts-biblioteker</string>
+    <string name="settings_unregister_user_account">@string/unregister_account_title</string>
 
     <!-- Contact details page -->
     <string name="feedback">Respons</string>
@@ -206,6 +216,14 @@
     <string name="occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa">JVF:s representant för terrängobservation vid viltskador</string>
     <string name="occupation_type_petoyhdyshenkilo">Rovdjurskontaktperson</string>
 
+    <string name="unregister_account_title">Radera användarkontot</string>
+    <string name="unregister_account_message">Jag vill radera mina frivilliga viltuppgifter, användarkonto samt mina personuppgifter från Oma\u00A0riista\u00A0-tjänsten.\n\nJag förstår, att mina uppgifter inte kan returneras efter raderingen.</string>
+    <string name="unregister_account_question">Är du säker på att du vill radera din användarkonto?</string>
+    <string name="unregister_account_request_sent_title_short">Begäran har skickats</string>
+    <string name="unregister_account_request_sent_title">Begäran om radering av användarkontot har skickats</string>
+    <string name="unregister_account_request_sent_message_at_timeime">Ett automatiskt e-postmeddelande har skickats till Oma riista -tjänstens underhåll %1$s angående begäran om radering av användarkontot och en kopia av meddelandet har även vidarebefordrats till den e-postadress som angetts i dina egna uppgifter. Vanligen raderas användarkontot av underhållet inom två\u00A0veckor.\n\nVar vänlig och ta kontakt med kundtjänsten oma@riista.fi, ifall du i misstag har begärt om radering av användarkontot.</string>
+    <string name="unregister_account_continue_using">Fortsätt använda tjänsten</string>
+
     <!-- New diary entry page -->
     <string name="species">Art</string>
     <string name="species_other">Annan art</string>
@@ -265,6 +283,7 @@
     <string name="harvest_permit_accepted">Godkänts till licensen</string>
     <string name="harvest_permit_rejected">Avslagits från licensen</string>
 
+    <string name="harvest_permit_information_label">Licens</string>
     <string name="permit_list_page_title">Välj licens</string>
     <string name="permit_list_input_prompt">Sök efter licensnummer</string>
     <string name="permit_list_button">Sök detaljer</string>
@@ -409,6 +428,8 @@
     <string name="observation_category_within_moose_hunting">@string/within_moose_hunting</string>
     <string name="observation_category_within_deer_hunting">@string/within_deer_hunting</string>
 
+    <string name="error_observation_specimen_amount_at_least_two">Det måste finnas minst två individuppgifter</string>
+
     <!-- Antler instructions page -->
     <string name="instructions">Instruktioner</string>
     <string name="instructions_format">Instruktioner: %s</string>
@@ -427,6 +448,8 @@
     <string name="observation_unknown">Okänd</string>
 
     <string name="type_sight">Synobservation</string>
+    <string name="type_poikue">Kull</string>
+    <string name="type_pari">Par</string>
     <string name="type_track">Spårobservation</string>
     <string name="type_excrement">Exkrement</string>
     <string name="type_sound">Ljud</string>
@@ -449,7 +472,7 @@
     <string name="type_caves">Gryt</string>
     <string name="type_nesting_islet">Häckningskär</string>
     <string name="type_resting_islet">Viloskär</string>
-    <string name="type_nesting_swamp">Häckningsmyr</string>
+    <string name="type_nesting_swamp">Ruggningsplats</string>
     <string name="type_migration_resting_area">Viloplats för flyttande fågel</string>
     <string name="type_game_path">Viltpassage</string>
     <string name="type_poikueymparisto">Livsmiljö för skogshönsfågelkullar</string>
@@ -500,8 +523,8 @@
     <string name="mooselike_unknown_within_deer_hunting">@string/mooselike_unknown</string>
 
     <!-- Tassu fields -->
-    <string name="tassu_paw_length">Framtassens längd</string>
-    <string name="tassu_paw_width">Framtassens bredd</string>
+    <string name="tassu_paw_length">Framtassens längd (cm)</string>
+    <string name="tassu_paw_width">Framtassens bredd (cm)</string>
 
     <string name="tassu_observer_name">Rovdjursobservatörens namn</string>
     <string name="tassu_observer_phone_number">Rovdjursobservatörens telefonnummer</string>
@@ -775,6 +798,7 @@
 
     <!-- Hunting control -->
     <string name="hunting_control_main_page_title">Jaktövervakning</string>
+    <string name="hunting_control_check_hunter">Granska</string>
     <string name="hunting_control_add_event">Skapa händelse</string>
     <string name="hunting_control_my_events">Egna händelser</string>
     <string name="hunting_control_no_events">Inga händelser</string>
@@ -807,6 +831,24 @@
     <string name="hunting_control_delete_attachment_question">Ska bilagan %1$s tas bort?</string>
     <string name="hunting_control_add_attachment">Lägg till bilaga</string>
     <string name="hunting_control_select_attachment">Välj bilaga</string>
+
+    <string name="hunting_control_hunter_details">Personuppgifter</string>
+    <string name="hunting_control_hunter_name">@string/my_details_name</string>
+    <string name="hunting_control_hunter_date_of_birth">@string/my_details_date_of_birth</string>
+    <string name="hunting_control_hunter_home_municipality">@string/my_details_home_municipality</string>
+    <string name="hunting_control_hunter_number">@string/my_details_hunter_id</string>
+    <string name="hunting_control_hunting_license">@string/my_details_title_hunting_license</string>
+    <string name="hunting_control_hunting_license_status">Status</string>
+    <string name="hunting_control_hunting_license_status_active">Giltig</string>
+    <string name="hunting_control_hunting_license_status_inactive">Ej giltig</string>
+    <string name="hunting_control_hunting_license_date_of_payment">Betald</string>
+    <string name="hunting_control_shooting_tests">@string/my_details_shooting_tests_title</string>
+    <string name="hunting_control_ssn">Personsignum</string>
+    <string name="hunting_control_searching_hunter">Söker personens uppgifter</string>
+    <string name="hunting_control_reset_hunter_info">Ny sökning</string>
+    <string name="hunting_control_hunter_not_found">Ingen person hittades med sökningen.</string>
+    <string name="hunting_control_network_error">Nätverksfel, försök igen.</string>
+    <string name="hunting_control_retry">Sök på nytt</string>
 
     <string name="download_manager_downloading_file">Filen laddas ner</string>
     <string name="download_manager_download_complete">Den nedladdade filen %1$s finns i aviseringarna</string>

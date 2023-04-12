@@ -6,6 +6,7 @@ import com.bumptech.glide.load.model.LazyHeaders
 import fi.riista.common.RiistaSDK
 import fi.riista.common.domain.model.EntityImage
 import fi.riista.mobile.utils.DiaryImageUtil
+import fi.riista.mobile.utils.FileUtils
 import java.io.File
 
 sealed class EntityImageUrl {
@@ -21,7 +22,9 @@ fun EntityImage.getImageUrl(
 ): EntityImageUrl? {
     localUrl?.let {
         // prefer local image if available
-        return EntityImageUrl.LocalPath(path = it)
+        if (FileUtils.fileExists(it)) {
+            return EntityImageUrl.LocalPath(path = it)
+        }
     }
 
     return serverId?.let { remoteId ->

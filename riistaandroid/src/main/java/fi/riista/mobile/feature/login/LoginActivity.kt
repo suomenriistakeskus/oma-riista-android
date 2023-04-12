@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.login
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -8,7 +7,6 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -20,11 +18,18 @@ import fi.riista.mobile.activity.MainActivity
 import fi.riista.mobile.models.announcement.Announcement
 import fi.riista.mobile.network.CheckVersionTask
 import fi.riista.mobile.storage.StorageDatabase
+import fi.riista.mobile.sync.AppSync
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.UpdateAvailableDialog
-import fi.riista.mobile.utils.*
+import fi.riista.mobile.utils.Authenticator
 import fi.riista.mobile.utils.Authenticator.AuthCallback
-import fi.riista.mobile.utils.Authenticator.AuthSuccessCallback
+import fi.riista.mobile.utils.BackgroundOperationStatus
+import fi.riista.mobile.utils.CredentialsStore
+import fi.riista.mobile.utils.JsonUtils
+import fi.riista.mobile.utils.KeyboardUtils
 import fi.riista.mobile.utils.LocaleUtil.localeFromLanguageSetting
+import fi.riista.mobile.utils.Utils
 import fi.vincit.androidutilslib.activity.WorkActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
@@ -51,7 +56,13 @@ class LoginActivity
     lateinit var authenticator: Authenticator
 
     @Inject
+    lateinit var appSync: AppSync
+
+    @Inject
     lateinit var credentialsStore: CredentialsStore
+
+    @Inject
+    lateinit var backgroundOperationStatus: BackgroundOperationStatus
 
     private lateinit var viewPager: ViewPager2
     private lateinit var pagerAdapter: ScreenSlidePagerAdapter
@@ -125,7 +136,12 @@ class LoginActivity
 
     private fun attemptLogin(username: String, password: String) {
         CoroutineScope(Main).launch {
-            authenticator.authenticate(username, password, LoginCallback(this@LoginActivity))
+            authenticator.authenticate(
+                username = username,
+                password = password,
+                timeoutSeconds = Authenticator.DEFAULT_AUTHENTICATION_TIMEOUT_SECONDS,
+                callback = LoginCallback(this@LoginActivity)
+            )
         }
     }
 
@@ -145,11 +161,23 @@ class LoginActivity
             // Login automatically if credentials are stored.
             if (credentialsStore.isCredentialsSaved()) {
                 CoroutineScope(Main).launch {
+                    val indicateReloginOperation = !isActivityStartedByAnnouncementNotification
+                    if (indicateReloginOperation) {
+                        // indicate relogin if not starting from announcement
+                        backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.INITIAL_RELOGIN)
+                    }
+
                     authenticator.reauthenticate(
-                        ReloginCallback(
-                            this@LoginActivity,
-                            isActivityStartedByAnnouncementNotification
-                        )
+                        callback = ReloginCallback(
+                            activity = this@LoginActivity,
+                            appSync = appSync,
+                            backgroundOperationStatus = backgroundOperationStatus.takeIf { indicateReloginOperation },
+                            isActivityStartedByAnnouncementNotification = isActivityStartedByAnnouncementNotification
+                        ),
+                        // let first attempt be fast one i.e. timeout early if we don't have response soon enough
+                        // -> this approach enables e.g. manual sync possibility faster if it seems that response
+                        //    is taking longer to receive
+                        timeoutSeconds = 20
                     )
                 }
                 val intent = Intent(this, MainActivity::class.java)
@@ -160,6 +188,7 @@ class LoginActivity
                     MainActivity.DO_NOT_INITIATE_SYNC,
                     isActivityStartedByAnnouncementNotification
                 )
+
                 startActivity(intent)
                 if (!isActivityStartedByAnnouncementNotification) {
                     // In case of announcement notification finish() will be called when login
@@ -215,28 +244,32 @@ class LoginActivity
     }
 
     private fun onLoginSuccessful() {
+        appSync.enableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+
         val intent = Intent(this, MainActivity::class.java)
         replaceActivity(intent)
     }
 
     private fun onLoginFailed(httpStatusCode: Int) {
         loginAttemptListener?.loginFailed()
+
         @StringRes val msgResId: Int = when (httpStatusCode) {
             418 -> {
                 R.string.version_outdated
             }
             403 -> {
+                appSync.disableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
                 R.string.login_failed
             }
             else -> {
                 R.string.login_connect_failed
             }
         }
-        val message = getString(msgResId)
-        AlertDialog.Builder(this)
-            .setMessage(message)
-            .setPositiveButton(R.string.ok) { _: DialogInterface?, _: Int -> }
-            .show()
+        AlertDialogFragment.Builder(this, AlertDialogId.LOGIN_ACTIVITY_LOGIN_FAILED)
+            .setMessage(msgResId)
+            .setPositiveButton(R.string.ok)
+            .build()
+            .show(supportFragmentManager)
     }
 
     private fun onReloginSuccessful() {
@@ -251,18 +284,43 @@ class LoginActivity
 
     private class ReloginCallback(
         activity: LoginActivity,
+        private val appSync: AppSync,
+        private val backgroundOperationStatus: BackgroundOperationStatus?,
         isActivityStartedByAnnouncementNotification: Boolean
-    ) : AuthSuccessCallback() {
+    ) : AuthCallback {
         private val mActivityReference: WeakReference<LoginActivity> = WeakReference(activity)
         private val mIsActivityStartedByAnnouncementNotification: Boolean =
             isActivityStartedByAnnouncementNotification
 
         override fun onLoginSuccessful(userInfo: String?) {
+            updateCredentialsPrecondition(
+                credentialsShouldBeValid = true
+            )
+
+            backgroundOperationStatus?.finishOperation(BackgroundOperationStatus.Operation.INITIAL_RELOGIN)
+
             mActivityReference.get()
                 ?.takeIf { mIsActivityStartedByAnnouncementNotification }
                 ?.onReloginSuccessful()
         }
 
+        override fun onLoginFailed(httpStatusCode: Int) {
+            backgroundOperationStatus?.finishOperation(BackgroundOperationStatus.Operation.INITIAL_RELOGIN)
+
+            updateCredentialsPrecondition(
+                credentialsShouldBeValid = httpStatusCode != 401 && httpStatusCode != 403
+            )
+        }
+
+        private fun updateCredentialsPrecondition(credentialsShouldBeValid: Boolean) {
+            if (credentialsShouldBeValid) {
+                // other failures shouldn't prevent appsync attempts
+                appSync.enableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+            } else {
+                // only clear logged in status if credentials were not ok
+                appSync.disableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+            }
+        }
     }
 
     companion object {

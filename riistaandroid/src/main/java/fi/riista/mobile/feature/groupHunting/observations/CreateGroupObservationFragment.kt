@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.groupHunting.observations
 
-import android.app.AlertDialog
 import android.content.Context
 import android.location.Location
 import android.os.Bundle
@@ -26,6 +25,8 @@ import fi.riista.common.util.toETRMSGeoLocation
 import fi.riista.mobile.LocationClientProvider
 import fi.riista.mobile.R
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import kotlinx.coroutines.*
 
@@ -186,11 +187,14 @@ class CreateGroupObservationFragment
                 interactionManager.onNewObservationCreateCompleted(true, result.observation.id)
             } else {
                 interactionManager.onNewObservationCreateCompleted(false, null) {
-                    AlertDialog.Builder(requireContext())
+                    AlertDialogFragment.Builder(
+                        requireContext(),
+                        AlertDialogId.CREATE_GROUP_OBSERVATION_FRAGMENT_SAVE_FAILED
+                    )
                         .setMessage(R.string.group_hunting_observation_save_failed_generic)
-                        .setPositiveButton(R.string.ok, null)
-                        .create()
-                        .show()
+                        .setPositiveButton(R.string.ok)
+                        .build()
+                        .show(requireActivity().supportFragmentManager)
                 }
             }
         }

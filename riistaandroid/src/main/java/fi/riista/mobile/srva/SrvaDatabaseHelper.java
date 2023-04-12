@@ -14,8 +14,9 @@ class SrvaDatabaseHelper extends AsyncDatabase {
     private static final String TABLE_NAME = "event";
     private static final int DATABASE_VERSION_FIRST_PUBLIC = 3;
     private static final int DATABASE_VERSION_NEW_DEPORTATION_FIELDS = 4;
+    private static final int DATABASE_VERSION_COMMON_DATABASE_ID = 5;
 
-    private static final int DATABASE_VERSION = DATABASE_VERSION_NEW_DEPORTATION_FIELDS;
+    private static final int DATABASE_VERSION = DATABASE_VERSION_COMMON_DATABASE_ID;
 
     private static final String CREATE_TABLE_EVENT =
             "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
@@ -60,7 +61,8 @@ class SrvaDatabaseHelper extends AsyncDatabase {
                     "deleted INTEGER," +
                     "modified INTEGER," +
                     "localImages TEXT," + //JSON data
-                    "username TEXT" +
+                    "username TEXT," +
+                    "commonLocalId INTEGER" +
             ");";
 
     private static SrvaDatabaseHelper sInstance;
@@ -100,6 +102,9 @@ class SrvaDatabaseHelper extends AsyncDatabase {
                 db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN eventTypeDetail TEXT");
                 db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN otherEventTypeDetailDescription TEXT");
                 db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN eventResultDetail TEXT");
+            }
+            if (oldVersion < DATABASE_VERSION_COMMON_DATABASE_ID) {
+                db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN commonLocalId INTEGER");
             }
         }
 

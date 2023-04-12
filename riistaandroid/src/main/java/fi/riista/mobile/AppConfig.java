@@ -35,8 +35,4 @@ public class AppConfig {
     // Increment version when new fields have been added to data received from server.
 
     public static final int HARVEST_SPEC_VERSION = 9;
-
-    public static final int OBSERVATION_SPEC_VERSION = 4;
-    public static final int SRVA_SPEC_VERSION = 2;
-
 }

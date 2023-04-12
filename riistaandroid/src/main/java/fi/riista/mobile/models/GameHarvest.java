@@ -1,5 +1,7 @@
 package fi.riista.mobile.models;
 
+import static java.util.Objects.requireNonNull;
+
 import android.location.Location;
 import android.util.Pair;
 
@@ -17,25 +19,9 @@ import java.util.List;
 import fi.riista.mobile.database.HarvestDbHelper;
 import fi.riista.mobile.database.SpeciesInformation;
 
-import static java.lang.String.format;
-import static java.util.Objects.requireNonNull;
-
 public class GameHarvest implements Serializable {
 
-    public static final String HARVEST_CREATEREPORT = "createReport";
-    public static final String HARVEST_PROPOSED = "PROPOSED";
-    public static final String HARVEST_SENT_FOR_APPROVAL = "SENT_FOR_APPROVAL";
-    public static final String HARVEST_APPROVED = "APPROVED";
     public static final String HARVEST_REJECTED = "REJECTED";
-
-    public static final String PERMIT_PROPOSED = "PROPOSED";
-    public static final String PERMIT_ACCEPTED = "ACCEPTED";
-    public static final String PERMIT_REJECTED = "REJECTED";
-
-    public static final int MAX_AMOUNT = 9999;
-
-    // TODO This can be removed
-    public final String mType = GameLog.TYPE_HARVEST;
 
     public int mHarvestSpecVersion;
 
@@ -98,110 +84,6 @@ public class GameHarvest implements Serializable {
         mTime = requireNonNull(time);
         mAmount = amount;
         mImages = requireNonNull(images);
-    }
-
-    public static GameHarvest createNew(final int harvestSpecVersion) {
-        final GameHarvest harvest = new GameHarvest(
-                harvestSpecVersion,
-                null, // speciesID
-                new Location(""),
-                Calendar.getInstance(),
-                1, // amount
-                new ArrayList<>(1));
-
-        harvest.mMobileClientRefId = GameLog.generateMobileRefId();
-
-        return harvest;
-    }
-
-    public GameHarvest deepClone() {
-        final GameHarvest copy = new GameHarvest(
-                this.mHarvestSpecVersion,
-                this.mSpeciesID,
-                this.mLocation,
-                this.mTime,
-                this.mAmount,
-                this.mImages);
-
-        copy.mId = this.mId;
-        copy.mLocalId = this.mLocalId;
-        copy.mMobileClientRefId = this.mMobileClientRefId;
-
-        copy.mSent = this.mSent;
-        copy.mRemote = this.mRemote;
-        copy.mRev = this.mRev;
-        copy.mPendingOperation = this.mPendingOperation;
-        copy.mCanEdit = this.mCanEdit;
-
-        // A copy needs to be made from mutable Location object.
-        copy.mLocation = getCopyOfLocation();
-
-        copy.mCoordinates = this.mCoordinates;
-        copy.mAccuracy = this.mAccuracy;
-        copy.mHasAltitude = this.mHasAltitude;
-        copy.mAltitude = this.mAltitude;
-        copy.mAltitudeAccuracy = this.mAltitudeAccuracy;
-        copy.mLocationSource = this.mLocationSource;
-
-        copy.mDescription = this.mDescription;
-
-        copy.mHarvestReportDone = this.mHarvestReportDone;
-        copy.mHarvestReportRequired = this.mHarvestReportRequired;
-        copy.mHarvestReportState = this.mHarvestReportState;
-
-        copy.mPermitNumber = this.mPermitNumber;
-        copy.mPermitType = this.mPermitType;
-        copy.mStateAcceptedToHarvestPermit = this.mStateAcceptedToHarvestPermit;
-
-        copy.mDeerHuntingType = this.mDeerHuntingType;
-        copy.mDeerHuntingOtherTypeDescription = this.mDeerHuntingOtherTypeDescription;
-        copy.mFeedingPlace = this.mFeedingPlace;
-        copy.mHuntingMethod = this.mHuntingMethod;
-        copy.mTaigaBeanGoose = this.mTaigaBeanGoose;
-
-        final ArrayList<HarvestSpecimen> copyOfSpecimens = new ArrayList<>(this.mSpecimen.size());
-        for (final HarvestSpecimen specimen : this.mSpecimen) {
-            copyOfSpecimens.add(specimen.createCopy());
-        }
-        copy.setSpecimens(copyOfSpecimens);
-
-        if (this.mImages != null) {
-            copy.mImages = new ArrayList<>(this.mImages.size());
-            copy.mImages.addAll(this.mImages);
-        } else {
-            copy.mImages = new ArrayList<>(1);
-        }
-
-        return copy;
-    }
-
-    // Exposed as public to enable Location mocking in tests.
-    public Location getCopyOfLocation() {
-        return new Location(mLocation);
-    }
-
-    public boolean isPersistedLocally() {
-        return mLocalId > 0;
-    }
-
-    // Location with zero latitude or longitude is considered an uninitialized location.
-    public boolean isLocationSet() {
-        return mLocation != null && mLocation.getLatitude() != 0 && mLocation.getLongitude() != 0;
-    }
-
-    public static boolean isAmountWithinLegalRange(final int amount) {
-        return amount >= 1 && amount <= MAX_AMOUNT;
-    }
-
-    public static void assertAmountWithinLegalRange(final int amount) {
-        if (!isAmountWithinLegalRange(amount)) {
-            throw new IllegalArgumentException(
-                    format("Amount must be between 1 and %d: %d", MAX_AMOUNT, amount));
-        }
-    }
-
-    public boolean isAmountWithinLegalRange() {
-        return isAmountWithinLegalRange(mAmount);
     }
 
     public boolean isMoose() {

@@ -39,7 +39,7 @@ public class Permit {
     @JsonProperty("harvestsAsList")
     private Boolean harvestsAsList;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<>();
+    private final Map<String, Object> additionalProperties = new HashMap<>();
 
     @JsonProperty("id")
     public Integer getId() {

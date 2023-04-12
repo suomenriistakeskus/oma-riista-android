@@ -20,7 +20,7 @@ class DurationPickerFragment: DialogFragment() {
      * An interface for the listener. The instantiating activity is expected to implement this.
      */
     interface Listener {
-        fun onDurationSelected(dialogId: Int, duration: HoursAndMinutes)
+        fun onDurationSelected(fieldId: Int, duration: HoursAndMinutes)
     }
 
     private lateinit var picker: NumberPicker
@@ -66,13 +66,14 @@ class DurationPickerFragment: DialogFragment() {
     }
 
     private fun onDurationSelected(duration: HoursAndMinutes) {
-        // prefer targetFragment over activity
-        val listener = targetFragment as? Listener
-                ?: activity as? Listener
-
-        getDialogId(arguments)?.let { dialogId ->
-            listener?.onDurationSelected(dialogId, duration)
+        val requestCode = requireNotNull(requireArguments().getString(KEY_REQUEST_CODE))
+        val fieldId = requireArguments().getInt(KEY_FIELD_ID)
+        val bundle = Bundle().also {
+            it.putInt(KEY_DIALOG_RESULT_FIELD, fieldId)
+            it.putInt(KEY_DIALOG_RESULT_HOURS, duration.hours)
+            it.putInt(KEY_DIALOG_RESULT_MINUTES, duration.minutes)
         }
+        requireActivity().supportFragmentManager.setFragmentResult(requestCode, bundle)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -87,14 +88,19 @@ class DurationPickerFragment: DialogFragment() {
 
 
     companion object {
-        private const val KEY_DIALOG_ID = "DurationPickerFragment_dialogId"
+        const val KEY_DIALOG_RESULT_FIELD = "DurationPickerFragmentField"
+        const val KEY_DIALOG_RESULT_HOURS = "DurationPickerFragmentHours"
+        const val KEY_DIALOG_RESULT_MINUTES = "DurationPickerFragmentMinutes"
+
+        private const val KEY_REQUEST_CODE = "DurationPickerFragment_requestCode"
+        private const val KEY_FIELD_ID = "DurationPickerFragment_fieldId"
         private const val KEY_DIALOG_TITLE = "DurationPickerFragment_title"
         private const val KEY_POSSIBLE_DURATIONS = "DurationPickerFragment_possibleDurations"
         private const val KEY_SELECTED_DURATION = "DurationPickerFragment_selectedDuration"
 
-
         fun create(
-            dialogId: Int,
+            requestCode: String,
+            fieldId: Int,
             dialogTitle: String,
             possibleDurations: List<HoursAndMinutes>,
             selectedDuration: HoursAndMinutes
@@ -105,16 +111,13 @@ class DurationPickerFragment: DialogFragment() {
 
             return DurationPickerFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(KEY_DIALOG_ID, dialogId)
+                    putString(KEY_REQUEST_CODE, requestCode)
+                    putInt(KEY_FIELD_ID, fieldId)
                     putString(KEY_DIALOG_TITLE, dialogTitle)
                     putString(KEY_POSSIBLE_DURATIONS, possibleDurations.serializeToJson())
                     putSelectedDuration(this, selectedDuration)
                 }
             }
-        }
-
-        private fun getDialogId(arguments: Bundle?): Int? {
-            return arguments?.getInt(KEY_DIALOG_ID)
         }
 
         private fun getDialogTitle(arguments: Bundle?): String? {
@@ -136,14 +139,26 @@ class DurationPickerFragment: DialogFragment() {
     }
 }
 
+fun <T> T.registerDurationPickerFragmentResultListener(
+    requestCode: String,
+) where T : Fragment, T : DurationPickerFragment.Listener  {
+    requireActivity().supportFragmentManager.setFragmentResultListener(
+        requestCode,
+        viewLifecycleOwner,
+    ) { _, result ->
+        val fieldId = result.getInt(DurationPickerFragment.KEY_DIALOG_RESULT_FIELD)
+        val hours = result.getInt(DurationPickerFragment.KEY_DIALOG_RESULT_HOURS)
+        val minutes = result.getInt(DurationPickerFragment.KEY_DIALOG_RESULT_MINUTES)
+        onDurationSelected(fieldId, HoursAndMinutes(hours = hours, minutes = minutes))
+    }
+}
+
 fun <T> T.showDurationPickerFragment(
     durationPickerFragment: DurationPickerFragment,
-    requestCode: Int,
 ) where T : Fragment, T : DurationPickerFragment.Listener {
     requireNotNull(tag) {
         "Fragment needs to have a tag in order to launch a DurationPickerFragment"
     }
 
-    durationPickerFragment.setTargetFragment(this, requestCode)
     durationPickerFragment.show(requireActivity().supportFragmentManager, durationPickerFragment.tag)
 }

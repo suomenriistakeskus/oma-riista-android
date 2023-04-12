@@ -3,10 +3,12 @@ package fi.riista.mobile.ui.dataFields.viewHolder
 import fi.riista.common.ui.dataField.DataField
 import fi.riista.common.ui.dataField.DataFieldId
 
-enum class DataFieldViewHolderType {
+enum class  DataFieldViewHolderType {
     LABEL_CAPTION,
     LABEL_ERROR,
     LABEL_INFO,
+    LABEL_LINK,
+    LABEL_INDICATOR,
     SPECIES_NAME_AND_ICON,
     SPECIMEN,
     READONLY_DATE_AND_TIME,
@@ -34,6 +36,7 @@ enum class DataFieldViewHolderType {
     ATTACHMENT,
     BUTTON,
     CHIPS,
+    CUSTOM,
     //TEXTFIELD_MULTILINE,
     ;
 

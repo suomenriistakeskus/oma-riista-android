@@ -26,8 +26,8 @@ public class GameLogImage implements Serializable {
     }
 
     public enum ImageType {
-        URI,
-        UUID
+        URI, // local image
+        UUID // remote image identified by uuid
     }
 
     private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {

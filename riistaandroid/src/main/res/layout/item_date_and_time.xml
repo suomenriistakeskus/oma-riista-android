@@ -34,7 +34,7 @@
         android:layout_marginEnd="@dimen/padding_medium"
         android:drawablePadding="@dimen/item_spacing_small"
         android:gravity="center_vertical"
-        app:drawableStartCompat="@drawable/ic_calendar_tintable"
+        app:drawableStartCompat="@drawable/ic_calendar"
         app:drawableTint="@color/text_color_editable_stateful"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/gl_vertical_center"

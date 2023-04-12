@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.huntingControl
 
-import android.app.AlertDialog
 import android.content.Context
 import android.location.Location
 import android.os.Bundle
@@ -27,14 +26,20 @@ import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.common.util.toETRMSGeoLocation
 import fi.riista.mobile.LocationClientProvider
 import fi.riista.mobile.R
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 class CreateHuntingControlEventFragment
     : ModifyHuntingControlEventFragment<CreateHuntingControlEventController>()
-    , LocationListener {
-
+    , LocationListener
+{
     interface InteractionManager: LocationClientProvider {
         val createHuntingControlEventController: CreateHuntingControlEventController
         val huntingControlRhyTarget: HuntingControlRhyTarget
@@ -98,6 +103,7 @@ class CreateHuntingControlEventFragment
                 }
             }
 
+        registerFragmentResultListeners()
         return view
     }
 
@@ -186,11 +192,14 @@ class CreateHuntingControlEventFragment
                 interactionManager.onNewHuntingControlEventCreateCompleted(true, result.event.localId)
             } else {
                 interactionManager.onNewHuntingControlEventCreateCompleted(false, null) {
-                    AlertDialog.Builder(requireContext())
+                    AlertDialogFragment.Builder(
+                        requireContext(),
+                        AlertDialogId.CREATE_HUNTING_CONTROL_EVENT_FRAGMENT_SAVE_FAILED
+                    )
                         .setMessage(R.string.hunting_control_event_save_failed_generic)
-                        .setPositiveButton(R.string.ok, null)
-                        .create()
-                        .show()
+                        .setPositiveButton(R.string.ok)
+                        .build()
+                        .show(requireActivity().supportFragmentManager)
                 }
             }
         }

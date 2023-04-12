@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.myDetails
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -22,16 +21,24 @@ import fi.riista.mobile.feature.myDetails.dataFields.viewHolder.HuntingClubMembe
 import fi.riista.mobile.feature.myDetails.dataFields.viewHolder.HuntingClubMembershipsRecyclerViewAdapter
 import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
-class MyDetailsHuntingClubMembershipsFragment : DialogFragment(), HuntingClubMembershipInvitationViewHolder.Listener {
+class MyDetailsHuntingClubMembershipsFragment
+    : DialogFragment()
+    , HuntingClubMembershipInvitationViewHolder.Listener
+{
 
     private lateinit var controller: HuntingClubController
     private lateinit var adapter: HuntingClubMembershipsRecyclerViewAdapter
     private lateinit var noContent: TextView
     private lateinit var contentLoaded: RecyclerView
     private val disposeBag = DisposeBag()
+
+    private lateinit var dialogListener: AlertDialogFragment.Listener
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +74,13 @@ class MyDetailsHuntingClubMembershipsFragment : DialogFragment(), HuntingClubMem
         adapter = HuntingClubMembershipsRecyclerViewAdapter(layoutInflater, itemListener = this)
         view.findViewById<RecyclerView>(R.id.rv_data_fields).also {
             it.adapter = adapter
+        }
+        dialogListener = DelegatingAlertDialogListener(requireActivity()).apply {
+            registerPositiveCallback(AlertDialogId.MY_DETAILS_HUNTING_CLUB_MEMBERSHIPS_FRAGMENT_REJECT_INVITATION_QUESTION) { value ->
+                value?.toLong()?.also { invitationId ->
+                    rejectInvitation(invitationId)
+                }
+            }
         }
 
         return view
@@ -136,34 +150,43 @@ class MyDetailsHuntingClubMembershipsFragment : DialogFragment(), HuntingClubMem
     }
 
     override fun onRejectInvitation(invitationId: HuntingClubMemberInvitationId) {
-        AlertDialog.Builder(requireContext())
+        AlertDialogFragment.Builder(
+            requireContext(),
+            AlertDialogId.MY_DETAILS_HUNTING_CLUB_MEMBERSHIPS_FRAGMENT_REJECT_INVITATION_QUESTION
+        )
             .setTitle(getString(R.string.group_hunting_are_you_sure))
             .setMessage(R.string.my_details_reject_invitation_question)
             .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton(R.string.yes) { _, _ ->
-                MainScope().launch {
-                    val response = controller.rejectInvitation(invitationId)
+            .setPositiveButton(R.string.yes, invitationId.toString())
+            .setNegativeButton(R.string.no)
+            .build()
+            .show(requireActivity().supportFragmentManager)
+    }
 
-                    if (!isResumed) {
-                        return@launch
-                    }
+    private fun rejectInvitation(invitationId: HuntingClubMemberInvitationId) {
+        MainScope().launch {
+            val response = controller.rejectInvitation(invitationId)
 
-                    if (response is HuntingClubMemberInvitationOperationResponse.Failure) {
-                        showErrorDialog()
-                    }
-                    controller.loadViewModel()
-                }
+            if (!isResumed) {
+                return@launch
             }
-            .setNegativeButton(R.string.no, null)
-            .show()
+
+            if (response is HuntingClubMemberInvitationOperationResponse.Failure) {
+                showErrorDialog()
+            }
+            controller.loadViewModel()
+        }
     }
 
     private fun showErrorDialog() {
-        AlertDialog.Builder(requireContext())
+        AlertDialogFragment.Builder(
+            requireContext(),
+            AlertDialogId.MY_DETAILS_HUNTING_CLUB_MEMBERSHIPS_FRAGMENT_OPERATION_FAILED
+        )
             .setMessage(R.string.group_hunting_operation_failed)
-            .setPositiveButton(R.string.ok, null)
-            .create()
-            .show()
+            .setPositiveButton(R.string.ok)
+            .build()
+            .show(requireActivity().supportFragmentManager)
     }
 
     companion object {

@@ -21,6 +21,7 @@ import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.riistaSdkHelpers.getImageUrl
 import fi.riista.mobile.riistaSdkHelpers.loadEntityImage
 import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
+import fi.riista.mobile.utils.removeSoftHyphens
 import fi.riista.mobile.utils.toVisibility
 
 interface SpeciesSelectionLauncher<FieldId : DataFieldId> {
@@ -117,7 +118,10 @@ class SelectSpeciesAndImageViewHolder<FieldId : DataFieldId>(
         speciesImageView.setImageResource(speciesDrawable)
         ImageViewCompat.setImageTintList(speciesImageView, null)
 
-        speciesButton.text = species.mName
+        // buttons don't seem to like soft hyphens (\u00AD) and instead those are displayed as
+        // spaces on android. There's very little documentation/mentsions about it
+        // (e.g. https://stackoverflow.com/a/49177041) but for now let's just remove the hyphens
+        speciesButton.text = species.mName.removeSoftHyphens()
     }
 
     private fun updateEntityImage(

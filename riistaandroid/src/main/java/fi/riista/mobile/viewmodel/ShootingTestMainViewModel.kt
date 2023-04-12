@@ -2,25 +2,22 @@ package fi.riista.mobile.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
+import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.OperationResultWithData
 import fi.riista.mobile.models.shootingTest.ShootingTestCalendarEvent
 import fi.riista.mobile.models.shootingTest.ShootingTestOfficial
 import fi.riista.mobile.models.shootingTest.ShootingTestParticipant
 import fi.riista.mobile.models.user.Occupation
-import fi.riista.mobile.network.shootingTest.*
-import fi.riista.mobile.utils.Authenticator
+import fi.riista.mobile.riistaSdkHelpers.toShootingTestCalendarEvent
+import fi.riista.mobile.riistaSdkHelpers.toShootingTestOfficial
+import fi.riista.mobile.riistaSdkHelpers.toShootingTestParticipant
 import fi.riista.mobile.utils.UserInfoStore
 import fi.riista.mobile.utils.Utils
-import fi.vincit.androidutilslib.context.WorkContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Named
 
-class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONTEXT_NAME) private val appWorkContext: WorkContext,
-                                                    private val userInfoStore: UserInfoStore,
-                                                    private val authenticator: Authenticator) : ViewModel() {
+class ShootingTestMainViewModel @Inject constructor(private val userInfoStore: UserInfoStore) : ViewModel() {
 
     val participants: MutableLiveData<List<ShootingTestParticipant>> = MutableLiveData()
     val selectedOfficials: MutableLiveData<List<ShootingTestOfficial>> = MutableLiveData()
@@ -38,6 +35,8 @@ class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONT
     val noPaymentCount = MutableLiveData<Int>()
     val refreshing: MutableLiveData<Int> = MutableLiveData(0)
 
+    private val shootingTestContext = RiistaSDK.shootingTestContext
+
     fun refreshCalendarEvent() {
         val calendarEventId = calendarEventId
         val user = userInfoStore.getUserInfo()
@@ -45,47 +44,43 @@ class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONT
             return
         }
 
-        val task: GetShootingTestCalendarEventTask = object : GetShootingTestCalendarEventTask(appWorkContext, calendarEventId) {
-            override fun onFinishObject(result: ShootingTestCalendarEvent) {
-                testEventId = result.shootingTestEventId
-                rhyId = result.rhyId
-                val rhyId = rhyId
-                if (rhyId != null) {
-                    isOngoing.value = result.isOngoing
-                    noAttemptsCount.value = result.numberOfParticipantsWithNoAttempts
-                    noPaymentCount.value = result.numberOfAllParticipants - result.numberOfCompletedParticipants
-                    val shootingTestOfficialOccupation = user.findOccupationOfTypeForRhy(Occupation.OCCUPATION_SHOOTING_TEST_OFFICIAL, rhyId.toInt())
-                    val coordinatorOccupation = user.findOccupationOfTypeForRhy(Occupation.OCCUPATION_COORDINATOR, rhyId.toInt())
-                    var userSelectedAsOfficial = false
-                    if (shootingTestOfficialOccupation != null) {
-                        for (official in result.officials) {
-                            if (official.occupationId.toInt() == shootingTestOfficialOccupation.id) {
-                                userSelectedAsOfficial = true
+        MainScope().launch {
+            refreshing.increment()
+            when (val response = shootingTestContext.fetchShootingTestCalendarEvent(calendarEventId)) {
+                is OperationResultWithData.Success -> {
+                    val result = response.data.toShootingTestCalendarEvent()
+                    testEventId = result.shootingTestEventId
+                    rhyId = result.rhyId
+                    val rhyId = rhyId
+                    if (rhyId != null) {
+                        isOngoing.value = result.isOngoing
+                        noAttemptsCount.value = result.numberOfParticipantsWithNoAttempts
+                        noPaymentCount.value = result.numberOfAllParticipants - result.numberOfCompletedParticipants
+                        val shootingTestOfficialOccupation = user.findOccupationOfTypeForRhy(
+                            Occupation.OCCUPATION_SHOOTING_TEST_OFFICIAL, rhyId.toInt()
+                        )
+                        val coordinatorOccupation = user.findOccupationOfTypeForRhy(
+                            Occupation.OCCUPATION_COORDINATOR, rhyId.toInt()
+                        )
+                        var userSelectedAsOfficial = false
+                        if (shootingTestOfficialOccupation != null) {
+                            for (official in result.officials) {
+                                if (official.occupationId.toInt() == shootingTestOfficialOccupation.id) {
+                                    userSelectedAsOfficial = true
+                                }
                             }
                         }
-                    }
-                    isUserSelectedOfficial.value = userSelectedAsOfficial
-                    isUserCoordinator.value = coordinatorOccupation != null
-                    calendarEvent.value = result
-                }
-            }
-
-            override fun onError() {
-                super.onError()
-                if (httpStatusCode == 401) {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        authenticator.reauthenticate()
+                        isUserSelectedOfficial.value = userSelectedAsOfficial
+                        isUserCoordinator.value = coordinatorOccupation != null
+                        calendarEvent.value = result
                     }
                 }
+                else -> {
+                    // No op
+                }
             }
-
-            override fun onEnd() {
-                super.onEnd()
-                refreshing.decrement()
-            }
+            refreshing.decrement()
         }
-        refreshing.increment()
-        task.start()
     }
 
     fun refreshSelectedOfficials() {
@@ -98,18 +93,19 @@ class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONT
             Utils.LogMessage("Skip loading selected officials: No test ID")
             return
         }
-        val task: ListSelectedShootingTestOfficialsForEventTask = object : ListSelectedShootingTestOfficialsForEventTask(appWorkContext, testEventId) {
-            override fun onFinishObjects(results: List<ShootingTestOfficial>) {
-                selectedOfficials.value = results
-            }
 
-            override fun onEnd() {
-                super.onEnd()
-                refreshing.decrement()
+        MainScope().launch {
+            refreshing.increment()
+            when (val response = shootingTestContext.fetchSelectedShootingTestOfficialsForEvent(testEventId)) {
+                is OperationResultWithData.Success -> {
+                    selectedOfficials.value = response.data.map { it.toShootingTestOfficial() }
+                }
+                else -> {
+                    // No op
+                }
             }
+            refreshing.decrement()
         }
-        refreshing.increment()
-        task.start()
     }
 
     fun refreshAvailableOfficials() {
@@ -128,18 +124,19 @@ class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONT
             Utils.LogMessage("Skip loading available officials: No event ID")
             return
         }
-        val task: ListAvailableShootingTestOfficialsForEventTask = object : ListAvailableShootingTestOfficialsForEventTask(appWorkContext, testEventId) {
-            override fun onFinishObjects(results: List<ShootingTestOfficial>) {
-                availableOfficials.value = results
-            }
 
-            override fun onEnd() {
-                super.onEnd()
-                refreshing.decrement()
+        MainScope().launch {
+            refreshing.increment()
+            when (val response = shootingTestContext.fetchAvailableShootingTestOfficialsForEvent(testEventId)) {
+                is OperationResultWithData.Success -> {
+                    availableOfficials.value = response.data.map { it.toShootingTestOfficial() }
+                }
+                else -> {
+                    // No op
+                }
             }
+            refreshing.decrement()
         }
-        refreshing.increment()
-        task.start()
     }
 
     private fun loadAvailableOfficialsForRhy() {
@@ -148,18 +145,19 @@ class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONT
             Utils.LogMessage("Skip loading available officials: No RHY ID")
             return
         }
-        val task: ListAvailableShootingTestOfficialsForRhyTask = object : ListAvailableShootingTestOfficialsForRhyTask(appWorkContext, rhyId) {
-            override fun onFinishObjects(results: List<ShootingTestOfficial>) {
-                availableOfficials.value = results
-            }
 
-            override fun onEnd() {
-                super.onEnd()
-                refreshing.decrement()
+        MainScope().launch {
+            refreshing.increment()
+            when (val response = shootingTestContext.fetchAvailableShootingTestOfficialsForRhy(rhyId)) {
+                is OperationResultWithData.Success -> {
+                    availableOfficials.value = response.data.map { it.toShootingTestOfficial() }
+                }
+                else -> {
+                    // No op
+                }
             }
+            refreshing.decrement()
         }
-        refreshing.increment()
-        task.start()
     }
 
     fun refreshParticipants() {
@@ -172,18 +170,19 @@ class ShootingTestMainViewModel @Inject constructor(@Named(APPLICATION_WORK_CONT
             Utils.LogMessage("Skip loading participants: No test ID")
             return
         }
-        val task: ListShootingTestParticipantsTask = object : ListShootingTestParticipantsTask(appWorkContext, testEventId) {
-            override fun onFinishObjects(results: List<ShootingTestParticipant>) {
-                participants.value = results
-            }
 
-            override fun onEnd() {
-                super.onEnd()
-                refreshing.decrement()
+        MainScope().launch {
+            refreshing.increment()
+            when (val response = shootingTestContext.fetchShootingTestParticipants(testEventId)) {
+                is OperationResultWithData.Success -> {
+                    participants.value = response.data.map { it.toShootingTestParticipant() }
+                }
+                else -> {
+                    // No op
+                }
             }
+            refreshing.decrement()
         }
-        refreshing.increment()
-        task.start()
     }
 
     private fun MutableLiveData<Int>.increment() {

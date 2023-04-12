@@ -73,3 +73,7 @@ object UiUtils {
         return view.measuredHeight
     }
 }
+
+fun String.removeSoftHyphens(): String {
+    return this.replace("\u00AD", "")
+}

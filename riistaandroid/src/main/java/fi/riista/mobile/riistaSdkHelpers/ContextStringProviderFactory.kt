@@ -31,6 +31,7 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.generic_no -> R.string.no
 
             RR.string.error_date_not_allowed -> R.string.error_date_not_allowed
+            RR.string.error_datetime_in_future -> R.string.error_datetime_in_future
             RR.string.group_hunting_label_club -> R.string.group_hunting_club
             RR.string.group_hunting_label_season -> R.string.group_hunting_season
             RR.string.group_hunting_label_species -> R.string.group_hunting_species
@@ -40,10 +41,10 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.group_hunting_error_time_not_within_hunting_day ->
                 R.string.group_hunting_error_time_not_within_hunting_day
 
-            RR.string.group_hunting_harvest_field_hunting_day_and_time ->
+            RR.string.harvest_label_hunting_day_and_time ->
                 R.string.group_hunting_harvest_field_hunting_day_and_time
-            RR.string.group_hunting_harvest_field_actor -> R.string.group_hunting_harvest_field_actor
-            RR.string.group_hunting_harvest_field_author -> R.string.group_hunting_harvest_field_author
+            RR.string.harvest_label_actor -> R.string.group_hunting_harvest_field_actor
+            RR.string.harvest_label_author -> R.string.group_hunting_harvest_field_author
 
             // group hunting day
             RR.string.group_hunting_day_label_start_date_and_time ->
@@ -94,49 +95,67 @@ private class AppStringIdMapper : StringIdMapper {
                 R.string.group_hunting_method_muu
 
             // process proposed group harvest
+            RR.string.harvest_label_select_permit ->
+                R.string.permit_selection_checkbox_text
+            RR.string.harvest_label_permit_information ->
+                R.string.harvest_permit_information_label
+            RR.string.harvest_label_permit_required ->
+                R.string.harvest_permit_number_required
+            RR.string.harvest_label_wild_boar_feeding_place ->
+                R.string.harvest_feeding_place_title
+            RR.string.harvest_label_grey_seal_hunting_method ->
+                R.string.harvest_hunting_type_title
+            RR.string.harvest_label_is_taiga_bean_goose ->
+                R.string.harvest_taiga_bean_goose_title
+            RR.string.harvest_label_amount ->
+                R.string.harvest_amount
+            RR.string.harvest_label_description ->
+                R.string.description
             RR.string.group_hunting_proposed_group_harvest_shooter ->
                 R.string.group_hunting_proposed_group_harvest_shooter
             RR.string.group_hunting_proposed_group_harvest_specimen ->
                 R.string.group_hunting_proposed_group_harvest_specimen
             RR.string.group_hunting_proposed_group_harvest_actor ->
                 R.string.group_hunting_proposed_group_harvest_actor
-            RR.string.group_hunting_harvest_field_deer_hunting_type ->
+            RR.string.harvest_label_deer_hunting_type ->
                 R.string.deer_hunting_type
-            RR.string.group_hunting_harvest_field_deer_hunting_other_type_description ->
+            RR.string.harvest_label_deer_hunting_other_type_description ->
                 R.string.deer_hunting_type_description
-            RR.string.group_hunting_harvest_field_not_edible ->
+            RR.string.harvest_label_not_edible ->
                 R.string.not_edible
-            RR.string.group_hunting_harvest_field_weight_estimated ->
+            RR.string.harvest_label_weight ->
+                R.string.weight_title
+            RR.string.harvest_label_weight_estimated ->
                 R.string.weight_estimated
-            RR.string.group_hunting_harvest_field_weight_measured ->
+            RR.string.harvest_label_weight_measured ->
                 R.string.weight_measured
-            RR.string.group_hunting_harvest_field_fitness_class ->
+            RR.string.harvest_label_fitness_class ->
                 R.string.fitness_class
-            RR.string.group_hunting_harvest_field_antlers_type ->
+            RR.string.harvest_label_antlers_type ->
                 R.string.antlers_type
-            RR.string.group_hunting_harvest_field_antlers_width ->
+            RR.string.harvest_label_antlers_width ->
                 R.string.antlers_width
-            RR.string.group_hunting_harvest_field_antler_points_left ->
+            RR.string.harvest_label_antler_points_left ->
                 R.string.antlers_points_left
-            RR.string.group_hunting_harvest_field_antler_points_right ->
+            RR.string.harvest_label_antler_points_right ->
                 R.string.antlers_points_right
-            RR.string.group_hunting_harvest_field_antlers_lost ->
+            RR.string.harvest_label_antlers_lost ->
                 R.string.antlers_lost
-            RR.string.group_hunting_harvest_field_antlers_girth ->
+            RR.string.harvest_label_antlers_girth ->
                 R.string.antlers_girth
-            RR.string.group_hunting_harvest_field_antler_shaft_width ->
+            RR.string.harvest_label_antler_shaft_width ->
                 R.string.antler_shaft_width
-            RR.string.group_hunting_harvest_field_antlers_length ->
+            RR.string.harvest_label_antlers_length ->
                 R.string.antlers_length
-            RR.string.group_hunting_harvest_field_antlers_inner_width ->
+            RR.string.harvest_label_antlers_inner_width ->
                 R.string.antlers_inner_width
-            RR.string.group_hunting_harvest_field_alone ->
+            RR.string.harvest_label_alone ->
                 R.string.mooselike_calf
-            RR.string.group_hunting_harvest_field_additional_information ->
+            RR.string.harvest_label_additional_information ->
                 R.string.additional_info
-            RR.string.group_hunting_harvest_field_additional_information_instructions ->
+            RR.string.harvest_label_additional_information_instructions ->
                 R.string.additional_info_instructions
-            RR.string.group_hunting_harvest_field_additional_information_instructions_white_tailed_deer ->
+            RR.string.harvest_label_additional_information_instructions_white_tailed_deer ->
                 R.string.additional_info_instructions_white_tailed_deer
 
             // actor selection
@@ -257,8 +276,26 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.harvest_fitness_class_laiha -> R.string.fitness_class_thin
             RR.string.harvest_fitness_class_naantynyt -> R.string.fitness_class_starved
 
+            // grey seal hunting method
+            RR.string.grey_seal_hunting_method_shot -> R.string.harvest_hunting_type_shot
+            RR.string.grey_seal_hunting_method_captured_alive -> R.string.harvest_hunting_type_captured_alive
+            RR.string.grey_seal_hunting_method_shot_but_lost -> R.string.harvest_hunting_type_shot_but_lost
+
+            // harvest report state
+            RR.string.harvest_report_required -> R.string.harvest_create_report
+            RR.string.harvest_report_state_sent_for_approval -> R.string.harvest_sent_for_approval
+            RR.string.harvest_report_state_approved -> R.string.harvest_approved
+            RR.string.harvest_report_state_rejected -> R.string.harvest_rejected
+
+            // harvest state accepted to permit
+            RR.string.harvest_permit_proposed -> R.string.harvest_permit_proposed
+            RR.string.harvest_permit_accepted -> R.string.harvest_permit_accepted
+            RR.string.harvest_permit_rejected -> R.string.harvest_permit_rejected
+
             // observation type
             RR.string.observation_type_nako -> R.string.type_sight
+            RR.string.observation_type_poikue -> R.string.type_poikue
+            RR.string.observation_type_pari -> R.string.type_pari
             RR.string.observation_type_jalki -> R.string.type_track
             RR.string.observation_type_uloste -> R.string.type_excrement
             RR.string.observation_type_aani -> R.string.type_sound
@@ -299,6 +336,9 @@ private class AppStringIdMapper : StringIdMapper {
                 R.string.type_leppakuusimetsa_tai_koivukuusimetsa
             RR.string.observation_type_ruokailupajukko_tai_koivikko -> R.string.type_ruokailupajukko_tai_koivikko
             RR.string.observation_type_muu -> R.string.type_other
+
+            RR.string.error_observation_specimen_amount_at_least_two -> R.string.error_observation_specimen_amount_at_least_two
+
 
             RR.string.hunting_club_membership_invitations -> R.string.my_details_hunting_club_membership_invitations
             RR.string.hunting_club_memberships -> R.string.my_details_hunting_club_memberships
@@ -351,6 +391,29 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.hunting_control_event_type_waterfowl -> R.string.hunting_control_event_type_waterfowl
             RR.string.hunting_control_event_type_dog_discipline -> R.string.hunting_control_event_type_dog_discipline
             RR.string.hunting_control_event_type_other -> R.string.hunting_control_event_type_other
+
+            RR.string.hunting_control_hunter_details -> R.string.hunting_control_hunter_details
+            RR.string.hunting_control_hunter_name -> R.string.hunting_control_hunter_name
+            RR.string.hunting_control_hunter_date_of_birth -> R.string.hunting_control_hunter_date_of_birth
+            RR.string.hunting_control_hunter_home_municipality -> R.string.hunting_control_hunter_home_municipality
+            RR.string.hunting_control_hunter_number -> R.string.hunting_control_hunter_number
+            RR.string.hunting_control_hunting_license -> R.string.hunting_control_hunting_license
+            RR.string.hunting_control_hunting_license_status -> R.string.hunting_control_hunting_license_status
+            RR.string.hunting_control_hunting_license_status_active -> R.string.hunting_control_hunting_license_status_active
+            RR.string.hunting_control_hunting_license_status_inactive -> R.string.hunting_control_hunting_license_status_inactive
+            RR.string.hunting_control_hunting_license_date_of_payment -> R.string.hunting_control_hunting_license_date_of_payment
+            RR.string.hunting_control_shooting_tests  -> R.string.hunting_control_shooting_tests
+            RR.string.hunting_control_reset_hunter_info -> R.string.hunting_control_reset_hunter_info
+            RR.string.hunting_control_ssn -> R.string.hunting_control_ssn
+            RR.string.hunting_control_searching_hunter -> R.string.hunting_control_searching_hunter
+            RR.string.hunting_control_hunter_not_found -> R.string.hunting_control_hunter_not_found
+            RR.string.hunting_control_network_error -> R.string.hunting_control_network_error
+            RR.string.hunting_control_retry -> R.string.hunting_control_retry
+
+            RR.string.shooting_test_type_moose -> R.string.shooting_test_type_moose
+            RR.string.shooting_test_type_bear -> R.string.shooting_test_type_bear
+            RR.string.shooting_test_type_roe_deer -> R.string.shooting_test_type_roe_deer
+            RR.string.shooting_test_type_bow -> R.string.shooting_test_type_bow
 
             RR.string.srva_event_label_other_species_description -> R.string.srva_other_species_description
             RR.string.srva_event_label_approver -> R.string.srva_approver
@@ -436,6 +499,9 @@ private class AppStringIdMapper : StringIdMapper {
         return when (stringFormatId) {
             RR.stringFormat.generic_hours_and_minutes_format -> R.string.hours_and_minutes
             RR.stringFormat.group_hunting_label_permit_formatted -> R.string.group_hunting_permit
+            RR.stringFormat.double_format_zero_decimals -> R.string.double_format_zero_decimals
+            RR.stringFormat.double_format_one_decimal -> R.string.double_format_one_decimal
+            RR.stringFormat.date_format_short -> R.string.date_format_short
         }
     }
 

@@ -33,28 +33,34 @@
     <string name="add">Add</string>
     <string name="edit">Edit</string>
     <string name="try_again">Try again</string>
+    <string name="attention">Attention</string>
 
     <!-- common errors -->
     <string name="error_date_not_allowed">Date is not accepted</string>
+    <string name="error_datetime_in_future">Date is not allowed to be in the future</string>
+    <string name="no_web_browser">No Web browser found</string>
+    <string name="operation_failed">Operation failed</string>
 
     <!-- Page/navigation item titles -->
     <string name="menu_front_page">Home</string>
     <string name="menu_game_log">Journal</string>
     <string name="menu_map">Map</string>
-    <string name="menu_my_details">My details</string>
     <string name="menu_announcements">Messages</string>
-    <string name="menu_settings">Settings</string>
-    <string name="menu_shooting_test_list">Shooting tests</string>
-    <string name="menu_hunting_group_leader">@string/group_hunting_main_page_title</string>
-    <string name="menu_hunting_control">@string/hunting_control_main_page_title</string>
-    <string name="menu_event_search">Event search</string>
-    <string name="menu_contact_details">Contacts</string>
-    <string name="menu_show_magazine">Read latest Metsästäjä magazine</string>
-    <string name="menu_view_hunting_seasons">Open seasons</string>
-    <string name="menu_gallery">Gallery</string>
     <string name="menu_more">More</string>
-    <string name="menu_add_item">Add</string>
+
+    <string name="more_my_details">My details</string>
+    <string name="more_settings">Settings</string>
+    <string name="more_shooting_test_list">Shooting tests</string>
+    <string name="more_hunting_group_leader">@string/group_hunting_main_page_title</string>
+    <string name="more_hunting_control">@string/hunting_control_main_page_title</string>
+    <string name="more_event_search">Event search</string>
+    <string name="more_contact_details">Contacts</string>
+    <string name="more_show_magazine">Read latest Metsästäjä magazine</string>
+    <string name="more_view_hunting_seasons">Open seasons</string>
+    <string name="more_gallery">Gallery</string>
     <string name="logout">Logout</string>
+
+    <string name="menu_add_item">Add</string>
 
     <string name="title_front_page">Home</string>
     <string name="title_game_log">Journal</string>
@@ -97,6 +103,9 @@
     <string name="minutes_format">%1$d&#160;min</string>
     <string name="centimeters_format">%1$d&#160;cm</string>
     <string name="hours_and_minutes">%1$s&#160;%2$s</string>
+    <string name="double_format_zero_decimals">%.0f</string>
+    <string name="double_format_one_decimal">%.1f</string>
+    <string name="date_format_short">%1$d.%2$d.%3$d</string>
 
     <string-array name="months">
         <item>January</item>
@@ -132,6 +141,7 @@
     <string name="settings_terms_of_service">Terms of service</string>
     <string name="settings_accessibility">Accessibility</string>
     <string name="settings_third_party_libraries">Third party licenses</string>
+    <string name="settings_unregister_user_account">@string/unregister_account_title</string>
 
     <!-- Contact details page -->
     <string name="feedback">Feedback</string>
@@ -206,6 +216,14 @@
     <string name="occupation_type_rhyn_edustaja_riistavahinkojen_maastokatselmuksessa">GMA representative in wildlife damage field survey</string>
     <string name="occupation_type_petoyhdyshenkilo">Large carnivore contact person</string>
 
+    <string name="unregister_account_title">Delete user account</string>
+    <string name="unregister_account_message">I want to delete my voluntary game data, user account and personal data from the Oma\u00A0riista\u00A0service.\n\nI understand that my data cannot be restored after deletion.</string>
+    <string name="unregister_account_question">Are you sure you want to delete your user account?</string>
+    <string name="unregister_account_request_sent_title_short">Request sent</string>
+    <string name="unregister_account_request_sent_title">User account deletion request has been sent</string>
+    <string name="unregister_account_request_sent_message_at_timeime">An automatic e-mail message regarding the user account deletion request has been sent to the customer service of the Oma riista service %1$s, and a copy of the message has also been forwarded to the e-mail address specified in your personal information. Typically, the user account is deleted by the customer service in two\u00A0weeks.\n\nPlease contact customer service at oma@riista.fi, if you requested to delete the user account in error.</string>
+    <string name="unregister_account_continue_using">Continue using the service</string>
+
     <!-- New diary entry page -->
     <string name="species">Species</string>
     <string name="species_other">Other species</string>
@@ -265,6 +283,7 @@
     <string name="harvest_permit_accepted">Approved to permit</string>
     <string name="harvest_permit_rejected">Rejected from permit</string>
 
+    <string name="harvest_permit_information_label">Permit</string>
     <string name="permit_list_page_title">Choose permit</string>
     <string name="permit_list_input_prompt">Search with permit number</string>
     <string name="permit_list_button">Get details</string>
@@ -409,6 +428,8 @@
     <string name="observation_category_within_moose_hunting">@string/within_moose_hunting</string>
     <string name="observation_category_within_deer_hunting">@string/within_deer_hunting</string>
 
+    <string name="error_observation_specimen_amount_at_least_two">There must be at least two specimens</string>
+
     <!-- Antler instructions page -->
     <string name="instructions">Instructions</string>
     <string name="instructions_format">Instructions: %s</string>
@@ -427,6 +448,8 @@
     <string name="observation_unknown">Unknown</string>
 
     <string name="type_sight">Seen</string>
+    <string name="type_poikue">Litter</string>
+    <string name="type_pari">Couple</string>
     <string name="type_track">Track</string>
     <string name="type_excrement">Dropping</string>
     <string name="type_sound">Sound</string>
@@ -449,7 +472,7 @@
     <string name="type_caves">Cave</string>
     <string name="type_nesting_islet">Breeding islet</string>
     <string name="type_resting_islet">Resting islet</string>
-    <string name="type_nesting_swamp">Breeding swamp</string>
+    <string name="type_nesting_swamp">Moulting site</string>
     <string name="type_migration_resting_area">Migratory resting area</string>
     <string name="type_game_path">Game path</string>
     <string name="type_poikueymparisto">Brood habitat</string>
@@ -500,8 +523,8 @@
     <string name="mooselike_unknown_within_deer_hunting">@string/mooselike_unknown</string>
 
     <!-- Tassu fields -->
-    <string name="tassu_paw_length">Length of forepaw</string>
-    <string name="tassu_paw_width">Width of forepaws</string>
+    <string name="tassu_paw_length">Length of forepaw (cm)</string>
+    <string name="tassu_paw_width">Width of forepaws (cm)</string>
 
     <string name="tassu_observer_name">Observer\'s name</string>
     <string name="tassu_observer_phone_number">Observer\'s phone number</string>
@@ -775,6 +798,7 @@
 
     <!-- Hunting control -->
     <string name="hunting_control_main_page_title">Hunting control</string>
+    <string name="hunting_control_check_hunter">Check</string>
     <string name="hunting_control_add_event">Create an event</string>
     <string name="hunting_control_my_events">My events</string>
     <string name="hunting_control_no_events">No events</string>
@@ -807,6 +831,24 @@
     <string name="hunting_control_delete_attachment_question">Delete attachment %1$s?</string>
     <string name="hunting_control_add_attachment">Add attachment</string>
     <string name="hunting_control_select_attachment">Select attachment</string>
+
+    <string name="hunting_control_hunter_details">Personal details</string>
+    <string name="hunting_control_hunter_name">@string/my_details_name</string>
+    <string name="hunting_control_hunter_date_of_birth">@string/my_details_date_of_birth</string>
+    <string name="hunting_control_hunter_home_municipality">@string/my_details_home_municipality</string>
+    <string name="hunting_control_hunter_number">@string/my_details_hunter_id</string>
+    <string name="hunting_control_hunting_license">@string/my_details_title_hunting_license</string>
+    <string name="hunting_control_hunting_license_status">Status</string>
+    <string name="hunting_control_hunting_license_status_active">Valid</string>
+    <string name="hunting_control_hunting_license_status_inactive">Invalid</string>
+    <string name="hunting_control_hunting_license_date_of_payment">Date of payment</string>
+    <string name="hunting_control_shooting_tests">@string/my_details_shooting_tests_title</string>
+    <string name="hunting_control_ssn">Social security number</string>
+    <string name="hunting_control_searching_hunter">Fetching person information</string>
+    <string name="hunting_control_reset_hunter_info">New search</string>
+    <string name="hunting_control_hunter_not_found">Hunter not found.</string>
+    <string name="hunting_control_network_error">Network error, please try again.</string>
+    <string name="hunting_control_retry">Retry</string>
 
     <string name="download_manager_downloading_file">File is being downloaded</string>
     <string name="download_manager_download_complete">You can find downloaded file %1$s from notifications</string>

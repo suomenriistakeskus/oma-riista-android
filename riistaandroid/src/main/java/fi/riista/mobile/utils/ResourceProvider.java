@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable;
 import androidx.core.content.ContextCompat;
 
 public class ResourceProvider {
-    private Context mContext;
+    private final Context mContext;
 
     public ResourceProvider(Context mContext) {
         this.mContext = mContext;

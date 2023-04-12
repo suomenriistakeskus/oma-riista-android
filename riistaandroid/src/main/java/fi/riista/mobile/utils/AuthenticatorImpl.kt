@@ -10,7 +10,6 @@ import fi.riista.common.RiistaSDK
 import fi.riista.common.network.cookies.CookieData
 import fi.riista.mobile.RiistaApplication
 import fi.riista.mobile.feature.login.LoginActivity
-import fi.riista.mobile.gamelog.DeerHuntingFeatureAvailability
 import fi.riista.mobile.network.RegisterPushDeviceTask
 import fi.riista.mobile.observation.ObservationMetadataHelper
 import fi.riista.mobile.srva.SrvaParametersHelper
@@ -23,15 +22,17 @@ class AuthenticatorImpl(
     private val appWorkContext: WorkContext,
     private val credentialsStore: CredentialsStore,
     private val userInfoStore: UserInfoStore,
-    private val userInfoConverter: UserInfoConverter,
-    private val deerHuntingFeatureAvailability: DeerHuntingFeatureAvailability,
 ) : Authenticator {
 
-    override suspend fun authenticate(username: String, password: String, callback: Authenticator.AuthCallback?) {
-        val loginResponse = RiistaSDK.login(username, password)
+    override suspend fun authenticate(
+        username: String,
+        password: String,
+        timeoutSeconds: Int,
+        callback: Authenticator.AuthCallback?,
+    ) {
+        val loginResponse = RiistaSDK.login(username, password, timeoutSeconds)
 
         loginResponse.onSuccess { _, data ->
-
             loginSucceed()
 
             copyAuthenticationCookiesFromRiistaSDK()
@@ -45,6 +46,11 @@ class AuthenticatorImpl(
         loginResponse.onError { statusCode, exception ->
             loginFailed(statusCode, exception?.message)
             callback?.onLoginFailed(statusCode ?: 0)
+        }
+        loginResponse.onCancel {
+            // probably timeout
+            loginCancelled()
+            callback?.onLoginFailed(httpStatusCode = 0)
         }
     }
 
@@ -67,12 +73,11 @@ class AuthenticatorImpl(
         }
     }
 
-    override suspend fun reauthenticate(callback: Authenticator.AuthCallback?) {
+    override suspend fun reauthenticate(callback: Authenticator.AuthCallback?, timeoutSeconds: Int) {
         credentialsStore.get()?.let { cred ->
-            val loginResponse = RiistaSDK.login(cred.username, cred.password)
+            val loginResponse = RiistaSDK.login(cred.username, cred.password, timeoutSeconds)
 
             loginResponse.onSuccess { _, data ->
-
                 loginSucceed()
 
                 copyAuthenticationCookiesFromRiistaSDK()
@@ -83,20 +88,23 @@ class AuthenticatorImpl(
                 loginSync()
             }
             loginResponse.onError { statusCode, exception ->
-
                 loginFailed(statusCode, exception?.message)
 
-                if (statusCode in 400..499) {
+                callback?.onLoginFailed(statusCode ?: 0)
+
+                if (statusCode == 401 || statusCode == 403) {
                     credentialsStore.clear()
 
                     val context: Context = appWorkContext.context
                     val intent = Intent(context, LoginActivity::class.java)
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
-
-                } else {
-                    callback?.onLoginFailed(statusCode ?: 0)
                 }
+            }
+            loginResponse.onCancel {
+                // probably timeout
+                loginCancelled()
+                callback?.onLoginFailed(httpStatusCode = 0)
             }
         }
     }
@@ -104,13 +112,6 @@ class AuthenticatorImpl(
 
     private fun handleUserInfoResult(userInfoAsJson: String?) {
         userInfoStore.setUserInfo(userInfoAsJson)
-
-        // Update deer hunting status on each authentication response.
-        userInfoAsJson?.let {
-            userInfoConverter.fromJson(it)?.let { userInfo ->
-                deerHuntingFeatureAvailability.enabled = userInfo.isDeerPilotUser
-            }
-        }
     }
 
     private fun loginSync() {
@@ -141,10 +142,15 @@ class AuthenticatorImpl(
     // TODO: Remove these when Riista SDK login has proven to be working
     private class LoginSuccess : RuntimeException()
     private class LoginFailure : RuntimeException()
+    private class LoginCancelled : RuntimeException()
 
     private fun loginFailed(statusCode: Int?, message: String?) {
         FirebaseCrashlytics.getInstance().setCustomKey("failure_reason", "${statusCode ?: -1} $message")
         FirebaseCrashlytics.getInstance().recordException(LoginFailure())
+    }
+
+    private fun loginCancelled() {
+        FirebaseCrashlytics.getInstance().recordException(LoginCancelled())
     }
 
     private fun loginSucceed() {

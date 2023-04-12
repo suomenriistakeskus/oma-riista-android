@@ -1,11 +1,12 @@
 package fi.riista.mobile.feature.login
 
-import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatButton
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
@@ -13,6 +14,8 @@ import com.google.android.material.textfield.TextInputEditText
 import fi.riista.common.RiistaSDK
 import fi.riista.common.model.Language
 import fi.riista.mobile.R
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.KeyboardUtils
 import fi.riista.mobile.utils.UiUtils
@@ -87,11 +90,11 @@ class LoginFragment : Fragment(), LoginAttemptFailedListener {
                     }
                     button.isEnabled = true
                     response.onError { _, _ ->
-                        AlertDialog.Builder(context)
+                        AlertDialogFragment.Builder(requireContext(), AlertDialogId.LOGIN_FRAGMENT_OPERATION_FAILED)
                             .setMessage(R.string.group_hunting_operation_failed)
-                            .setPositiveButton(R.string.ok, null)
-                            .create()
-                            .show()
+                            .setPositiveButton(R.string.ok)
+                            .build()
+                            .show(requireActivity().supportFragmentManager)
                     }
                     response.onSuccessWithoutData {
                         createAccountLayout.visibility = View.GONE

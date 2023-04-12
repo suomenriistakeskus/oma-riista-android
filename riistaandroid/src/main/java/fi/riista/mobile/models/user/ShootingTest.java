@@ -2,7 +2,7 @@ package fi.riista.mobile.models.user;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fi.riista.mobile.models.shootingTest.ShootingTestType;
+import fi.riista.common.domain.model.ShootingTestType;
 
 public class ShootingTest {
     @JsonProperty("rhyName")

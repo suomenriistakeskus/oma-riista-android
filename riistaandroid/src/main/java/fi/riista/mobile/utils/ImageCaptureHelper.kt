@@ -56,7 +56,7 @@ class ImageCaptureHelper: HasSavedInstanceState {
      * Checks the needed permissions, asks for them if needed and captures an image
      */
     fun checkPermissionsAndCaptureImage() {
-        if (PermissionHelper.hasPhotoPermissions(context)) {
+        if (PermissionHelper.hasPhotoPermissions()) {
             captureImage()
         } else {
             // TODO: check if permissions rationale should be shown?
@@ -78,7 +78,7 @@ class ImageCaptureHelper: HasSavedInstanceState {
         checkPermissionsLaunch = fragment.registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) {
-            if (PermissionHelper.hasPhotoPermissions(context)) {
+            if (PermissionHelper.hasPhotoPermissions()) {
                 captureImage()
             } else {
                 // nop

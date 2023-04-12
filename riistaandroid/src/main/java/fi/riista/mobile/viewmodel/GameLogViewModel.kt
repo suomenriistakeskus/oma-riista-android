@@ -1,27 +1,22 @@
 package fi.riista.mobile.viewmodel
 
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import fi.riista.mobile.database.HarvestDatabase
+import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.harvest.model.CommonHarvest
+import fi.riista.common.domain.observation.model.CommonObservation
+import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.mobile.database.SpeciesInformation
-import fi.riista.mobile.models.GameHarvest
 import fi.riista.mobile.models.GameLog
-import fi.riista.mobile.models.observation.GameObservation
-import fi.riista.mobile.models.srva.SrvaEvent
-import fi.riista.mobile.observation.ObservationDatabase
-import fi.riista.mobile.srva.SrvaDatabase
+import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
 import fi.riista.mobile.utils.DateTimeUtils
-import org.joda.time.DateTime
 import org.joda.time.LocalDate
 import java.util.*
 import java.util.Collections.emptyList
 import javax.inject.Inject
 
-class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
-                                           val observationDatabase: ObservationDatabase) : ViewModel() {
+class GameLogViewModel @Inject constructor() : ViewModel() {
 
     private val typeSelected: MutableLiveData<String> = MutableLiveData(GameLog.TYPE_HARVEST)
     private val seasonSelected: MutableLiveData<Int> = MutableLiveData(DateTimeUtils.getHuntingYearForCalendar(Calendar.getInstance()))
@@ -42,7 +37,7 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return typeSelected
     }
 
-    private fun setTypeSelected(@Nullable type: String) {
+    private fun setTypeSelected(type: String) {
         if (!typeSelected.value.equals(type)) {
             typeSelected.value = type
 
@@ -64,7 +59,7 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return speciesSelected
     }
 
-    private fun setSpeciesSelected(@NonNull speciesIds: List<Int>) {
+    private fun setSpeciesSelected(speciesIds: List<Int>) {
         speciesSelected.value = speciesIds
     }
 
@@ -72,7 +67,7 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return categorySelected
     }
 
-    private fun setCategorySelected(@Nullable categoryId: Int?) {
+    private fun setCategorySelected(categoryId: Int?) {
         categorySelected.value = categoryId
     }
 
@@ -80,7 +75,7 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return seasons
     }
 
-    fun selectLogType(@NonNull type: String) {
+    fun selectLogType(type: String) {
         setTypeSelected(type)
 
         when (type) {
@@ -109,12 +104,12 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         setSeasonSelected(season)
     }
 
-    fun selectSpeciesIds(@NonNull speciesIds: List<Int>) {
+    fun selectSpeciesIds(speciesIds: List<Int>) {
         setCategorySelected(null)
         setSpeciesSelected(speciesIds)
     }
 
-    fun selectSpeciesCategory(@NonNull categoryId: Int?) {
+    fun selectSpeciesCategory(categoryId: Int?) {
         setCategorySelected(categoryId)
 
         if (categoryId != null) {
@@ -134,34 +129,29 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
     fun refreshSeasons() {
         val currentHuntingYear = DateTimeUtils.getHuntingYearForDate(LocalDate.now())
 
-        // FIXME Executing a database query in the main thread!! This has been a source of ANR.
-        val huntingYearsOfLocalHarvests = harvestDatabase.huntingYearsOfHarvests
-
-        if (!huntingYearsOfLocalHarvests.contains(currentHuntingYear)) {
-            huntingYearsOfLocalHarvests.add(currentHuntingYear)
+        RiistaSDK.harvestContext.getHarvestHuntingYears().let { harvestYears ->
+            val years = harvestYears.ensureContainsYear(currentHuntingYear)
+            harvestSeasons.value = years.sortedDescending()
         }
 
-        harvestSeasons.value = huntingYearsOfLocalHarvests.sortedDescending()
-        updateSeasons(typeSelected.value!!)
-
-        observationDatabase.loadObservationYears { years ->
-            if (!years.contains(currentHuntingYear)) {
-                years.add(currentHuntingYear)
-            }
-
+        RiistaSDK.observationContext.getObservationHuntingYears().let { observationYears ->
+            val years = observationYears.ensureContainsYear(currentHuntingYear)
             observationSeasons.value = years.sortedDescending()
-            updateSeasons(typeSelected.value!!)
         }
 
-        SrvaDatabase.getInstance().loadSrvaYears { years ->
-            val currentCalendarYear = LocalDate.now().year
-
-            if (!years.contains(currentCalendarYear)) {
-                years.add(currentCalendarYear)
-            }
-
+        RiistaSDK.srvaContext.getSrvaYears().let { srvaYears ->
+            val years = srvaYears.ensureContainsYear(LocalDate.now().year)
             srvaSeasons.value = years.sortedDescending()
-            updateSeasons(typeSelected.value!!)
+        }
+
+        updateSeasons(typeSelected.value!!)
+    }
+
+    private fun List<Int>.ensureContainsYear(year: Int): List<Int> {
+        return if (this.contains(year)) {
+            this
+        } else {
+            this + listOf(year)
         }
     }
 
@@ -172,15 +162,15 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         else -> seasons.value = null
     }
 
-    fun filterHarvestsWithCurrent(items: List<GameHarvest>): List<GameHarvest> {
+    fun filterHarvestsWithCurrent(items: List<CommonHarvest>): List<CommonHarvest> {
         val season = seasonSelected.value!!
         val startDate = DateTimeUtils.getHuntingYearStart(season)
         val endDate = DateTimeUtils.getHuntingYearEnd(season)
 
-        val filtered = ArrayList<GameHarvest>(items.size)
+        val filtered = ArrayList<CommonHarvest>(items.size)
 
         for (event in items) {
-            val eventTime = DateTime(event.mTime)
+            val eventTime = event.pointOfTime.toJodaDateTime()
 
             if (eventTime.isAfter(startDate) && eventTime.isBefore(endDate)) {
                 filtered.add(event)
@@ -189,17 +179,17 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return filterHarvestsForSpecies(filtered)
     }
 
-    private fun filterHarvestsForSpecies(items: List<GameHarvest>): List<GameHarvest> {
+    private fun filterHarvestsForSpecies(items: List<CommonHarvest>): List<CommonHarvest> {
         val speciesCodes = speciesSelected.value
 
         if (speciesCodes == null || speciesCodes.isEmpty()) {
             return items
         }
 
-        val filtered = ArrayList<GameHarvest>(items.size)
+        val filtered = ArrayList<CommonHarvest>(items.size)
 
         for (event in items) {
-            if (speciesCodes.contains(event.mSpeciesID)) {
+            if (speciesCodes.contains(event.species.knownSpeciesCodeOrNull())) {
                 filtered.add(event)
             }
         }
@@ -207,15 +197,15 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return filtered
     }
 
-    fun filterObservationsWithCurrent(items: List<GameObservation>): List<GameObservation> {
+    fun filterObservationsWithCurrent(items: List<CommonObservation>): List<CommonObservation> {
         val season = seasonSelected.value!!
         val startDate = DateTimeUtils.getHuntingYearStart(season)
         val endDate = DateTimeUtils.getHuntingYearEnd(season)
 
-        val filtered = ArrayList<GameObservation>(items.size)
+        val filtered = ArrayList<CommonObservation>(items.size)
 
         for (event in items) {
-            val eventTime = event.toDateTime()
+            val eventTime = event.pointOfTime.toJodaDateTime()
 
             if (eventTime.isAfter(startDate) && eventTime.isBefore(endDate)) {
                 filtered.add(event)
@@ -225,17 +215,17 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return filterObservationsForSpecies(filtered)
     }
 
-    private fun filterObservationsForSpecies(items: List<GameObservation>): List<GameObservation> {
+    private fun filterObservationsForSpecies(items: List<CommonObservation>): List<CommonObservation> {
         val speciesCodes = speciesSelected.value
 
         if (speciesCodes == null || speciesCodes.isEmpty()) {
             return items
         }
 
-        val filtered = ArrayList<GameObservation>(items.size)
+        val filtered = ArrayList<CommonObservation>(items.size)
 
         for (event in items) {
-            if (speciesCodes.contains(event.gameSpeciesCode)) {
+            if (speciesCodes.contains(event.species.knownSpeciesCodeOrNull())) {
                 filtered.add(event)
             }
         }
@@ -243,29 +233,29 @@ class GameLogViewModel @Inject constructor(val harvestDatabase: HarvestDatabase,
         return filtered
     }
 
-    fun filterSrvasWithCurrent(items: List<SrvaEvent>): List<SrvaEvent> {
-        val filtered = ArrayList<SrvaEvent>(items.size)
+    fun filterSrvasWithCurrent(items: List<CommonSrvaEvent>): List<CommonSrvaEvent> {
+        val filtered = ArrayList<CommonSrvaEvent>(items.size)
         val calendarYear = seasonSelected.value!!
 
         for (event in items) {
-            if (event.toDateTime().year == calendarYear) {
+            if (event.pointOfTime.year == calendarYear) {
                 filtered.add(event)
             }
         }
         return filterSrvasForSpecies(filtered)
     }
 
-    private fun filterSrvasForSpecies(items: List<SrvaEvent>): List<SrvaEvent> {
+    private fun filterSrvasForSpecies(items: List<CommonSrvaEvent>): List<CommonSrvaEvent> {
         val speciesCodes = speciesSelected.value
 
         if (speciesCodes == null || speciesCodes.isEmpty()) {
             return items
         }
 
-        val filtered = ArrayList<SrvaEvent>(items.size)
+        val filtered = ArrayList<CommonSrvaEvent>(items.size)
 
         for (event in items) {
-            if (speciesCodes.contains(event.gameSpeciesCode)) {
+            if (speciesCodes.contains(event.species.knownSpeciesCodeOrNull())) {
                 filtered.add(event)
             }
         }

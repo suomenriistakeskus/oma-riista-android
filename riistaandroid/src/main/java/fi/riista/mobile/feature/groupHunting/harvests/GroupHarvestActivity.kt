@@ -5,17 +5,22 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import fi.riista.common.RiistaSDK
-import fi.riista.common.extensions.loadGroupHuntingHarvestTarget
-import fi.riista.common.extensions.loadHuntingGroupTarget
-import fi.riista.common.extensions.saveToBundle
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestTarget
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.model.createTargetForHarvest
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.CreateGroupHarvestController
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.EditGroupHarvestController
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.view.ViewGroupHarvestController
+import fi.riista.common.extensions.loadGroupHuntingHarvestTarget
+import fi.riista.common.extensions.loadHuntingGroupTarget
+import fi.riista.common.extensions.saveToBundle
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
 import fi.riista.mobile.feature.groupHunting.observations.GroupObservationActivity
 import fi.riista.mobile.pages.PageFragment
+import fi.riista.mobile.riistaSdkHelpers.AppSpeciesResolver
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.ui.BusyIndicatorView
 
@@ -42,18 +47,19 @@ class GroupHarvestActivity
     override val viewGroupHarvestController: ViewGroupHarvestController
         get() {
             return ViewGroupHarvestController(
-                    groupHuntingContext = RiistaSDK.currentUserContext.groupHuntingContext,
-                    harvestTarget = groupHuntingHarvestTarget,
-                    stringProvider = ContextStringProviderFactory.createForContext(this)
+                groupHuntingContext = RiistaSDK.currentUserContext.groupHuntingContext,
+                harvestTarget = groupHuntingHarvestTarget,
+                stringProvider = ContextStringProviderFactory.createForContext(this)
             )
         }
 
     override val editGroupHarvestController: EditGroupHarvestController
         get() {
             return EditGroupHarvestController(
-                    groupHuntingContext = RiistaSDK.currentUserContext.groupHuntingContext,
-                    harvestTarget = groupHuntingHarvestTarget,
-                    stringProvider = ContextStringProviderFactory.createForContext(this)
+                groupHuntingContext = RiistaSDK.currentUserContext.groupHuntingContext,
+                harvestTarget = groupHuntingHarvestTarget,
+                speciesResolver = AppSpeciesResolver(),
+                stringProvider = ContextStringProviderFactory.createForContext(this)
             )
         }
 
@@ -68,9 +74,10 @@ class GroupHarvestActivity
     override val createGroupHarvestController: CreateGroupHarvestController
         get() {
             return CreateGroupHarvestController(
-                    groupHuntingContext = RiistaSDK.currentUserContext.groupHuntingContext,
-                    huntingGroupTarget = huntingGroupTarget,
-                    stringProvider = ContextStringProviderFactory.createForContext(this)
+                groupHuntingContext = RiistaSDK.currentUserContext.groupHuntingContext,
+                huntingGroupTarget = huntingGroupTarget,
+                speciesResolver = AppSpeciesResolver(),
+                stringProvider = ContextStringProviderFactory.createForContext(this)
             )
         }
 

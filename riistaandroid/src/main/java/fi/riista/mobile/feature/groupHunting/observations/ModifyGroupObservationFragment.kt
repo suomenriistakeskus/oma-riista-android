@@ -110,7 +110,7 @@ abstract class ModifyGroupObservationFragment<
 
     protected fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<GroupObservationField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(SpeciesNameAndIconViewHolder.Factory(speciesResolver))
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(

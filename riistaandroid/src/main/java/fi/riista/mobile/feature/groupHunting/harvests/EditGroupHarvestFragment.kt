@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.groupHunting.harvests
 
-import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +11,9 @@ import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestId
 import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestTarget
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.EditGroupHarvestController
 import fi.riista.mobile.R
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import kotlinx.coroutines.*
 
 /**
@@ -19,9 +21,8 @@ import kotlinx.coroutines.*
  * editing an already accepted [GroupHuntingHarvest].
  */
 class EditGroupHarvestFragment
-    : ModifyGroupHarvestFragment<
-        EditGroupHarvestController,
-        EditGroupHarvestFragment.Manager>() {
+    : ModifyGroupHarvestFragment<EditGroupHarvestController, EditGroupHarvestFragment.Manager>()
+{
 
     interface Manager : BaseManager {
         val editGroupHarvestController: EditGroupHarvestController
@@ -35,6 +36,8 @@ class EditGroupHarvestFragment
         APPROVE,
         EDIT
     }
+
+    private lateinit var dialogListener: AlertDialogFragment.Listener
 
     private lateinit var mode: Mode
     private var saveScope: CoroutineScope? = null
@@ -61,6 +64,18 @@ class EditGroupHarvestFragment
                 }
         )
 
+        dialogListener = DelegatingAlertDialogListener(requireActivity()).apply {
+            registerPositiveCallback(AlertDialogId.EDIT_GROUP_HARVEST_FRAGMENT_CREATE_OBSERVATION_QUESTION) { value ->
+                value?.toLong().let { harvestId ->
+                    manager.onHarvestSaveCompleted(success = true, harvestId = harvestId, createObservation = false)
+                }
+            }
+            registerNegativeCallback(AlertDialogId.EDIT_GROUP_HARVEST_FRAGMENT_CREATE_OBSERVATION_QUESTION) { value ->
+                value?.toLong().let { harvestId ->
+                    manager.onHarvestSaveCompleted(success = true, harvestId = harvestId, createObservation = true)
+                }
+            }
+        }
         return view
     }
 
@@ -91,16 +106,15 @@ class EditGroupHarvestFragment
                 val shouldCreateObservation = (mode == Mode.APPROVE) && controller.shouldCreateObservation()
 
                 if (shouldCreateObservation) {
-                    AlertDialog.Builder(requireContext())
+                    AlertDialogFragment.Builder(
+                        requireContext(),
+                        AlertDialogId.EDIT_GROUP_HARVEST_FRAGMENT_CREATE_OBSERVATION_QUESTION
+                    )
                         .setMessage(R.string.group_hunting_create_observation_from_harvest)
-                        .setPositiveButton(R.string.yes) { _, _ ->
-                            manager.onHarvestSaveCompleted(success = true, harvestId = result.harvest.id, createObservation = false)
-                        }
-                        .setNegativeButton(R.string.no) { _, _ ->
-                            manager.onHarvestSaveCompleted(success = true, harvestId = result.harvest.id, createObservation = true)
-                        }
-                        .create()
-                        .show()
+                        .setPositiveButton(R.string.yes, result.harvest.id.toString())
+                        .setNegativeButton(R.string.no, result.harvest.id.toString())
+                        .build()
+                        .show(requireActivity().supportFragmentManager)
                 } else {
                     manager.onHarvestSaveCompleted(success = true, harvestId = result.harvest.id, createObservation = false)
                 }
@@ -109,11 +123,14 @@ class EditGroupHarvestFragment
                     if (!isResumed) {
                         return@onHarvestSaveCompleted
                     }
-                    AlertDialog.Builder(requireContext())
+                    AlertDialogFragment.Builder(
+                        requireContext(),
+                        AlertDialogId.EDIT_GROUP_HARVEST_FRAGMENT_HARVEST_SAVE_FAILED
+                    )
                         .setMessage(R.string.group_hunting_harvest_save_failed_generic)
-                        .setPositiveButton(R.string.ok, null)
-                        .create()
-                        .show()
+                        .setPositiveButton(R.string.ok)
+                        .build()
+                        .show(requireActivity().supportFragmentManager)
                 }
             }
         }

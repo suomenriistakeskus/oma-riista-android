@@ -1,13 +1,9 @@
 package fi.riista.mobile.models.srva;
 
-import android.location.Location;
-
 import androidx.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import org.joda.time.DateTime;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -17,14 +13,9 @@ import java.util.List;
 import fi.riista.mobile.models.GameLogImage;
 import fi.riista.mobile.models.GeoLocation;
 import fi.riista.mobile.models.LocalImage;
-import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.ModelUtils;
 
 public class SrvaEvent implements Serializable {
-
-    //public static final String STATE_UNFINISHED = "UNFINISHED";
-    public static final String STATE_APPROVED = "APPROVED";
-    public static final String STATE_REJECTED = "REJECTED";
 
     @JsonProperty("id")
     public Long remoteId;
@@ -135,17 +126,6 @@ public class SrvaEvent implements Serializable {
     @JsonIgnore
     public String username;
 
-    public DateTime toDateTime() {
-        return DateTimeUtils.parseDateTime(pointOfTime);
-    }
-
-    public Location toLocation() {
-        if (geoLocation != null) {
-            return geoLocation.toLocation();
-        }
-        return null;
-    }
-
     public List<GameLogImage> getImages() {
         // todo: change the order of image ids if backend implementation ever changes so that
         //       last image no longer is the first item
@@ -156,13 +136,5 @@ public class SrvaEvent implements Serializable {
         List<String> reversedImageIds = new ArrayList<>(imageIds);
         Collections.reverse(reversedImageIds);
         return ModelUtils.combineImages(reversedImageIds, localImages);
-    }
-
-    public void copyLocalAttributes(SrvaEvent from) {
-        localId = from.localId;
-        deleted = from.deleted;
-        modified = from.modified;
-        localImages = new ArrayList<>(from.localImages);
-        username = from.username;
     }
 }

@@ -1,6 +1,5 @@
 package fi.riista.mobile.feature.login
 
-import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.text.Editable
@@ -14,6 +13,8 @@ import com.google.android.material.textfield.TextInputEditText
 import fi.riista.common.RiistaSDK
 import fi.riista.common.model.Language
 import fi.riista.mobile.R
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.utils.AppPreferences
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -91,11 +92,11 @@ class ResetPasswordFragment : Fragment() {
             }
             button.isEnabled = true
             response.onError { _, _ ->
-                AlertDialog.Builder(context)
+                AlertDialogFragment.Builder(requireContext(), AlertDialogId.RESET_PASSWORD_FRAGMENT_OPERATION_FAILED)
                     .setMessage(R.string.group_hunting_operation_failed)
-                    .setPositiveButton(R.string.ok, null)
-                    .create()
-                    .show()
+                    .setPositiveButton(R.string.ok)
+                    .build()
+                    .show(requireActivity().supportFragmentManager)
             }
             response.onSuccessWithoutData {
                 resetPasswordLayout.visibility = View.GONE

@@ -1,23 +1,50 @@
 package fi.riista.mobile.feature.groupHunting.harvests
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
 import fi.riista.common.domain.groupHunting.model.AcceptStatus
 import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.view.ViewGroupHarvestController
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.AgeField
+import fi.riista.common.ui.dataField.AttachmentField
+import fi.riista.common.ui.dataField.BooleanField
+import fi.riista.common.ui.dataField.ButtonField
+import fi.riista.common.ui.dataField.ChipField
+import fi.riista.common.ui.dataField.CustomUserInterfaceField
+import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DateAndTimeField
+import fi.riista.common.ui.dataField.DateField
+import fi.riista.common.ui.dataField.DoubleField
+import fi.riista.common.ui.dataField.GenderField
+import fi.riista.common.ui.dataField.HarvestField
+import fi.riista.common.ui.dataField.HuntingDayAndTimeField
+import fi.riista.common.ui.dataField.InstructionsField
+import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.LocationField
+import fi.riista.common.ui.dataField.ObservationField
+import fi.riista.common.ui.dataField.SelectDurationField
+import fi.riista.common.ui.dataField.SpeciesField
+import fi.riista.common.ui.dataField.SpecimenField
+import fi.riista.common.ui.dataField.StringField
+import fi.riista.common.ui.dataField.StringListField
+import fi.riista.common.ui.dataField.TimespanField
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.MapViewerActivity
 import fi.riista.mobile.database.SpeciesResolver
@@ -25,8 +52,20 @@ import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
 import fi.riista.mobile.pages.MapExternalIdProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.ui.AlertDialogFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.ui.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.LocationOnMapViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.MapOpener
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyAgeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyBooleanAsRadioToggleViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyDateAndTimeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyGenderViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlySingleLineTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SpeciesNameAndIconViewHolder
 import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -37,10 +76,11 @@ import javax.inject.Inject
  * A fragment for viewing proposed [GroupHuntingHarvest]
  */
 class ViewGroupHarvestFragment
-    : DataFieldPageFragment<GroupHarvestField>()
-    , DataFieldViewHolderTypeResolver<GroupHarvestField>
+    : DataFieldPageFragment<CommonHarvestField>()
+    , DataFieldViewHolderTypeResolver<CommonHarvestField>
     , MapOpener
-    , MapExternalIdProvider {
+    , MapExternalIdProvider
+{
 
     interface Manager {
         val viewGroupHarvestController: ViewGroupHarvestController
@@ -53,8 +93,8 @@ class ViewGroupHarvestFragment
     @Inject
     lateinit var speciesResolver: SpeciesResolver
 
-    private lateinit var adapter: DataFieldRecyclerViewAdapter<GroupHarvestField>
-
+    private lateinit var adapter: DataFieldRecyclerViewAdapter<CommonHarvestField>
+    private lateinit var dialogListener: AlertDialogFragment.Listener
     private lateinit var manager: Manager
     private lateinit var controller: ViewGroupHarvestController
     private lateinit var approveButton: MaterialButton
@@ -116,6 +156,11 @@ class ViewGroupHarvestFragment
 
         setHasOptionsMenu(true)
 
+        dialogListener = DelegatingAlertDialogListener(requireActivity()).apply {
+            registerPositiveCallback(AlertDialogId.VIEW_GROUP_HARVEST_FRAGMENT_REJECT_HARVEST_QUESTION) {
+                rejectHarvest()
+            }
+        }
         return view
     }
 
@@ -145,29 +190,17 @@ class ViewGroupHarvestFragment
                 true
             }
             R.id.item_reject_harvest -> {
-                AlertDialog.Builder(requireContext())
+                AlertDialogFragment.Builder(
+                    requireContext(),
+                    AlertDialogId.VIEW_GROUP_HARVEST_FRAGMENT_REJECT_HARVEST_QUESTION
+                )
                     .setTitle(getString(R.string.group_hunting_are_you_sure))
                     .setMessage(getString(R.string.group_hunting_reject_proposed_harvest_question))
                     .setIcon(android.R.drawable.ic_dialog_alert)
-                    .setPositiveButton(R.string.yes) { _, _ ->
-                        MainScope().launch {
-                            val response = controller.rejectHarvest()
-                            if (!isResumed) {
-                                return@launch
-                            }
-                            if (response is GroupHuntingHarvestOperationResponse.Success) {
-                                manager.proposedGroupHarvestRejected()
-                            } else {
-                                AlertDialog.Builder(requireContext())
-                                    .setMessage(R.string.group_hunting_operation_failed)
-                                    .setPositiveButton(R.string.ok, null)
-                                    .create()
-                                    .show()
-                            }
-                        }
-                    }
-                    .setNegativeButton(R.string.no, null)
-                    .show()
+                    .setPositiveButton(R.string.yes)
+                    .setNegativeButton(R.string.no)
+                    .build()
+                    .show(requireActivity().supportFragmentManager)
                 true
             }
             else -> {
@@ -176,7 +209,7 @@ class ViewGroupHarvestFragment
         }
     }
 
-    override fun resolveViewHolderType(dataField: DataField<GroupHarvestField>): DataFieldViewHolderType {
+    override fun resolveViewHolderType(dataField: DataField<CommonHarvestField>): DataFieldViewHolderType {
         return when (dataField) {
             is LabelField -> dataField.determineViewHolderType()
             is SpeciesField -> DataFieldViewHolderType.SPECIES_NAME_AND_ICON
@@ -212,9 +245,9 @@ class ViewGroupHarvestFragment
         }
     }
 
-    private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<GroupHarvestField>) {
+    private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<CommonHarvestField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(
                     mapOpener = this@ViewGroupHarvestFragment,
@@ -282,6 +315,24 @@ class ViewGroupHarvestFragment
 
     override fun getMapExternalId(): String? {
         return controller.getLoadedViewModelOrNull()?.huntingGroupArea?.externalId
+    }
+
+    private fun rejectHarvest() {
+        MainScope().launch {
+            val response = controller.rejectHarvest()
+            if (!isResumed) {
+                return@launch
+            }
+            if (response is GroupHuntingHarvestOperationResponse.Success) {
+                manager.proposedGroupHarvestRejected()
+            } else {
+                AlertDialogFragment.Builder(requireContext(), AlertDialogId.VIEW_GROUP_HARVEST_FRAGMENT_OPERATION_FAILED)
+                    .setMessage(R.string.group_hunting_operation_failed)
+                    .setPositiveButton(R.string.ok)
+                    .build()
+                    .show(requireActivity().supportFragmentManager)
+            }
+        }
     }
 
     companion object {

@@ -55,11 +55,9 @@ class VectorTileProvider(context: Context) : TileProvider {
     }
 
     override fun getTile(x: Int, y: Int, zoom: Int): Tile? {
-        if (mapExternalId == null) {
-            return TileProvider.NO_TILE
-        }
+        val areaId = mapExternalId ?: return TileProvider.NO_TILE
         val tileUrl = getTileUrl(x, y, zoom) ?: return TileProvider.NO_TILE
-        val key = tileUrl.toString() + if (invertColors) { "_inverted" } else { "_normal" }
+        val key = tileUrl.toString() + if (invertColors) { "_inverted_" } else { "_normal_" } + areaId
 
         var tileData: ByteArray? = null
         try {

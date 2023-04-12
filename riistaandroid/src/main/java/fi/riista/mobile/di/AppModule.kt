@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import dagger.Module
 import dagger.Provides
+import fi.riista.mobile.database.HarvestDatabase
+import fi.riista.mobile.database.PermitManager
 import fi.riista.mobile.database.SpeciesInformation
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.database.room.MetsahallitusPermitDAO
@@ -14,13 +16,15 @@ import fi.riista.mobile.database.room.Migrations.MIGRATION_1_2
 import fi.riista.mobile.database.room.RiistaDatabase
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_CONTEXT_NAME
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
-import fi.riista.mobile.gamelog.DeerHuntingFeatureAvailability
 import fi.riista.mobile.network.AppDownloadManager
+import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.utils.Authenticator
 import fi.riista.mobile.utils.AuthenticatorImpl
+import fi.riista.mobile.utils.BackgroundOperationStatus
 import fi.riista.mobile.utils.CookieStoreSingleton
 import fi.riista.mobile.utils.CredentialsStore
 import fi.riista.mobile.utils.CredentialsStoreImpl
+import fi.riista.mobile.utils.LogoutHelper
 import fi.riista.mobile.utils.ROOM_DATABASE_NAME
 import fi.riista.mobile.utils.UserInfoConverter
 import fi.riista.mobile.utils.UserInfoStore
@@ -98,24 +102,16 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun deerHuntingFeatureAvailability() = DeerHuntingFeatureAvailability(false)
-
-    @Singleton
-    @Provides
     fun authenticator(
         @Named(APPLICATION_WORK_CONTEXT_NAME) appWorkContext: WorkContext,
         credentialsStore: CredentialsStore,
         userInfoStore: UserInfoStore,
-        userInfoConverter: UserInfoConverter,
-        deerHuntingFeatureAvailability: DeerHuntingFeatureAvailability,
     ): Authenticator {
 
         return AuthenticatorImpl(
             appWorkContext,
             credentialsStore,
             userInfoStore,
-            userInfoConverter,
-            deerHuntingFeatureAvailability
         )
     }
 
@@ -123,5 +119,27 @@ class AppModule {
     @Provides
     fun appDownloadManager(@Named(APPLICATION_CONTEXT_NAME) appContext: Context): AppDownloadManager {
         return AppDownloadManager(appContext)
+    }
+
+    @Singleton
+    @Provides
+    fun backgroundOperationStatus(): BackgroundOperationStatus {
+        return BackgroundOperationStatus()
+    }
+
+    @Singleton
+    @Provides
+    fun logoutHelper(
+        appSync: AppSync,
+        harvestDatabase: HarvestDatabase,
+        credentialsStore: CredentialsStore,
+        permitManager: PermitManager,
+    ): LogoutHelper {
+        return LogoutHelper(
+            appSync = appSync,
+            harvestDatabase = harvestDatabase,
+            credentialsStore = credentialsStore,
+            permitManager = permitManager,
+        )
     }
 }

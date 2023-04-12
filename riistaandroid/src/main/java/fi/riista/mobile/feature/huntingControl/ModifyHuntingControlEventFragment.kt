@@ -1,9 +1,7 @@
 package fi.riista.mobile.feature.huntingControl
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -23,18 +21,61 @@ import fi.riista.common.domain.huntingControl.ui.HuntingControlEventField
 import fi.riista.common.domain.huntingControl.ui.modify.ModifyHuntingControlEventController
 import fi.riista.common.io.CommonFileStorage
 import fi.riista.common.io.FileSaveResult
-import fi.riista.common.model.*
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.model.ETRMSGeoLocation
+import fi.riista.common.model.LocalDate
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.LocalTime
+import fi.riista.common.model.StringId
+import fi.riista.common.model.StringWithId
+import fi.riista.common.model.toBackendEnum
+import fi.riista.common.ui.dataField.AttachmentField
+import fi.riista.common.ui.dataField.BooleanField
+import fi.riista.common.ui.dataField.ButtonField
+import fi.riista.common.ui.dataField.ChipField
+import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DateField
+import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.LocationField
+import fi.riista.common.ui.dataField.StringField
+import fi.riista.common.ui.dataField.StringListField
+import fi.riista.common.ui.dataField.TimespanField
+import fi.riista.common.util.deserializeFromJson
+import fi.riista.common.util.serializeToJson
 import fi.riista.mobile.AppConfig
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.MapViewerActivity
 import fi.riista.mobile.activity.SelectStringWithIdActivity
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
 import fi.riista.mobile.network.AppDownloadManager
-import fi.riista.mobile.riistaSdkHelpers.*
+import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
+import fi.riista.mobile.riistaSdkHelpers.fromJodaLocalDate
+import fi.riista.mobile.riistaSdkHelpers.fromJodaLocalTime
+import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
+import fi.riista.mobile.ui.AlertDialogFragment
 import fi.riista.mobile.ui.DateTimePickerFragment
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.ui.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.viewHolder.AttachmentViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ButtonViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChipsViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.DatePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.DateViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableBooleanAsRadioToggleViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.IntFieldViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.LocationOnMapViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.MapOpener
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlySingleLineTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.TimePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.TimespanViewHolder
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
 import fi.riista.mobile.ui.showDatePickerFragment
 import fi.riista.mobile.utils.DiaryImageUtil
 import fi.riista.mobile.utils.FileUtils
@@ -60,6 +101,8 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
     @Inject
     lateinit var appDownloadManager: AppDownloadManager
     private var pictureUri: Uri? = null
+
+    private lateinit var dialogListener: AlertDialogFragment.Listener
 
     private val selectFileActivityResultLaunch = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -207,6 +250,7 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, true)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_SHOW_ITEMS, false)
         locationRequestActivityResultLaunch.launch(intent)
     }
 
@@ -240,7 +284,7 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
 
     protected fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<HuntingControlEventField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(
                     mapOpener = this@ModifyHuntingControlEventFragment,
@@ -265,6 +309,18 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
             registerViewHolderFactory(AttachmentViewHolder.Factory(::attachmentClicked, ::deleteAttachmentClicked))
             registerViewHolderFactory(ButtonViewHolder.Factory(::addAttachmentClicked))
             registerViewHolderFactory(ChipsViewHolder.Factory(getController().stringWithIdClickEventDispatcher))
+        }
+    }
+
+    protected fun registerFragmentResultListeners() {
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
+        dialogListener = DelegatingAlertDialogListener(requireActivity()).apply {
+            registerPositiveCallback(AlertDialogId.MODIFY_HUNTING_CONTROL_EVENT_FRAGMENT_DELETE_ATTACHMENT, ::deleteAttachment)
+            registerPositiveCallback(
+                AlertDialogId.MODIFY_HUNTING_CONTROL_EVENT_FRAGMENT_ATTACHMENT_DOWNLOAD_CONFIRMATION,
+                ::startAttachmentDownload
+            )
+            registerItemCallback(AlertDialogId.MODIFY_HUNTING_CONTROL_EVENT_FRAGMENT_ADD_ATTACHMENT, ::addAttachment)
         }
     }
 
@@ -294,20 +350,22 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
         maxDate: LocalDate?
     ) {
         val datePickerFragment = DateTimePickerFragment.create(
-            dialogId = fieldId.toInt(),
+            requestCode = DATE_PICKER_REQUEST_CODE,
+            fieldId = fieldId.toInt(),
             pickMode = DateTimePickerFragment.PickMode.DATE,
             selectedDateTime = currentDate.toLocalDateTime(12, 0, 0).toJodaDateTime(),
             minDateTime = minDate?.toLocalDateTime(0, 0, 0)?.toJodaDateTime(),
             maxDateTime = maxDate?.toLocalDateTime(23, 59, 59)?.toJodaDateTime(),
         )
 
-        showDatePickerFragment(datePickerFragment, fieldId.toInt())
+        showDatePickerFragment(datePickerFragment)
     }
 
     override fun pickTime(fieldId: HuntingControlEventField, currentTime: LocalTime?) {
         val date = LocalDate(2022, 1, 1)
         val datePickerFragment = DateTimePickerFragment.create(
-            dialogId = fieldId.toInt(),
+            requestCode = DATE_PICKER_REQUEST_CODE,
+            fieldId = fieldId.toInt(),
             pickMode = DateTimePickerFragment.PickMode.TIME,
             selectedDateTime = date.toLocalDateTime(
                 currentTime?.hour ?: 12,
@@ -318,27 +376,27 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
             maxDateTime = null,
         )
 
-        showDatePickerFragment(datePickerFragment, fieldId.toInt())
+        showDatePickerFragment(datePickerFragment)
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
-        HuntingControlEventField.fromInt(dialogId)?.let { fieldId ->
-            when (fieldId.type) {
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
+        HuntingControlEventField.fromInt(fieldId)?.let { eventField ->
+            when (eventField.type) {
                 HuntingControlEventField.Type.DATE -> {
                     getController().dateEventDispatcher.dispatchLocalDateChanged(
-                        fieldId = fieldId,
+                        fieldId = eventField,
                         value = LocalDate.fromJodaLocalDate(dateTime.toLocalDate())
                     )
                 }
                 HuntingControlEventField.Type.START_TIME,
                 HuntingControlEventField.Type.END_TIME -> {
                     getController().timeEventDispatcher.dispatchLocalTimeChanged(
-                        fieldId = fieldId,
+                        fieldId = eventField,
                         value = LocalTime.fromJodaLocalTime(dateTime.toLocalTime())
                     )
                 }
                 else -> {
-                    Log.w("MHCEF", "Invalid fieldId $fieldId onDateTimeSelected")
+                    Log.w("MHCEF", "Invalid fieldId $eventField onDateTimeSelected")
                 }
             }
         }
@@ -372,57 +430,80 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
             if (attachment.uuid != null) {
                 showAttachment(attachment)
             } else {
-                AlertDialog.Builder(requireContext())
+                val confirmation = AttachmentConfirmation(attachment.remoteId, fileName)
+                val jsonConfirmation = confirmation.serializeToJson()
+                AlertDialogFragment.Builder(
+                    requireContext(),
+                    AlertDialogId.MODIFY_HUNTING_CONTROL_EVENT_FRAGMENT_ATTACHMENT_DOWNLOAD_CONFIRMATION
+                )
                     .setMessage(R.string.hunting_control_download_attachment_question)
-                    .setPositiveButton(R.string.yes) { _, _ ->
-                        val remoteId = attachment.remoteId
-                        if (remoteId != null) {
-                            val url = URL(AppConfig.getBaseUrl() + "/huntingcontrol/attachment/$remoteId/download")
-                            appDownloadManager.startDownload(url, fileName)
-                        }
-                    }
-                    .setNegativeButton(R.string.no) { _, _ ->
-                        // No op
-                    }
-                    .create()
-                    .show()
+                    .setPositiveButton(R.string.yes, jsonConfirmation)
+                    .setNegativeButton(R.string.no)
+                    .build()
+                    .show(requireActivity().supportFragmentManager)
+            }
+        }
+    }
+
+    private fun startAttachmentDownload(value: String?) {
+        value?.let { json ->
+            val attachmentConfirmation = json.deserializeFromJson<AttachmentConfirmation>()
+            attachmentConfirmation?.let { confirmation ->
+                val remoteId = confirmation.remoteId
+                if (remoteId != null) {
+                    val url = URL(AppConfig.getBaseUrl() + "/huntingcontrol/attachment/$remoteId/download")
+                    appDownloadManager.startDownload(url, confirmation.fileName)
+                }
             }
         }
     }
 
     private fun deleteAttachmentClicked(fieldId: HuntingControlEventField, filename: String) {
-        AlertDialog.Builder(requireContext())
+        AlertDialogFragment.Builder(requireContext(), AlertDialogId.MODIFY_HUNTING_CONTROL_EVENT_FRAGMENT_DELETE_ATTACHMENT)
             .setTitle(getString(R.string.group_hunting_are_you_sure))
             .setMessage(getString(R.string.hunting_control_delete_attachment_question, filename))
             .setIcon(android.R.drawable.ic_dialog_alert)
-            .setPositiveButton(R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.yes, fieldId.toInt().toString())
+            .setNegativeButton(R.string.no, null)
+            .build()
+            .show(requireActivity().supportFragmentManager)
+    }
+
+    private fun deleteAttachment(value: String?) {
+        val intValue = value?.toInt()
+        intValue?.let {
+            val fieldId = HuntingControlEventField.fromInt(intValue)
+            fieldId?.let {
                 getController().attachmentActionEventDispatcher.dispatchEvent(fieldId)
             }
-            .setNegativeButton(R.string.no, null)
-            .show()
+        }
     }
 
     private fun addAttachmentClicked(field: HuntingControlEventField) {
-        val context = requireContext()
-        val items = arrayOf<CharSequence>(
-            context.getString(R.string.take_picture),
-            context.getString(R.string.hunting_control_select_attachment)
-        )
-        AlertDialog.Builder(context)
-            .setItems(items) { _: DialogInterface?, which: Int ->
-                if (which == 0) {
-                    if (PermissionHelper.hasPhotoPermissions(context)) {
-                        takePicture()
-                    } else {
-                        PermissionHelper.requestPhotoPermissions(requireActivity(), 111) // result is ignored for now
-                    }
-                } else {
-                    chooseFile()
-                }
+        if (field.type == HuntingControlEventField.Type.ADD_ATTACHMENT) {
+            val context = requireContext()
+            val items = arrayOf<CharSequence>(
+                context.getString(R.string.take_picture),
+                context.getString(R.string.hunting_control_select_attachment)
+            )
+            AlertDialogFragment.Builder(context, AlertDialogId.MODIFY_HUNTING_CONTROL_EVENT_FRAGMENT_ADD_ATTACHMENT)
+                .setTitle(context.getString(R.string.hunting_control_add_attachment))
+                .setItems(items)
+                .build()
+                .show(requireActivity().supportFragmentManager)
+        }
+    }
+
+    private fun addAttachment(which: Int) {
+        if (which == 0) {
+            if (PermissionHelper.hasPhotoPermissions()) {
+                takePicture()
+            } else {
+                PermissionHelper.requestPhotoPermissions(requireActivity(), 111) // result is ignored for now
             }
-            .setTitle(context.getString(R.string.hunting_control_add_attachment))
-            .create()
-            .show()
+        } else {
+            chooseFile()
+        }
     }
 
     private fun chooseFile() {
@@ -461,6 +542,7 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
 
     companion object {
         private const val PICTURE_URI_KEY = "MHCEF_picture_uri_key"
+        private const val DATE_PICKER_REQUEST_CODE = "MHCEF_date_picker_request_code"
     }
 }
 

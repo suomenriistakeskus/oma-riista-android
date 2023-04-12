@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import fi.riista.common.RiistaSDK
 import fi.riista.common.domain.observation.model.CommonObservation
-import fi.riista.common.domain.observation.ui.modify.EditableObservation
 import fi.riista.common.domain.observation.ui.modify.EditObservationController
+import fi.riista.common.domain.observation.ui.modify.EditableObservation
 import fi.riista.common.extensions.deserializeJson
 import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
@@ -22,12 +22,13 @@ class EditObservationFragment
         EditObservationFragment.Manager>() {
 
     interface Manager : BaseManager {
-        fun onSaveObservation(observation: CommonObservation)
+        fun onObservationSaveCompleted(observation: CommonObservation)
     }
 
     override val controller: EditObservationController by lazy {
         EditObservationController(
             userContext = RiistaSDK.currentUserContext,
+            observationContext = RiistaSDK.observationContext,
             metadataProvider = RiistaSDK.metadataProvider,
             stringProvider = ContextStringProviderFactory.createForContext(requireContext())
         )
@@ -45,13 +46,8 @@ class EditObservationFragment
         return view
     }
 
-    override fun onSaveButtonClicked() {
-        val observation = controller.getValidatedObservation()
-            ?: kotlin.run {
-                return
-            }
-
-        manager.onSaveObservation(observation = observation)
+    override fun notifyManagerAboutSuccessfulSave(observation: CommonObservation) {
+        manager.onObservationSaveCompleted(observation)
     }
 
     override fun getManagerFromContext(context: Context): Manager {

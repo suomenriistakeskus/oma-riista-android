@@ -12,14 +12,14 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.RiistaSDK
-import fi.riista.common.extensions.loadHuntingGroupTarget
-import fi.riista.common.extensions.saveToBundle
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
 import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
 import fi.riista.common.domain.groupHunting.model.createTargetForHuntingDay
 import fi.riista.common.domain.groupHunting.ui.huntingDays.HuntingDays
 import fi.riista.common.domain.groupHunting.ui.huntingDays.ListHuntingDaysController
 import fi.riista.common.domain.groupHunting.ui.huntingDays.ListHuntingDaysViewModel
+import fi.riista.common.extensions.loadHuntingGroupTarget
+import fi.riista.common.extensions.saveToBundle
 import fi.riista.common.model.LocalDate
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
@@ -33,6 +33,7 @@ import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.riistaSdkHelpers.fromJodaLocalDate
 import fi.riista.mobile.riistaSdkHelpers.toJodaLocalDate
 import fi.riista.mobile.ui.DateTimePickerFragment
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
 import fi.riista.mobile.utils.DateTimeUtils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -40,8 +41,9 @@ import org.joda.time.DateTime
 
 class ListGroupHuntingDaysActivity
     : BaseActivity()
+    , HuntingDayItemViewHolder.Listener
     , DateTimePickerFragment.Listener
-    , HuntingDayItemViewHolder.Listener {
+{
 
     private lateinit var huntingGroupTarget: HuntingGroupTarget
     private lateinit var controller: ListHuntingDaysController
@@ -110,6 +112,8 @@ class ListGroupHuntingDaysActivity
         btnFilterStartDate = findViewById(R.id.btn_filter_start_date)
         btnFilterEndDate = findViewById(R.id.btn_filter_end_date)
         progressBar = findViewById(R.id.progress_horizontal)
+
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -267,14 +271,14 @@ class ListGroupHuntingDaysActivity
     private fun updateDateFilters(huntingDays: HuntingDays) {
         updateDateFilter(
                 btnFilterStartDate,
-                DIALOG_ID_START_DATE,
+                FIELD_ID_START_DATE,
                 huntingDays.filterStartDate,
                 huntingDays.minFilterDate,
                 huntingDays.filterEndDate
         )
         updateDateFilter(
                 btnFilterEndDate,
-                DIALOG_ID_END_DATE,
+                FIELD_ID_END_DATE,
                 huntingDays.filterEndDate,
                 huntingDays.filterStartDate,
                 huntingDays.maxFilterDate
@@ -282,7 +286,7 @@ class ListGroupHuntingDaysActivity
     }
 
     private fun updateDateFilter(dateFilterButton: MaterialButton,
-                                 dialogId: Int,
+                                 fieldId: Int,
                                  filterDate: LocalDate,
                                  minDate: LocalDate,
                                  maxDate: LocalDate
@@ -291,7 +295,8 @@ class ListGroupHuntingDaysActivity
             text = DateTimeUtils.formatLocalDateUsingShortFinnishFormat(filterDate.toJodaLocalDate())
             setOnClickListener {
                 val pickerFragment = DateTimePickerFragment.create(
-                        dialogId = dialogId,
+                        requestCode = DATE_PICKER_REQUEST_CODE,
+                        fieldId = fieldId,
                         selectedDate = filterDate.toJodaLocalDate(),
                         minDate = minDate.toJodaLocalDate(),
                         maxDate = maxDate.toJodaLocalDate()
@@ -301,11 +306,11 @@ class ListGroupHuntingDaysActivity
         }
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
         val localDate = LocalDate.fromJodaLocalDate(dateTime.toLocalDate())
-        when (dialogId) {
-            DIALOG_ID_START_DATE -> controller.eventDispatcher.dispatchFilterStartDateChanged(localDate)
-            DIALOG_ID_END_DATE -> controller.eventDispatcher.dispatchFilterEndDateChanged(localDate)
+        when (fieldId) {
+            FIELD_ID_START_DATE -> controller.eventDispatcher.dispatchFilterStartDateChanged(localDate)
+            FIELD_ID_END_DATE -> controller.eventDispatcher.dispatchFilterEndDateChanged(localDate)
         }
     }
 
@@ -358,11 +363,12 @@ class ListGroupHuntingDaysActivity
     }
 
     companion object {
-        private const val DIALOG_ID_START_DATE = 1
-        private const val DIALOG_ID_END_DATE = 2
+        private const val FIELD_ID_START_DATE = 1
+        private const val FIELD_ID_END_DATE = 2
         private const val EXTRAS_PREFIX = "ListGroupHuntingDaysActivity"
         private const val KEY_SHOULD_RELOAD_DATA = "${EXTRAS_PREFIX}_should_reload_data"
         private const val CONTROLLER_STATE_PREFIX = "LGHDA_controller"
+        private const val DATE_PICKER_REQUEST_CODE = "LGHDA_date_picker_request_code"
 
         fun getLaunchIntent(packageContext: Context, huntingGroupTarget: HuntingGroupTarget): Intent {
             return Intent(packageContext, ListGroupHuntingDaysActivity::class.java)

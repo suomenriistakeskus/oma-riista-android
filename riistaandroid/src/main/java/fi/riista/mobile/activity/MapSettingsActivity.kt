@@ -54,7 +54,7 @@ class MapSettingsActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map_settings)
-        setCustomTitle(getString(R.string.menu_settings))
+        setCustomTitle(getString(R.string.more_settings))
 
         val mapTileSource = AppPreferences.getMapTileSource(this)
         val mapTypeGroup = findViewById<RadioGroup>(R.id.map_type_select)

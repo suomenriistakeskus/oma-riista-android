@@ -16,7 +16,7 @@ import fi.riista.common.util.letWith
 import fi.riista.mobile.R
 import fi.riista.mobile.ui.dataFields.DataFieldViewHolder
 import fi.riista.mobile.ui.Label
-import fi.riista.mobile.utils.TextValueFilter
+import fi.riista.mobile.utils.MaxValueFilter
 
 class IntFieldViewHolder<FieldId : DataFieldId>(
     private val dataFieldEventDispatcher: IntEventDispatcher<FieldId>?,
@@ -25,6 +25,7 @@ class IntFieldViewHolder<FieldId : DataFieldId>(
 
     private val labelView: Label = view.findViewById(R.id.v_label)
     private val editText: AppCompatEditText = view.findViewById(R.id.et_editable_text)
+    private val maxValueFilter = MaxValueFilter()
 
     init {
         editText.addTextChangedListener(object : TextWatcher {
@@ -56,6 +57,7 @@ class IntFieldViewHolder<FieldId : DataFieldId>(
         })
         editText.setOnEditorActionListener(FocusingOnEditorActionListener())
         editText.inputType = InputType.TYPE_CLASS_NUMBER
+        editText.filters = arrayOf<InputFilter>(maxValueFilter)
     }
 
     override fun onBeforeUpdateBoundData(dataField: IntField<FieldId>) {
@@ -75,10 +77,11 @@ class IntFieldViewHolder<FieldId : DataFieldId>(
         editText.isEnabled = !dataField.settings.readOnly && dataFieldEventDispatcher != null
 
         val maxInt = dataField.settings.maxValue
-        if (maxInt != null) {
-            editText.filters = arrayOf<InputFilter>(TextValueFilter(maxInt.toFloat()))
+        maxValueFilter.enabled = if (maxInt != null) {
+            maxValueFilter.maxValue = maxInt.toFloat()
+            true
         } else {
-            editText.filters = arrayOf<InputFilter>()
+            false
         }
 
         logger.v { "Binding data field. Current '$currentText', updated '$updatedText'" }

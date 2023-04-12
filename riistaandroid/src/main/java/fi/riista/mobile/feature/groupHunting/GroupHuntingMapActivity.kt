@@ -12,10 +12,23 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservation
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationId
+import fi.riista.common.domain.groupHunting.model.HuntingGroupArea
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.model.createTargetForHarvest
+import fi.riista.common.domain.groupHunting.model.createTargetForObservation
+import fi.riista.common.domain.groupHunting.ui.diary.DiaryController
+import fi.riista.common.domain.groupHunting.ui.diary.DiaryEvent
+import fi.riista.common.domain.groupHunting.ui.diary.DiaryFilter
+import fi.riista.common.domain.groupHunting.ui.diary.ListGroupDiaryEntriesController
+import fi.riista.common.domain.groupHunting.ui.diary.loadFromBundle
+import fi.riista.common.domain.groupHunting.ui.diary.saveToBundle
 import fi.riista.common.extensions.loadHuntingGroupTarget
 import fi.riista.common.extensions.saveToBundle
-import fi.riista.common.domain.groupHunting.model.*
-import fi.riista.common.domain.groupHunting.ui.diary.*
 import fi.riista.common.model.LocalDate
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
@@ -30,6 +43,7 @@ import fi.riista.mobile.pages.GroupHuntingMapViewer
 import fi.riista.mobile.riistaSdkHelpers.fromJodaLocalDate
 import fi.riista.mobile.riistaSdkHelpers.toJodaLocalDate
 import fi.riista.mobile.ui.DateTimePickerFragment
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
 import fi.riista.mobile.utils.DateTimeUtils
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -39,7 +53,8 @@ class GroupHuntingMapActivity
     : BaseActivity()
     , GroupHuntingMapViewer.Manager
     , ListGroupDiaryEntriesDialogFragment.Manager
-    , DateTimePickerFragment.Listener {
+    , DateTimePickerFragment.Listener
+{
 
     private var huntingGroupTarget: HuntingGroupTarget? = null
     private lateinit var controller: DiaryController
@@ -103,6 +118,8 @@ class GroupHuntingMapActivity
                     .add(R.id.layout_fragment_container, GroupHuntingMapViewer.newInstance())
                     .commit()
         }
+
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
 
         dateFilterLayout = findViewById(R.id.layout_date_filter)
         noContentTextView = findViewById(R.id.tv_no_content)
@@ -222,34 +239,36 @@ class GroupHuntingMapActivity
     private fun updateDateFilters(diaryEvents: DiaryEvent) {
         updateDateFilter(
                 startDateButton,
-                DIALOG_ID_START_DATE,
+                FIELD_ID_START_DATE,
                 diaryEvents.filterStartDate,
                 diaryEvents.minFilterDate,
                 diaryEvents.filterEndDate
         )
         updateDateFilter(
                 endDateButton,
-                DIALOG_ID_END_DATE,
+                FIELD_ID_END_DATE,
                 diaryEvents.filterEndDate,
                 diaryEvents.filterStartDate,
                 diaryEvents.maxFilterDate
         )
     }
 
-    private fun updateDateFilter(dateFilterButton: MaterialButton,
-                                 dialogId: Int,
-                                 filterDate: LocalDate,
-                                 minDate: LocalDate,
-                                 maxDate: LocalDate
+    private fun updateDateFilter(
+        dateFilterButton: MaterialButton,
+        dialogId: Int,
+        filterDate: LocalDate,
+        minDate: LocalDate,
+        maxDate: LocalDate
     ) {
         with (dateFilterButton) {
             text = DateTimeUtils.formatLocalDateUsingShortFinnishFormat(filterDate.toJodaLocalDate())
             setOnClickListener {
                 val pickerFragment = DateTimePickerFragment.create(
-                        dialogId = dialogId,
-                        selectedDate = filterDate.toJodaLocalDate(),
-                        minDate = minDate.toJodaLocalDate(),
-                        maxDate = maxDate.toJodaLocalDate()
+                    requestCode = DATE_PICKER_REQUEST_CODE,
+                    fieldId = dialogId,
+                    selectedDate = filterDate.toJodaLocalDate(),
+                    minDate = minDate.toJodaLocalDate(),
+                    maxDate = maxDate.toJodaLocalDate()
                 )
                 pickerFragment.show(supportFragmentManager, "datePicker")
             }
@@ -358,11 +377,11 @@ class GroupHuntingMapActivity
         controller.eventDispatcher.dispatchDiaryFilterChanged(diaryFilter)
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
         val localDate = LocalDate.fromJodaLocalDate(dateTime.toLocalDate())
-        when (dialogId) {
-            DIALOG_ID_START_DATE -> controller.eventDispatcher.dispatchFilterStartDateChanged(localDate)
-            DIALOG_ID_END_DATE -> controller.eventDispatcher.dispatchFilterEndDateChanged(localDate)
+        when (fieldId) {
+            FIELD_ID_START_DATE -> controller.eventDispatcher.dispatchFilterStartDateChanged(localDate)
+            FIELD_ID_END_DATE -> controller.eventDispatcher.dispatchFilterEndDateChanged(localDate)
         }
     }
 
@@ -393,8 +412,9 @@ class GroupHuntingMapActivity
     }
 
     companion object {
-        private const val DIALOG_ID_START_DATE = 1
-        private const val DIALOG_ID_END_DATE = 2
+        private const val DATE_PICKER_REQUEST_CODE = "GHMA_date_picker_request_code"
+        private const val FIELD_ID_START_DATE = 1
+        private const val FIELD_ID_END_DATE = 2
         private const val ZOOM_LEVEL = "zoom-level"
         private const val LOCATION = "location"
         private const val EXTRAS_PREFIX = "GroupHuntingMapActivity"

@@ -1,7 +1,6 @@
 package fi.riista.mobile.pages
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -14,6 +13,7 @@ import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.setPadding
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.android.material.button.MaterialButton
@@ -23,11 +23,13 @@ import fi.riista.mobile.AppConfig
 import fi.riista.mobile.ExternalUrls
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.MainActivity
+import fi.riista.mobile.feature.unregister.UnregisterUserAccountActivity
 import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.sync.SyncConfig
 import fi.riista.mobile.utils.AppPreferences.*
 import fi.riista.mobile.utils.BuildInfo
 import fi.riista.mobile.utils.LocaleUtil
+import fi.riista.mobile.utils.openInBrowser
 import fi.riista.mobile.utils.toVisibility
 import javax.inject.Inject
 
@@ -61,6 +63,9 @@ class SettingsFragment : PageFragment() {
 
         val licenseButton = view.findViewById<MaterialButton>(R.id.settings_licences_btn)
         licenseButton.setOnClickListener { displayLicensesDialog() }
+
+        val unregisterButton = view.findViewById<MaterialButton>(R.id.settings_unregister_account_btn)
+        unregisterButton.setOnClickListener { displayUnregisterUserAccount() }
 
         setupSyncMode(view)
         setupLanguageSelect(view)
@@ -131,8 +136,7 @@ class SettingsFragment : PageFragment() {
                 input.setText(AppConfig.getBaseAddress())
                 input.setPadding(resources.getDimension(R.dimen.padding_medium).toInt())
                 input.setSelectAllOnFocus(true)
-                val builder = AlertDialog.Builder(context)
-                builder
+                AlertDialog.Builder(context)
                     .setTitle("Aseta palvelimen osoite")
                     .setView(input)
                     .setPositiveButton(R.string.ok) { _, _ ->
@@ -140,8 +144,7 @@ class SettingsFragment : PageFragment() {
                         if (!address.startsWith("http")) {
                             address = "https://$address"
                         }
-                        val confirmationBuilder = AlertDialog.Builder(context)
-                        confirmationBuilder
+                        AlertDialog.Builder(context)
                             .setMessage("Asetetaanko uudeksi osoitteeksi\n ${address}?\n Muutos tulee voimaan kun kirjaudut ulos ja käynnistät sovelluksen uudestaan.")
                             .setPositiveButton(R.string.yes) { _, _ ->
                                 setServerBaseAddress(context, address)
@@ -183,25 +186,29 @@ class SettingsFragment : PageFragment() {
         startActivity(Intent(requireContext(), OssLicensesMenuActivity::class.java))
     }
 
+    private fun displayUnregisterUserAccount() {
+        startActivity(UnregisterUserAccountActivity.getLaunchIntent(requireActivity()))
+    }
+
     private fun displayPrivacyStatement() {
         val languageCode = getLanguageCodeSetting(context)
 
         val privacyStatementUrl = ExternalUrls.getPrivacyStatementUrl(languageCode)
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(privacyStatementUrl)))
+        Uri.parse(privacyStatementUrl).openInBrowser(requireContext())
     }
 
     private fun displayAccessibility() {
         val languageCode = getLanguageCodeSetting(context)
 
         val accessibilityUrl = ExternalUrls.getAccessibilityUrl(languageCode)
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(accessibilityUrl)))
+        Uri.parse(accessibilityUrl).openInBrowser(requireContext())
     }
 
     private fun displayTermsOfService() {
         val languageCode = getLanguageCodeSetting(context)
 
         val termsOfServiceUrl = ExternalUrls.getTermsOfServiceUrl(languageCode)
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(termsOfServiceUrl)))
+        Uri.parse(termsOfServiceUrl).openInBrowser(requireContext())
     }
 
     companion object {

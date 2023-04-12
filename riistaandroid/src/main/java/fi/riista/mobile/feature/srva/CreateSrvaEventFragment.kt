@@ -4,9 +4,9 @@ import android.content.Context
 import android.location.Location
 import com.google.android.gms.location.LocationListener
 import fi.riista.common.RiistaSDK
-import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.ui.modify.CreateSrvaEventController
+import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.util.toETRMSGeoLocation
 import fi.riista.mobile.LocationClientProvider
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
@@ -15,19 +15,18 @@ import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
  * A fragment for creating [CommonSrvaEvent].
  */
 class CreateSrvaEventFragment
-    : ModifySrvaEventFragment<
-        CreateSrvaEventController,
-        CreateSrvaEventFragment.Manager>()
-    , LocationListener {
-
+    : ModifySrvaEventFragment<CreateSrvaEventController, CreateSrvaEventFragment.Manager>()
+    , LocationListener
+{
     interface Manager : BaseManager, LocationClientProvider {
-        fun onCreateSrvaEvent(srvaEvent: CommonSrvaEvent)
+        fun onNewSrvaEventCreateCompleted(srvaEvent: CommonSrvaEvent)
     }
 
     override val controller: CreateSrvaEventController by lazy {
         CreateSrvaEventController(
             metadataProvider = RiistaSDK.metadataProvider,
-            stringProvider = ContextStringProviderFactory.createForContext(requireContext())
+            stringProvider = ContextStringProviderFactory.createForContext(requireContext()),
+            srvaContext = RiistaSDK.srvaContext,
         )
     }
 
@@ -45,13 +44,8 @@ class CreateSrvaEventFragment
         manager.locationClient.removeListener(this)
     }
 
-    override fun onSaveButtonClicked() {
-        val srvaEvent = controller.getValidatedSrvaEvent()
-            ?: kotlin.run {
-                return
-            }
-
-        manager.onCreateSrvaEvent(srvaEvent = srvaEvent)
+    override fun notifyManagerAboutSuccessfulSave(srvaEvent: CommonSrvaEvent) {
+        manager.onNewSrvaEventCreateCompleted(srvaEvent)
     }
 
     override fun getManagerFromContext(context: Context): Manager {

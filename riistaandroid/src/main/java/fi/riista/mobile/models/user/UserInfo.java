@@ -84,7 +84,7 @@ public class UserInfo {
     private List<Occupation> occupations = new ArrayList<>();
 
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<>();
+    private final Map<String, Object> additionalProperties = new HashMap<>();
 
     // Helper methods -->
 

@@ -1,7 +1,5 @@
 package fi.riista.mobile.models.observation;
 
-import android.location.Location;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,14 +9,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import fi.riista.mobile.AppConfig;
 import fi.riista.mobile.models.DeerHuntingType;
-import fi.riista.mobile.models.GameLog;
 import fi.riista.mobile.models.GameLogImage;
 import fi.riista.mobile.models.GeoLocation;
 import fi.riista.mobile.models.LocalImage;
 import fi.riista.mobile.utils.ConstantsKt;
-import fi.riista.mobile.utils.DateTimeUtils;
 import fi.riista.mobile.utils.ModelUtils;
 
 public class GameObservation implements Serializable {
@@ -135,85 +130,11 @@ public class GameObservation implements Serializable {
     @JsonIgnore
     public String username;
 
-    @JsonIgnore
-    public boolean observationCategorySelected = false;
-
-    @JsonIgnore
-    public boolean mooseOrDeerHuntingCapability = false;
-
-    public static GameObservation createNew() {
-        final GameObservation observation = new GameObservation();
-        observation.setPointOfTime(DateTime.now());
-        observation.type = GameLog.TYPE_OBSERVATION;
-        observation.observationSpecVersion = AppConfig.OBSERVATION_SPEC_VERSION;
-        observation.observationCategory = ObservationCategory.NORMAL;
-        observation.canEdit = true;
-        observation.modified = true;
-        observation.mobileClientRefId = GameLog.generateMobileRefId();
-        return observation;
-    }
-
-    public int getMooselikeSpecimenCount() {
-        int count = 0;
-        if (mooselikeMaleAmount != null) {
-            count += mooselikeMaleAmount;
-        }
-        if (mooselikeFemaleAmount != null) {
-            count += mooselikeFemaleAmount;
-        }
-        if (mooselikeFemale1CalfAmount != null) {
-            count += mooselikeFemale1CalfAmount * (1 + 1);
-        }
-        if (mooselikeFemale2CalfsAmount != null) {
-            count += mooselikeFemale2CalfsAmount * (1 + 2);
-        }
-        if (mooselikeFemale3CalfsAmount != null) {
-            count += mooselikeFemale3CalfsAmount * (1 + 3);
-        }
-        if (mooselikeFemale4CalfsAmount != null) {
-            count += mooselikeFemale4CalfsAmount * (1 + 4);
-        }
-        if (mooselikeCalfAmount != null) {
-            count += mooselikeCalfAmount;
-        }
-        if (mooselikeUnknownSpecimenAmount != null) {
-            count += mooselikeUnknownSpecimenAmount;
-        }
-        return count;
-    }
-
     public List<GameLogImage> getImages() {
         return ModelUtils.combineImages(imageIds, localImages);
     }
 
-    public void setLocalImages(List<GameLogImage> images) {
-        localImages.clear();
-
-        for (GameLogImage image : images) {
-            localImages.add(LocalImage.fromGameLogImage(image));
-        }
-    }
-
-    public DateTime toDateTime() {
-        return DateTimeUtils.parseDateTime(pointOfTime);
-    }
-
     public void setPointOfTime(DateTime dateTime) {
         pointOfTime = dateTime.toString(ConstantsKt.ISO_8601);
-    }
-
-    public Location toLocation() {
-        if (geoLocation != null) {
-            return geoLocation.toLocation();
-        }
-        return null;
-    }
-
-    public void copyLocalAttributes(GameObservation from) {
-        localId = from.localId;
-        deleted = from.deleted;
-        modified = from.modified;
-        localImages = new ArrayList<>(from.localImages);
-        username = from.username;
     }
 }

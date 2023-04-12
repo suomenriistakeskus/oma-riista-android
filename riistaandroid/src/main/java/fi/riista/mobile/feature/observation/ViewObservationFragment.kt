@@ -31,6 +31,8 @@ import fi.riista.mobile.feature.specimens.SpecimensActivity
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
+import fi.riista.mobile.sync.SyncConfig
+import fi.riista.mobile.ui.CanIndicateBusy
 import fi.riista.mobile.ui.FullScreenEntityImageDialog
 import fi.riista.mobile.ui.FullScreenEntityImageDialogLauncher
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
@@ -51,21 +53,30 @@ class ViewObservationFragment
     , FullScreenEntityImageDialogLauncher
     , SpecimensActivityLauncher<CommonObservationField> {
 
-    interface Manager {
+    interface Manager: CanIndicateBusy {
         fun getObservationForViewing(): CommonObservation
         fun startEditObservation(editableObservation: EditableObservation)
-        fun deleteObservation()
+        fun onObservationDeleted()
     }
 
     @Inject
     lateinit var speciesResolver: SpeciesResolver
+
+    @Inject
+    lateinit var syncConfig: SyncConfig
 
     private lateinit var adapter: DataFieldRecyclerViewAdapter<CommonObservationField>
 
     private lateinit var manager: Manager
 
     private val controller: ViewObservationController by lazy {
+        val observationId = requireNotNull(manager.getObservationForViewing().localId) {
+            "Manager is required to provide observation"
+        }
+
         ViewObservationController(
+            observationId = observationId,
+            observationContext = RiistaSDK.observationContext,
             userContext = RiistaSDK.currentUserContext,
             metadataProvider = RiistaSDK.metadataProvider,
             stringProvider = ContextStringProviderFactory.createForContext(requireContext())
@@ -129,7 +140,7 @@ class ViewObservationFragment
                 true
             }
             R.id.item_delete -> {
-                deleteObservation()
+                askDeleteObservationConfirmation()
                 true
             }
             else -> false
@@ -160,7 +171,7 @@ class ViewObservationFragment
             is SelectDurationField,
             is IntField,
             is HarvestField,
-            is fi.riista.common.ui.dataField.ObservationField,
+            is ObservationField,
             is DateField,
             is TimespanField,
             is AttachmentField,
@@ -174,7 +185,7 @@ class ViewObservationFragment
 
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<CommonObservationField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(
                     mapOpener = this@ViewObservationFragment,
@@ -224,7 +235,6 @@ class ViewObservationFragment
 
     private fun loadObservation() {
         MainScope().launch {
-            controller.observation = manager.getObservationForViewing()
             controller.loadViewModel(refresh = false)
         }
     }
@@ -237,12 +247,26 @@ class ViewObservationFragment
         }
     }
 
-    private fun deleteObservation() {
+    private fun askDeleteObservationConfirmation() {
         EditUtils.showDeleteDialog(requireContext(), object : EditUtils.OnDeleteListener {
             override fun onDelete() {
-                manager.deleteObservation()
+                deleteObservation()
             }
         })
+    }
+
+    private fun deleteObservation() {
+        manager.indicateBusy()
+
+        MainScope().launch {
+            val deleted = controller.deleteObservation(updateToBackend = syncConfig.isAutomatic())
+
+            manager.hideBusyIndicators {
+                if (deleted) {
+                    manager.onObservationDeleted()
+                }
+            }
+        }
     }
 
     override fun openMap(location: Location) {
@@ -250,6 +274,7 @@ class ViewObservationFragment
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, false)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_SHOW_ITEMS, false)
         startActivity(intent)
     }
 

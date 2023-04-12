@@ -24,6 +24,7 @@ import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.AgeField
 import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DoubleField
 import fi.riista.common.ui.dataField.GenderField
 import fi.riista.common.ui.dataField.LabelField
 import fi.riista.common.ui.dataField.StringListField
@@ -37,6 +38,7 @@ import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewLauncher
 import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
 import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
 import fi.riista.mobile.ui.dataFields.viewHolder.EditableAgeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableDoubleViewHolder
 import fi.riista.mobile.ui.dataFields.viewHolder.EditableGenderViewHolder
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -130,6 +132,7 @@ class EditSpecimensFragment
             }
             is GenderField -> DataFieldViewHolderType.EDITABLE_GENDER
             is AgeField -> DataFieldViewHolderType.EDITABLE_AGE
+            is DoubleField -> DataFieldViewHolderType.EDITABLE_DOUBLE
             is StringListField -> DataFieldViewHolderType.SELECTABLE_STRING
             else -> {
                 throw IllegalStateException("Not supported ${dataField.id}")
@@ -147,6 +150,9 @@ class EditSpecimensFragment
             ))
             registerViewHolderFactory(EditableAgeViewHolder.Factory(
                 eventDispatcher = controller.eventDispatchers.ageEventDispatcher
+            ))
+            registerViewHolderFactory(EditableDoubleViewHolder.Factory(
+                eventDispatcher = controller.eventDispatchers.doubleEventDispatcher
             ))
             registerViewHolderFactory(
                 ChoiceViewHolder.Factory(

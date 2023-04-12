@@ -47,7 +47,7 @@ public class PermitSpeciesAmount {
     @JsonProperty("weightRequired")
     private Boolean weightRequired;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<>();
+    private final Map<String, Object> additionalProperties = new HashMap<>();
 
     @JsonProperty("gameSpeciesCode")
     public Integer getGameSpeciesCode() {

@@ -84,7 +84,7 @@ class GroupHuntingActivity
                 ChoiceViewHolder.Factory(
                     eventDispatcher = controller.eventDispatcher
             ))
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
         }.also {
             adapter = it
         }

@@ -18,7 +18,7 @@ import static fi.riista.mobile.di.DependencyQualifiers.APPLICATION_CONTEXT_NAME;
 class ObservationDatabaseHelper extends AsyncDatabase {
 
     private static final String DATABASE_NAME = "observations.db";
-    private static final int DATABASE_VERSION = 7;
+    private static final int DATABASE_VERSION = 8;
 
     private static final String TABLE_OBSERVATION = "observation";
 
@@ -67,7 +67,8 @@ class ObservationDatabaseHelper extends AsyncDatabase {
                     "deleted INTEGER," +
                     "modified INTEGER," +
                     "localImages TEXT," + // JSON data
-                    "username TEXT" +
+                    "username TEXT," +
+                    "commonLocalId INTEGER" +
             ");";
 
     @Inject
@@ -113,6 +114,9 @@ class ObservationDatabaseHelper extends AsyncDatabase {
 
                 db.execSQL("ALTER TABLE " + TABLE_OBSERVATION + " ADD COLUMN deerHuntingType TEXT");
                 db.execSQL("ALTER TABLE " + TABLE_OBSERVATION + " ADD COLUMN deerHuntingTypeDescription TEXT");
+            }
+            if (oldVersion <= 7) {
+                db.execSQL("ALTER TABLE " + TABLE_OBSERVATION + " ADD COLUMN commonLocalId INTEGER");
             }
         }
 

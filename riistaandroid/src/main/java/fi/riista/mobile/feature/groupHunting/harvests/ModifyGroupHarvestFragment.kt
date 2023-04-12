@@ -12,23 +12,44 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.domain.groupHunting.model.*
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.ModifyGroupHarvestController
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.modify.ModifyGroupHarvestViewModel
-import fi.riista.common.model.*
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
+import fi.riista.common.model.ETRMSGeoLocation
+import fi.riista.common.model.LocalDate
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.StringId
+import fi.riista.common.model.StringWithId
+import fi.riista.common.model.toBackendEnum
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.AgeField
+import fi.riista.common.ui.dataField.BooleanField
+import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DateAndTimeField
+import fi.riista.common.ui.dataField.DoubleField
+import fi.riista.common.ui.dataField.GenderField
+import fi.riista.common.ui.dataField.HuntingDayAndTimeField
+import fi.riista.common.ui.dataField.InstructionsField
+import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.LocationField
+import fi.riista.common.ui.dataField.SpeciesField
+import fi.riista.common.ui.dataField.StringField
+import fi.riista.common.ui.dataField.StringListField
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.MapViewerActivity
 import fi.riista.mobile.activity.SelectStringWithIdActivity
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
-import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.*
+import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.SelectHuntingDayAndTimeViewHolder
+import fi.riista.mobile.feature.groupHunting.dataFields.viewHolder.SelectHuntingDayLauncher
 import fi.riista.mobile.feature.groupHunting.huntingDays.select.SelectGroupHuntingDayActivity
 import fi.riista.mobile.pages.MapExternalIdProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
@@ -38,10 +59,28 @@ import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
 import fi.riista.mobile.ui.DateTimePickerFragment
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.ui.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.DateTimePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableAgeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableBooleanAsRadioToggleViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableDateAndTimeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableDoubleViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableGenderViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.InstructionsViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.IntFieldViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.LocationOnMapViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.MapOpener
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SpeciesNameAndIconViewHolder
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
 import fi.riista.mobile.ui.showDatePickerFragment
 import fi.riista.mobile.utils.MapUtils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import javax.inject.Inject
 
@@ -52,14 +91,14 @@ abstract class ModifyGroupHarvestFragment<
         Controller : ModifyGroupHarvestController,
         Manager : ModifyGroupHarvestFragment.BaseManager
         >
-    : DataFieldPageFragment<GroupHarvestField>()
-    , DataFieldViewHolderTypeResolver<GroupHarvestField>
+    : DataFieldPageFragment<CommonHarvestField>()
+    , DataFieldViewHolderTypeResolver<CommonHarvestField>
     , MapOpener
     , MapExternalIdProvider
-    , SelectHuntingDayLauncher<GroupHarvestField>
-    , DateTimePickerFragmentLauncher<GroupHarvestField>
+    , SelectHuntingDayLauncher<CommonHarvestField>
+    , DateTimePickerFragmentLauncher<CommonHarvestField>
     , DateTimePickerFragment.Listener
-    , ChoiceViewLauncher<GroupHarvestField> {
+    , ChoiceViewLauncher<CommonHarvestField> {
 
     interface BaseManager {
         val huntingGroupTarget: HuntingGroupTarget
@@ -70,7 +109,7 @@ abstract class ModifyGroupHarvestFragment<
     @Inject
     lateinit var speciesResolver: SpeciesResolver
 
-    private lateinit var adapter: DataFieldRecyclerViewAdapter<GroupHarvestField>
+    private lateinit var adapter: DataFieldRecyclerViewAdapter<CommonHarvestField>
     protected lateinit var saveButton: MaterialButton
 
     protected lateinit var manager: Manager
@@ -151,10 +190,11 @@ abstract class ModifyGroupHarvestFragment<
                 }
             }
 
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
         return view
     }
 
-    override fun resolveViewHolderType(dataField: DataField<GroupHarvestField>): DataFieldViewHolderType {
+    override fun resolveViewHolderType(dataField: DataField<CommonHarvestField>): DataFieldViewHolderType {
         return when (dataField) {
             is LabelField -> dataField.determineViewHolderType()
             is StringField -> when (dataField.settings.readOnly) {
@@ -178,9 +218,9 @@ abstract class ModifyGroupHarvestFragment<
         }
     }
 
-    private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<GroupHarvestField>) {
+    private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<CommonHarvestField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(SpeciesNameAndIconViewHolder.Factory(speciesResolver))
             registerViewHolderFactory(
                 LocationOnMapViewHolder.Factory(
@@ -278,7 +318,7 @@ abstract class ModifyGroupHarvestFragment<
     }
 
     override fun displayChoicesInSeparateView(
-        fieldId: GroupHarvestField,
+        fieldId: CommonHarvestField,
         mode: StringListField.Mode,
         choices: List<StringWithId>,
         selectedChoices: List<StringId>?,
@@ -297,25 +337,26 @@ abstract class ModifyGroupHarvestFragment<
     }
 
     override fun pickDateOrTime(
-        fieldId: GroupHarvestField,
+        fieldId: CommonHarvestField,
         pickMode: DateTimePickerFragment.PickMode,
         currentDateTime: LocalDateTime,
         minDateTime: LocalDateTime?,
         maxDateTime: LocalDateTime?
     ) {
         val datePickerFragment = DateTimePickerFragment.create(
-                dialogId = fieldId.toInt(),
+                requestCode = DATE_PICKER_REQUEST_CODE,
+                fieldId = fieldId.toInt(),
                 pickMode = pickMode,
                 selectedDateTime = currentDateTime.toJodaDateTime(),
                 minDateTime = minDateTime?.toJodaDateTime(),
                 maxDateTime = maxDateTime?.toJodaDateTime()
         )
 
-        showDatePickerFragment(datePickerFragment, fieldId.toInt())
+        showDatePickerFragment(datePickerFragment)
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
-        GroupHarvestField.fromInt(dialogId)?.let { fieldId ->
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
+        CommonHarvestField.fromInt(fieldId)?.let { fieldId ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
                     fieldId, LocalDateTime.fromJodaDateTime(dateTime))
         }
@@ -335,7 +376,7 @@ abstract class ModifyGroupHarvestFragment<
     }
 
     override fun launchHuntingDaySelection(
-        fieldId: GroupHarvestField,
+        fieldId: CommonHarvestField,
         selectedHuntingDayId: GroupHuntingDayId?,
         preferredHuntingDayDate: LocalDate?,
     ) {
@@ -350,7 +391,7 @@ abstract class ModifyGroupHarvestFragment<
     }
 
     private fun handleHuntingDaySelectionResult(data: Intent) {
-        val fieldId = GroupHarvestField.fromInt(
+        val fieldId = CommonHarvestField.fromInt(
                 SelectGroupHuntingDayActivity.getFieldIdFromIntent(data)
         )
         val huntingDayId = SelectGroupHuntingDayActivity.getHuntingDayIdFromIntent(data)
@@ -361,7 +402,7 @@ abstract class ModifyGroupHarvestFragment<
     }
 
     private fun handleSelectStringWithIdResult(data: Intent) {
-        val fieldId = GroupHarvestField.fromInt(
+        val fieldId = CommonHarvestField.fromInt(
             SelectStringWithIdActivity.getFieldIdFromIntent(data)
         )
         val selectedValue = SelectStringWithIdActivity.getStringWithIdResulListFromIntent(data)
@@ -381,11 +422,12 @@ abstract class ModifyGroupHarvestFragment<
                     source.toBackendEnum(),
                     // todo: consider passing accuracy and other values as well
                     null, null, null)
-            controller.eventDispatchers.locationEventDispatcher.dispatchLocationChanged(GroupHarvestField.LOCATION, geoLocation)
+            controller.eventDispatchers.locationEventDispatcher.dispatchLocationChanged(CommonHarvestField.LOCATION, geoLocation)
         }
     }
 
     companion object {
         private const val CONTROLLER_STATE_PREFIX = "MGHF_controller"
+        private const val DATE_PICKER_REQUEST_CODE = "MGHF_date_picker_request_code"
     }
 }

@@ -19,6 +19,6 @@ class StringWithIdWrapper(val stringWithId: StringWithId) {
     }
 
     override fun hashCode(): Int {
-        return stringWithId.hashCode() ?: 0
+        return stringWithId.hashCode()
     }
 }

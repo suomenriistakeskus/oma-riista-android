@@ -1,6 +1,7 @@
 package fi.riista.mobile.feature.srva
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.location.Location
@@ -12,19 +13,34 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
-import fi.riista.common.logging.getLogger
-import fi.riista.common.reactive.DisposeBag
-import fi.riista.common.reactive.disposeBy
 import fi.riista.common.domain.specimens.ui.SpecimenFieldDataContainer
+import fi.riista.common.domain.srva.SrvaEventOperationResponse
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.ui.SrvaEventField
 import fi.riista.common.domain.srva.ui.modify.ModifySrvaEventController
 import fi.riista.common.domain.srva.ui.modify.ModifySrvaEventViewModel
-import fi.riista.common.model.*
+import fi.riista.common.logging.getLogger
+import fi.riista.common.model.ETRMSGeoLocation
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.StringId
+import fi.riista.common.model.StringWithId
+import fi.riista.common.model.toBackendEnum
+import fi.riista.common.reactive.DisposeBag
+import fi.riista.common.reactive.disposeBy
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.BooleanField
+import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DateAndTimeField
+import fi.riista.common.ui.dataField.DoubleField
+import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.LocationField
+import fi.riista.common.ui.dataField.SpeciesField
+import fi.riista.common.ui.dataField.SpecimenField
+import fi.riista.common.ui.dataField.StringField
+import fi.riista.common.ui.dataField.StringListField
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.ChooseSpeciesActivity
 import fi.riista.mobile.activity.MapViewerActivity
@@ -37,16 +53,40 @@ import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.fromJodaDateTime
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
 import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
+import fi.riista.mobile.sync.AppSync
+import fi.riista.mobile.sync.PreventAppSyncWhileModifyingSynchronizableEntry
+import fi.riista.mobile.sync.SyncConfig
+import fi.riista.mobile.ui.CanIndicateBusy
 import fi.riista.mobile.ui.DateTimePickerFragment
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
-import fi.riista.mobile.ui.dataFields.viewHolder.*
+import fi.riista.mobile.ui.dataFields.viewHolder.BooleanAsCheckboxViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.ChoiceViewLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderType
+import fi.riista.mobile.ui.dataFields.viewHolder.DataFieldViewHolderTypeResolver
+import fi.riista.mobile.ui.dataFields.viewHolder.DateTimePickerFragmentLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableDateAndTimeViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.EditableTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.InstructionsViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.IntFieldViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.LocationOnMapViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.MapOpener
+import fi.riista.mobile.ui.dataFields.viewHolder.ReadOnlyTextViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SelectSpeciesAndImageViewHolder
+import fi.riista.mobile.ui.dataFields.viewHolder.SpeciesSelectionLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.SpecimensActivityLauncher
+import fi.riista.mobile.ui.dataFields.viewHolder.SpecimensViewHolder
+import fi.riista.mobile.ui.registerDatePickerFragmentResultListener
 import fi.riista.mobile.ui.showDatePickerFragment
 import fi.riista.mobile.utils.ChangeImageHelper
 import fi.riista.mobile.utils.EditUtils
 import fi.riista.mobile.utils.MapUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import org.joda.time.DateTime
 import javax.inject.Inject
 
@@ -66,12 +106,19 @@ abstract class ModifySrvaEventFragment<
     , ChoiceViewLauncher<SrvaEventField>
     , SpecimensActivityLauncher<SrvaEventField> {
 
-    interface BaseManager {
+    interface BaseManager: CanIndicateBusy {
         fun cancelSrvaOperation()
     }
 
     @Inject
     lateinit var speciesResolver: SpeciesResolver
+
+    @Inject
+    lateinit var syncConfig: SyncConfig
+
+    @Inject
+    lateinit var appSync: AppSync
+
 
     private lateinit var adapter: DataFieldRecyclerViewAdapter<SrvaEventField>
     private lateinit var saveButton: MaterialButton
@@ -80,6 +127,8 @@ abstract class ModifySrvaEventFragment<
     protected abstract val controller: Controller
 
     private val disposeBag = DisposeBag()
+
+    private var saveScope: CoroutineScope? = null
 
     private val locationRequestActivityResultLaunch = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -113,10 +162,13 @@ abstract class ModifySrvaEventFragment<
     }
 
     private val changeImageHelper = ChangeImageHelper()
+    private lateinit var appSyncPreventer: PreventAppSyncWhileModifyingSynchronizableEntry
+
+
 
     // functionality required from subclass
 
-    protected abstract fun onSaveButtonClicked()
+    protected abstract fun notifyManagerAboutSuccessfulSave(srvaEvent: CommonSrvaEvent)
     protected abstract fun getManagerFromContext(context: Context): Manager
 
 
@@ -125,9 +177,17 @@ abstract class ModifySrvaEventFragment<
         super.onAttach(context)
         manager = getManagerFromContext(context)
 
+        appSyncPreventer = PreventAppSyncWhileModifyingSynchronizableEntry(appSync, observedFragment = this)
+        parentFragmentManager.registerFragmentLifecycleCallbacks(appSyncPreventer, false)
+
         changeImageHelper.initialize(fragment = this) { image ->
             controller.eventDispatchers.imageEventDispatcher.setEntityImage(image)
         }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        parentFragmentManager.unregisterFragmentLifecycleCallbacks(appSyncPreventer)
     }
 
     override fun onCreateView(
@@ -165,7 +225,63 @@ abstract class ModifySrvaEventFragment<
                 }
             }
 
+        registerDatePickerFragmentResultListener(DATE_PICKER_REQUEST_CODE)
         return view
+    }
+
+    private fun onSaveButtonClicked() {
+        manager.indicateBusy()
+
+        val scope = MainScope()
+
+        scope.launch {
+            val result = controller.saveSrvaEvent(updateToBackend = syncConfig.isAutomatic())
+
+            // allow cancellation to take effect i.e don't continue updating UI
+            // if saveScope has been cancelled
+            yield()
+
+            if (!isResumed) {
+                return@launch
+            }
+
+            val networkResponse = result.networkSaveResponse
+            val databaseResponse = result.databaseSaveResponse
+
+            if (networkResponse is SrvaEventOperationResponse.NetworkFailure &&
+                networkResponse.statusCode == CONFLICT_STATUS_CODE
+            ) {
+                onSaveFailed(
+                    networkStatusCode = networkResponse.statusCode,
+                    debugMessage = networkResponse.errorMessage
+                )
+            } else if (databaseResponse is SrvaEventOperationResponse.Success) {
+                notifyManagerAboutSuccessfulSave(srvaEvent = databaseResponse.srvaEvent)
+            } else {
+                onSaveFailed(networkStatusCode = null, debugMessage = result.errorMessage)
+            }
+        }
+
+        saveScope = scope
+    }
+
+    private fun onSaveFailed(networkStatusCode: Int?, debugMessage: String?) {
+        debugMessage?.let {
+            logger.d { "Save failed: $it" }
+        }
+
+        val message = when (networkStatusCode) {
+            CONFLICT_STATUS_CODE -> R.string.eventoutdated
+            else -> R.string.eventeditfailed
+        }
+
+        manager.hideBusyIndicators {
+            AlertDialog.Builder(requireContext())
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, null)
+                .create()
+                .show()
+        }
     }
 
     override fun resolveViewHolderType(dataField: DataField<SrvaEventField>): DataFieldViewHolderType {
@@ -191,7 +307,7 @@ abstract class ModifySrvaEventFragment<
 
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<SrvaEventField>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(
                 SelectSpeciesAndImageViewHolder.Factory(
                     speciesResolver = speciesResolver,
@@ -253,6 +369,8 @@ abstract class ModifySrvaEventFragment<
     override fun onPause() {
         super.onPause()
         disposeBag.disposeAll()
+        saveScope?.cancel()
+        saveScope = null
     }
 
     private fun updateBasedOnViewModel(
@@ -311,18 +429,19 @@ abstract class ModifySrvaEventFragment<
         maxDateTime: LocalDateTime?
     ) {
         val datePickerFragment = DateTimePickerFragment.create(
-                dialogId = fieldId.toInt(),
+                requestCode = DATE_PICKER_REQUEST_CODE,
+                fieldId = fieldId.toInt(),
                 pickMode = pickMode,
                 selectedDateTime = currentDateTime.toJodaDateTime(),
                 minDateTime = minDateTime?.toJodaDateTime(),
                 maxDateTime = maxDateTime?.toJodaDateTime()
         )
 
-        showDatePickerFragment(datePickerFragment, fieldId.toInt())
+        showDatePickerFragment(datePickerFragment)
     }
 
-    override fun onDateTimeSelected(dialogId: Int, dateTime: DateTime) {
-        SrvaEventField.fromInt(dialogId)?.let { fieldId ->
+    override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
+        SrvaEventField.fromInt(fieldId)?.let { fieldId ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
                     fieldId, LocalDateTime.fromJodaDateTime(dateTime))
         }
@@ -333,6 +452,7 @@ abstract class ModifySrvaEventFragment<
         intent.putExtra(MapViewerActivity.EXTRA_EDIT_MODE, true)
         intent.putExtra(MapViewerActivity.EXTRA_START_LOCATION, location)
         intent.putExtra(MapViewerActivity.EXTRA_NEW, false)
+        intent.putExtra(MapViewerActivity.EXTRA_SHOW_ITEMS, false)
         locationRequestActivityResultLaunch.launch(intent)
     }
 
@@ -434,6 +554,9 @@ abstract class ModifySrvaEventFragment<
     companion object {
         private const val PREFIX = "ModifySrvaEventFragment"
         private const val CONTROLLER_STATE_PREFIX = "${PREFIX}_controller"
+        private const val CONFLICT_STATUS_CODE = 409
+        private const val DATE_PICKER_REQUEST_CODE = "MSEF_date_picker_request_code"
+
 
         private val logger by getLogger(ModifySrvaEventFragment::class)
     }

@@ -8,11 +8,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import fi.riista.common.RiistaSDK
-import fi.riista.common.extensions.deserializeJson
-import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.ui.modify.EditSrvaEventController
 import fi.riista.common.domain.srva.ui.modify.EditableSrvaEvent
+import fi.riista.common.extensions.deserializeJson
+import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 
 /**
@@ -24,13 +24,14 @@ class EditSrvaEventFragment
         EditSrvaEventFragment.Manager>() {
 
     interface Manager : BaseManager {
-        fun onSaveSrvaEvent(srvaEvent: CommonSrvaEvent)
+        fun onSrvaEventSaveCompleted(srvaEvent: CommonSrvaEvent)
     }
 
     override val controller: EditSrvaEventController by lazy {
         EditSrvaEventController(
             metadataProvider = RiistaSDK.metadataProvider,
-            stringProvider = ContextStringProviderFactory.createForContext(requireContext())
+            stringProvider = ContextStringProviderFactory.createForContext(requireContext()),
+            srvaContext = RiistaSDK.srvaContext,
         )
     }
 
@@ -46,13 +47,9 @@ class EditSrvaEventFragment
         return view
     }
 
-    override fun onSaveButtonClicked() {
-        val srvaEvent = controller.getValidatedSrvaEvent()
-            ?: kotlin.run {
-                return
-            }
 
-        manager.onSaveSrvaEvent(srvaEvent = srvaEvent)
+    override fun notifyManagerAboutSuccessfulSave(srvaEvent: CommonSrvaEvent) {
+        manager.onSrvaEventSaveCompleted(srvaEvent)
     }
 
     override fun getManagerFromContext(context: Context): Manager {

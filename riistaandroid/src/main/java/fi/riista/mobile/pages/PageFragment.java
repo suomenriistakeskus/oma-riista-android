@@ -33,7 +33,7 @@ public abstract class PageFragment extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
+            throw new RuntimeException(context + " must implement OnFragmentInteractionListener");
         }
     }
 
@@ -82,7 +82,7 @@ public abstract class PageFragment extends Fragment {
         return workContext;
     }
 
-    void setupActionBar(@Nullable Integer layoutId, boolean hasOptionsMenu) {
+    protected void setupActionBar(@Nullable Integer layoutId, boolean hasOptionsMenu) {
         mLayoutId = layoutId;
         mHasOptionsMenu = hasOptionsMenu;
     }

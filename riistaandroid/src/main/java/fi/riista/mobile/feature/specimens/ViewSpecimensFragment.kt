@@ -86,7 +86,7 @@ class ViewSpecimensFragment
 
     private fun registerViewHolderFactories(adapter: DataFieldRecyclerViewAdapter<SpecimenFieldId>) {
         adapter.apply {
-            registerLabelFieldViewHolderFactories()
+            registerLabelFieldViewHolderFactories(linkActionEventDispatcher = null)
             registerViewHolderFactory(ReadOnlySingleLineTextViewHolder.Factory())
         }
     }
