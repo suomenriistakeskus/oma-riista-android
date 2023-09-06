@@ -9,9 +9,10 @@ import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import fi.riista.common.RiistaSDK
-import fi.riista.common.domain.huntingclub.HuntingClubMemberInvitationOperationResponse
-import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingclub.invitations.HuntingClubMemberInvitationOperationResponse
+import fi.riista.common.domain.huntingclub.invitations.model.HuntingClubMemberInvitationId
 import fi.riista.common.domain.huntingclub.ui.HuntingClubController
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
@@ -21,10 +22,13 @@ import fi.riista.mobile.feature.myDetails.dataFields.viewHolder.HuntingClubMembe
 import fi.riista.mobile.feature.myDetails.dataFields.viewHolder.HuntingClubMembershipsRecyclerViewAdapter
 import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
+import fi.riista.mobile.riistaSdkHelpers.loadViewModelIfNotLoaded
 import fi.riista.mobile.ui.AlertDialogFragment
-import fi.riista.mobile.ui.DelegatingAlertDialogListener
 import fi.riista.mobile.ui.AlertDialogId
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.utils.Constants
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MyDetailsHuntingClubMembershipsFragment
@@ -36,6 +40,8 @@ class MyDetailsHuntingClubMembershipsFragment
     private lateinit var adapter: HuntingClubMembershipsRecyclerViewAdapter
     private lateinit var noContent: TextView
     private lateinit var contentLoaded: RecyclerView
+    private var refreshMenuItem: MenuItem? = null
+    private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private val disposeBag = DisposeBag()
 
     private lateinit var dialogListener: AlertDialogFragment.Listener
@@ -53,10 +59,11 @@ class MyDetailsHuntingClubMembershipsFragment
         val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener { dismiss() }
         toolbar.inflateMenu(R.menu.menu_refresh)
+        refreshMenuItem = toolbar.menu.findItem(R.id.item_refresh)
         toolbar.setOnMenuItemClickListener { item: MenuItem ->
             when (item.itemId) {
                 R.id.item_refresh -> {
-                    loadViewModel(refresh = true)
+                    reloadContent(launchedUsingButton = true)
                     true
                 }
                 else -> false
@@ -65,8 +72,18 @@ class MyDetailsHuntingClubMembershipsFragment
         noContent = view.findViewById(R.id.tv_content_not_loaded)
         contentLoaded = view.findViewById(R.id.rv_data_fields)
 
+        swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.srl_refresh_layout)
+            ?.also { layout ->
+                layout.setOnRefreshListener {
+                    reloadContent(launchedUsingButton = false)
+                }
+                layout.setColorSchemeResources(R.color.colorPrimary)
+            }
+
         controller = HuntingClubController(
             huntingClubsContext = RiistaSDK.currentUserContext.huntingClubsContext,
+            usernameProvider = RiistaSDK.currentUserContext,
+            huntingClubOccupationsProvider = RiistaSDK.huntingClubOccupations,
             languageProvider = AppLanguageProvider(requireContext()),
             stringProvider = ContextStringProviderFactory.createForContext(requireContext()),
         )
@@ -96,16 +113,22 @@ class MyDetailsHuntingClubMembershipsFragment
                     contentLoaded.visibility = View.GONE
                 }
                 ViewModelLoadStatus.Loading -> {
-                    noContent.visibility = View.VISIBLE
-                    noContent.text = getString(R.string.loading_content)
-                    contentLoaded.visibility = View.GONE
+                    // indicate loading state with a text if there are currently no trainings.
+                    // Otherwise it should be enough to just disable update elements
+                    if (adapter.itemCount == 0) {
+                        noContent.visibility = View.VISIBLE
+                        noContent.text = getString(R.string.loading_content)
+                        contentLoaded.visibility = View.GONE
+                    }
                 }
                 ViewModelLoadStatus.LoadFailed -> {
                     noContent.visibility = View.VISIBLE
                     noContent.text = getString(R.string.content_loading_failed)
                     contentLoaded.visibility = View.GONE
+                    onViewModelLoadCompleted()
                 }
                 is ViewModelLoadStatus.Loaded -> {
+                    onViewModelLoadCompleted()
                     if (viewModelLoadStatus.viewModel.items.isEmpty()) {
                         noContent.visibility = View.VISIBLE
                         noContent.text = getString(R.string.my_details_no_club_memberships)
@@ -120,12 +143,41 @@ class MyDetailsHuntingClubMembershipsFragment
             }
         }.disposeBy(disposeBag)
 
-        loadViewModel(refresh = true)
+        controller.loadViewModelIfNotLoaded {
+            swipeRefreshLayout?.isEnabled = false
+            updateRefreshMenuItem(loadingContent = true)
+        }
     }
 
-    private fun loadViewModel(refresh: Boolean = false) {
+    private fun reloadContent(launchedUsingButton: Boolean) {
+        updateRefreshMenuItem(loadingContent = true)
+        if (launchedUsingButton) {
+            swipeRefreshLayout?.post { swipeRefreshLayout?.isRefreshing = true }
+            swipeRefreshLayout?.isEnabled = false
+        }
+
         MainScope().launch {
-            controller.loadViewModel(refresh)
+            // delay the actual loading by half a second. Typically loading occurs within few hundred milliseconds
+            // and thus the UI just flashes the loading indicator. By delaying the loading the user gets a chance
+            // to actually see the indicator and experience that "app is actually now doing something"
+            delay(500)
+            controller.loadViewModel(refresh = true)
+        }
+    }
+
+    private fun onViewModelLoadCompleted() {
+        swipeRefreshLayout?.isRefreshing = false
+        swipeRefreshLayout?.isEnabled = true
+        updateRefreshMenuItem(loadingContent = false)
+    }
+
+    private fun updateRefreshMenuItem(loadingContent: Boolean) {
+        refreshMenuItem?.let { item ->
+            item.isEnabled = !loadingContent
+            item.icon?.alpha = when (loadingContent) {
+                true -> Constants.DISABLED_ALPHA
+                false -> 255
+            }
         }
     }
 

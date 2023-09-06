@@ -7,8 +7,6 @@ import fi.riista.common.domain.groupHunting.dto.GroupHuntingDaysDTO
 import fi.riista.common.domain.groupHunting.dto.toHuntingDay
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
 import fi.riista.common.domain.groupHunting.model.HuntingGroupId
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
 import fi.riista.common.network.calls.NetworkResponse
@@ -46,11 +44,5 @@ internal class GroupHuntingDayFromNetworkProvider(
 
     override fun handleError401() {
         _huntingDays.set(null)
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(GroupHuntingDayFromNetworkProvider::class)
     }
 }

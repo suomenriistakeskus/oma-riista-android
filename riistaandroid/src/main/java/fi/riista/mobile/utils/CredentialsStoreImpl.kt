@@ -2,7 +2,7 @@ package fi.riista.mobile.utils
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 
 class CredentialsStoreImpl(private val appContext: Context) : CredentialsStore {
 

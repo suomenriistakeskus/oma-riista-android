@@ -1,0 +1,21 @@
+CREATE TABLE DbMetsahallitusPermit (
+    username TEXT NOT NULL,
+    permit_identifier TEXT NOT NULL,
+    permit_type_fi TEXT,
+    permit_type_sv TEXT,
+    permit_type_en TEXT,
+    permit_name_fi TEXT,
+    permit_name_sv TEXT,
+    permit_name_en TEXT,
+    area_number TEXT NOT NULL,
+    area_name_fi TEXT,
+    area_name_sv TEXT,
+    area_name_en TEXT,
+    begin_date TEXT,
+    end_date TEXT,
+    harvest_feedback_url_fi TEXT,
+    harvest_feedback_url_sv TEXT,
+    harvest_feedback_url_en TEXT,
+
+    CONSTRAINT pk_constraint_DbMetsahallitusPermit PRIMARY KEY (username, permit_identifier)
+);

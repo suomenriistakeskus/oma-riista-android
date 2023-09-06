@@ -6,6 +6,7 @@ import fi.riista.common.domain.model.CommonLocation
 import fi.riista.common.domain.model.CommonSpecimenData
 import fi.riista.common.domain.model.EntityImages
 import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.observation.ObservationContext
 import fi.riista.common.domain.observation.model.CommonObservation
 import fi.riista.common.domain.observation.model.CommonObservationData
 import fi.riista.common.domain.userInfo.UserContext
@@ -27,22 +28,25 @@ import kotlinx.coroutines.flow.flow
  */
 class CreateObservationController(
     userContext: UserContext,
+    observationContext: ObservationContext,
     metadataProvider: MetadataProvider,
+    localDateTimeProvider: LocalDateTimeProvider,
     stringProvider: StringProvider,
-    private val dateTimeProvider: LocalDateTimeProvider
-) : ModifyObservationController(userContext, metadataProvider, stringProvider) {
+) : ModifyObservationController(userContext, observationContext, metadataProvider, localDateTimeProvider, stringProvider) {
 
     var initialSpeciesCode: SpeciesCode? = null
 
     constructor(
         userContext: UserContext,
+        observationContext: ObservationContext,
         metadataProvider: MetadataProvider,
         stringProvider: StringProvider,
     ) : this(
         userContext = userContext,
+        observationContext = observationContext,
         metadataProvider = metadataProvider,
+        localDateTimeProvider = SystemDateTimeProvider(),
         stringProvider = stringProvider,
-        dateTimeProvider = SystemDateTimeProvider()
     )
 
     /**
@@ -121,12 +125,14 @@ class CreateObservationController(
             deerHuntingType = BackendEnum.create(null),
             deerHuntingOtherTypeDescription = null,
             location = CommonLocation.Unknown,
-            pointOfTime = dateTimeProvider.now(),
+            pointOfTime = localDateTimeProvider.now(),
             description = null,
             images = EntityImages.noImages(),
             totalSpecimenAmount = 1,
             specimens = listOf(CommonSpecimenData()),
             canEdit = true,
+            modified = true,
+            deleted = false,
             mooselikeMaleAmount = null,
             mooselikeFemaleAmount = null,
             mooselikeFemale1CalfAmount = null,

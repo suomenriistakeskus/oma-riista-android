@@ -24,6 +24,10 @@ abstract class ControllerWithLoadableModel<ViewModelType: Any> {
         this.viewModelLoadStatus.set(viewModelLoadStatus)
     }
 
+    protected fun updateViewModel(viewModel: ViewModelType) {
+        this.viewModelLoadStatus.set(ViewModelLoadStatus.Loaded(viewModel))
+    }
+
     fun getLoadedViewModelOrNull(): ViewModelType? {
         return (viewModelLoadStatus.value as? ViewModelLoadStatus.Loaded)?.viewModel
     }

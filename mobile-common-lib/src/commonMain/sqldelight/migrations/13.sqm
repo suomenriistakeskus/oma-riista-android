@@ -1,0 +1,7 @@
+CREATE TABLE DbUserInformation (
+    username TEXT NOT NULL,
+    json_format_version INTEGER AS Int NOT NULL,
+    user_information_json TEXT,
+
+    CONSTRAINT pk_constraint_DbUserInformation PRIMARY KEY (username, json_format_version)
+);

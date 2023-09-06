@@ -1,11 +1,13 @@
 package fi.riista.common.ui.dataField
 
+import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
 import fi.riista.common.domain.huntingControl.model.HuntingControlAttachment
 import fi.riista.common.domain.model.EntityImage
 import fi.riista.common.domain.model.GameAge
 import fi.riista.common.domain.model.Gender
 import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.permit.harvestPermit.CommonHarvestPermit
 import fi.riista.common.domain.specimens.ui.SpecimenFieldDataContainer
 import fi.riista.common.model.*
 import fi.riista.common.ui.intent.IntentHandler
@@ -43,7 +45,7 @@ fun interface StringWithIdEventDispatcher<FieldId> {
     fun dispatchStringWithIdChanged(fieldId: FieldId, value: List<StringWithId>)
 }
 
-interface StringWithIdClickEventDispatcher<FieldId> {
+fun interface StringWithIdClickEventDispatcher<FieldId> {
     fun dispatchStringWithIdClicked(fieldId: FieldId, value: StringWithId)
 }
 
@@ -97,4 +99,8 @@ fun interface ActionEventDispatcher<FieldId> {
 
 fun interface AttachmentEventDispatcher<FieldId> {
     fun addAttachment(attachment: HuntingControlAttachment)
+}
+
+fun interface PermitEventDispatcher {
+    fun selectPermit(permit: CommonHarvestPermit, speciesCode: SpeciesCode?)
 }

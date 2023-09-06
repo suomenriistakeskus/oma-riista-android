@@ -6,7 +6,7 @@ plugins {
     kotlin("plugin.serialization")
     id("kotlinx-serialization")
     id("com.android.library")
-    id("com.squareup.sqldelight") version "1.5.2"
+    id("com.squareup.sqldelight") version "1.5.5"
 }
 
 repositories {
@@ -19,30 +19,30 @@ repositories {
 }
 
 val iosFrameworkBaseName = "RiistaCommon"
-// library versions recommended in kotlin 1.5.30 release details:
-// - https://kotlinlang.org/docs/releases.html#release-details
-val ktorVersion = "1.6.2"
-val kotlinxSerializationVersion = "1.2.2"
-val kotlinxDatetimeVersion = "0.2.1"
-val statelyVersion = "1.1.10"
-val statelyIsolateVersion = "${statelyVersion}-a1"
-val sqlDelightVersion = "1.5.2"
+val ktorVersion = "2.3.0"
+val kotlinxSerializationVersion = "1.5.0"
+val kotlinxDatetimeVersion = "0.4.0"
+val statelyVersion = "1.2.5"
+val sqlDelightVersion = "1.5.5"
 
 kotlin {
-    targets {
-        val configureIOS: KotlinNativeTarget.() -> Unit = {
-            binaries {
-                framework {
-                    baseName = iosFrameworkBaseName
-                }
+    val configureIOS: KotlinNativeTarget.() -> Unit = {
+        binaries {
+            framework {
+                baseName = iosFrameworkBaseName
+                // static framework required by the CrashKiOS as app thinning on iOS messes up
+                // the linking done under the hood:
+                // https://github.com/rickclephas/NSExceptionKt/issues/12#issuecomment-1534413364
+                // https://youtrack.jetbrains.com/issue/KT-58461
+                // https://github.com/firebase/firebase-ios-sdk/blob/master/docs/firebase_in_libraries.md
+                isStatic = true
             }
         }
-        android()
-
-        val iosX64 = iosX64("iosX64", configureIOS)
-        val iosArm32 = iosArm32("iosArm32", configureIOS)
-        val iosArm64 = iosArm64("iosArm64", configureIOS)
     }
+
+    android()
+    iosX64("iosX64", configureIOS)
+    iosArm64("iosArm64", configureIOS)
 
     sourceSets {
         val commonMain by getting {
@@ -51,10 +51,7 @@ kotlin {
 
                 // stately libraries allow using e.g. AtomicReference in common code
                 // - at some point check whether kotlinx.atomicfu would be a better choice
-                implementation("co.touchlab:stately-common:${statelyVersion}")
                 implementation("co.touchlab:stately-concurrency:${statelyVersion}")
-                implementation("co.touchlab:stately-isolate:${statelyIsolateVersion}")
-                implementation("co.touchlab:stately-iso-collections:${statelyIsolateVersion}")
 
                 // networking
                 implementation("io.ktor:ktor-client-core:${ktorVersion}")
@@ -73,6 +70,9 @@ kotlin {
                 // Base64 encoding
                 val encoding = "1.0.3" // Use 1.1.0 for kotlin 1.6
                 implementation("io.matthewnelson.kotlin-components:encoding-base64:$encoding")
+
+                // requires static linkage! See configureIos { binaries.framework.isStatic }
+                implementation("co.touchlab.crashkios:crashlytics:0.8.2")
             }
         }
         val commonTest by getting {
@@ -83,7 +83,7 @@ kotlin {
         }
         val androidMain by getting {
             dependencies {
-                implementation("androidx.core:core-ktx:1.3.2")
+                implementation("androidx.core:core-ktx:1.10.1")
 
                 // networking
                 implementation("org.conscrypt:conscrypt-android:2.5.1")
@@ -92,10 +92,10 @@ kotlin {
                 implementation("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
             }
         }
-        val androidTest by getting {
+        val androidUnitTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
-                implementation("junit:junit:4.13.1")
+                implementation("junit:junit:4.13.2")
                 implementation("com.squareup.sqldelight:sqlite-driver:$sqlDelightVersion")
             }
         }
@@ -110,24 +110,11 @@ kotlin {
             }
             dependsOn(commonMain)
         }
-        val iosTest by creating {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-            dependsOn(commonTest)
-        }
 
         val iosX64Main by getting
-        val iosArm32Main by getting
         val iosArm64Main by getting
-        configure(listOf(iosArm32Main, iosArm64Main, iosX64Main)) {
+        configure(listOf(iosArm64Main, iosX64Main)) {
             dependsOn(iosMain)
-        }
-        val iosX64Test by getting
-        val iosArm32Test by getting
-        val iosArm64Test by getting
-        configure(listOf(iosArm32Test, iosArm64Test, iosX64Test)) {
-            dependsOn(iosTest)
         }
 
         all {
@@ -151,25 +138,6 @@ android {
     namespace = "fi.riista.common.android"
 }
 
-// Compilation fails on 32bit iOS devices due to clang failure:
-//   "error in backend: Relocation out of range".
-// Optimize the bitcode file size according to https://youtrack.jetbrains.com/issue/KT-37368
-// so that clang no longer complains
-kotlin.iosArm32().binaries.getFramework(org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType.DEBUG).apply {
-    val properties = "clangDebugFlags.ios_arm32=-Os"
-    freeCompilerArgs = freeCompilerArgs + listOf(
-        "-Xoverride-konan-properties=$properties"
-    )
-}
-// Optimization flags are not used for release builds. Instead lower the inlining threshold
-// as instructed in comments of https://youtrack.jetbrains.com/issue/KT-37368
-kotlin.iosArm32().binaries.getFramework(org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType.RELEASE).apply {
-    val properties = "llvmInlineThreshold=90"
-    freeCompilerArgs = freeCompilerArgs + listOf(
-        "-Xoverride-konan-properties=$properties"
-    )
-}
-
 sqldelight {
     database("RiistaDatabase") {
         packageName = "fi.riista.common.database"
@@ -177,23 +145,22 @@ sqldelight {
     }
 }
 
-//region Creating a fat framework for iOS
-val outputFrameworkDir = projectDir.resolve("output-framework")
-val fatFrameworkPath = outputFrameworkDir.resolve("${project.name}.framework")
 
-tasks.create<Delete>("deleteFatFramework") { delete = setOf(fatFrameworkPath) }
+// region Fix building on iOS
 
-val createFatFramework by tasks.registering(FatFrameworkTask::class) {
-    dependsOn("deleteFatFramework")
-    val mode = "Release"
-    val frameworks = arrayOf("iosArm32", "iosArm64", "iosX64")
-        .map { kotlin.targets.getByName<KotlinNativeTarget>(it).binaries.getFramework(mode) }
-    from(frameworks)
-    baseName = iosFrameworkBaseName
-    destinationDir = outputFrameworkDir
-    group = "fat framework"
-    description = "builds the fat framwrok"
-    dependsOn(frameworks.map { it.linkTask })
+// See: https://youtrack.jetbrains.com/issue/KT-51359
+afterEvaluate {
+    if (System.getProperty("os.name") == "Mac OS X") {
+        val kotlinNativeHome =
+            org.jetbrains.kotlin.gradle.utils.NativeCompilerDownloader(project).compilerDirectory.absolutePath
+
+        exec {
+            commandLine(
+                "install_name_tool", "-change", "@rpath/libc++.1.dylib", "/usr/lib/libc++.1.dylib",
+                "$kotlinNativeHome/konan/nativelib/libllvmstubs.dylib"
+            )
+        }
+    }
 }
 
-//endregion
+// endregion

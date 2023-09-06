@@ -5,8 +5,6 @@ import co.touchlab.stately.concurrency.value
 import fi.riista.common.domain.srva.metadata.dto.SrvaMetadataDTO
 import fi.riista.common.domain.srva.metadata.dto.toSrvaMetadata
 import fi.riista.common.domain.srva.metadata.model.SrvaMetadata
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
 import fi.riista.common.network.calls.NetworkResponse
@@ -41,11 +39,5 @@ internal class SrvaMetadataNetworkFetcher(
 
     override fun handleError401() {
         _metadata.set(null)
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(SrvaMetadataFetcher::class)
     }
 }

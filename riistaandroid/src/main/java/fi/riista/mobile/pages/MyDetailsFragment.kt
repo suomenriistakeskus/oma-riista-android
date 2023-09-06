@@ -1,6 +1,7 @@
 package fi.riista.mobile.pages
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -13,7 +14,6 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.Observer
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
@@ -24,16 +24,18 @@ import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.mobile.R
 import fi.riista.mobile.feature.myDetails.MyDetailsHuntingClubMembershipsFragment
 import fi.riista.mobile.feature.myDetails.MyDetailsTrainingsFragment
+import fi.riista.mobile.feature.permits.ListPermitsActivity
 import fi.riista.mobile.models.user.UserInfo
-import fi.riista.mobile.repository.MetsahallitusPermitRepository
 import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.UserInfoStore
+import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import java.util.TimeZone
 import javax.inject.Inject
 
 /**
@@ -44,9 +46,6 @@ class MyDetailsFragment : PageFragment() {
 
     @Inject
     internal lateinit var mUserInfoStore: UserInfoStore
-
-    @Inject
-    internal lateinit var mMHPermitRepository: MetsahallitusPermitRepository
 
     private lateinit var mContext: Context
     private var mUserInfo: UserInfo? = null
@@ -106,14 +105,12 @@ class MyDetailsFragment : PageFragment() {
         mTrainingsButton = view.findViewById(R.id.my_details_trainings_button)
         mTrainingsButton.setOnClickListener { onTrainingsClick() }
 
-        mUserInfo?.username?.let { username ->
-            mMHPermitRepository.findMetsahallitusPermits(username).observe(viewLifecycleOwner, Observer { list ->
-                mMetsahallitusPermitsButton.visibility = if (list == null || list.isEmpty()) View.GONE else View.VISIBLE
-            })
-        }
+        updatePermitsButtonVisibility()
 
         mHuntingClubController = HuntingClubController(
             huntingClubsContext = RiistaSDK.currentUserContext.huntingClubsContext,
+            usernameProvider = RiistaSDK.currentUserContext,
+            huntingClubOccupationsProvider = RiistaSDK.huntingClubOccupations,
             languageProvider = AppLanguageProvider(requireContext()),
             stringProvider = ContextStringProviderFactory.createForContext(requireContext()),
         )
@@ -152,6 +149,13 @@ class MyDetailsFragment : PageFragment() {
         }.disposeBy(disposeBag)
 
         loadHuntingClubsIfNotLoaded()
+    }
+
+    private fun updatePermitsButtonVisibility() {
+        mUserInfo?.username?.let { username ->
+            // should probably use username from common lib but let's refactor to use that in later commits..
+            mMetsahallitusPermitsButton.visibility = RiistaSDK.metsahallitusPermits.hasPermits(username).toVisibility()
+        }
     }
 
     private fun loadHuntingClubsIfNotLoaded() {
@@ -208,6 +212,8 @@ class MyDetailsFragment : PageFragment() {
                 mOccupationsButton.isEnabled = user.occupations.size > 0
             }
         }
+
+        updatePermitsButtonVisibility()
     }
 
     private fun onLicenseClick() {
@@ -221,10 +227,8 @@ class MyDetailsFragment : PageFragment() {
     }
 
     private fun onMetsahallitusPermitsClick() {
-        mUserInfo?.let { u ->
-            val fragment = MyDetailsMhPermitListFragment.newInstance(u.username)
-            activity?.supportFragmentManager?.let { fragment.show(it, MyDetailsMhPermitListFragment.TAG) }
-        }
+        val intent = Intent(requireActivity(), ListPermitsActivity::class.java)
+        startActivity(intent)
     }
 
     private fun onOccupationsClick() {

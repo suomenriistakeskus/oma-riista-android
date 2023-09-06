@@ -3,6 +3,7 @@ package fi.riista.mobile.feature.harvest
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import dagger.android.AndroidInjection
@@ -13,8 +14,10 @@ import fi.riista.common.extensions.deserializeJson
 import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
+import fi.riista.mobile.feature.filter.SharedEntityFilterState
 import fi.riista.mobile.pages.PageFragment
 import fi.riista.mobile.ui.BusyIndicatorView
+import javax.inject.Inject
 
 class HarvestActivity
     : BaseActivity()
@@ -32,6 +35,9 @@ class HarvestActivity
 
         val fragmentTag = "${this}HarvestFragment"
     }
+
+    @Inject
+    internal lateinit var sharedEntityFilterState: SharedEntityFilterState
 
     private var harvest: CommonHarvest? = null
     private var harvestModifiedOrCreated: Boolean = false
@@ -88,11 +94,20 @@ class HarvestActivity
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_harvest, menu)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
                 saveEventModifiedOrCreatedResult()
                 super.onOptionsItemSelected(item)
+            }
+            R.id.item_settings -> {
+                startActivity(Intent(this, HarvestSettingsActivity::class.java))
+                true
             }
             else -> super.onOptionsItemSelected(item)
         }
@@ -134,6 +149,8 @@ class HarvestActivity
             this.harvest = harvest
             harvestModifiedOrCreated = true
 
+            sharedEntityFilterState.ensureHarvestIsShown(harvest)
+
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
@@ -148,6 +165,8 @@ class HarvestActivity
         busyIndicatorView.hide {
             this.harvest = harvest
             harvestModifiedOrCreated = true
+
+            sharedEntityFilterState.ensureHarvestIsShown(harvest)
 
             supportFragmentManager.popBackStack()
         }

@@ -6,8 +6,11 @@ import fi.riista.common.network.NetworkClient
 import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.util.serializeToJson
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.accept
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 internal class CreateHuntingGroupHuntingDay(
     private val huntingDayDTO: GroupHuntingDayCreateDTO
@@ -23,7 +26,7 @@ internal class CreateHuntingGroupHuntingDay(
                     post(urlString = "${client.serverBaseAddress}/api/mobile/v2/grouphunting/huntingday") {
                         accept(ContentType.Application.Json)
                         contentType(ContentType.Application.Json)
-                        body = payload
+                        setBody(body = payload)
                     }
                 },
                 configureResponseHandler = {

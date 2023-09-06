@@ -8,9 +8,11 @@ import fi.riista.common.network.BackendAPIMock
 import fi.riista.common.domain.training.TrainingContext
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
+import fi.riista.common.network.MockResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ListTrainingsControllerTest {
@@ -50,6 +52,25 @@ class ListTrainingsControllerTest {
         assertEquals("occupation_type_ampumakokeen_vastaanottaja", jhtTraining.occupationType)
         assertEquals(LocalDate(2021, 10, 21), jhtTraining.date)
         assertEquals("Kokkola", jhtTraining.location)
+    }
+
+    @Test
+    fun testJhtTrainingLocationCanBeNull() = runBlockingTest {
+        val backendAPI = BackendAPIMock(
+            fetchTrainingsResponse = MockResponse.success(MockTrainingData.TrainingsWithNoLocation),
+        )
+        val controller = getController(trainingContext = getTrainingContext(backendAPI = backendAPI))
+        controller.loadViewModel()
+
+        val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
+        assertEquals(1, viewModel.trainings.size)
+
+        val jhtTraining = viewModel.trainings[0]
+        assertTrue(jhtTraining is TrainingViewModel.JhtTraining)
+        assertEquals("training_type_lahi", jhtTraining.trainingType)
+        assertEquals("occupation_type_ampumakokeen_vastaanottaja", jhtTraining.occupationType)
+        assertEquals(LocalDate(2021, 10, 21), jhtTraining.date)
+        assertNull(jhtTraining.location)
     }
 
     private fun getTrainingContext(backendAPI: BackendAPI = BackendAPIMock()): TrainingContext {

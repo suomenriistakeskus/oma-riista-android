@@ -1,14 +1,20 @@
 package fi.riista.common.domain.observation.ui.modify
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.model.CommonLocation
 import fi.riista.common.domain.model.CommonSpecimenData
+import fi.riista.common.domain.model.GameAge
+import fi.riista.common.domain.model.Gender
 import fi.riista.common.domain.model.ObservationCategory
 import fi.riista.common.domain.model.ObservationType
 import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.model.keepNonEmpty
+import fi.riista.common.domain.observation.ObservationContext
+import fi.riista.common.domain.observation.ObservationOperationResponse
+import fi.riista.common.domain.observation.SaveObservationResponse
 import fi.riista.common.domain.observation.model.CommonObservation
 import fi.riista.common.domain.observation.model.CommonObservationData
+import fi.riista.common.domain.observation.model.ObservationSpecimenField
 import fi.riista.common.domain.observation.model.toCommonObservation
 import fi.riista.common.domain.observation.ui.CommonObservationField
 import fi.riista.common.domain.observation.ui.ObservationFields
@@ -22,12 +28,11 @@ import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.FieldSpecification
+import fi.riista.common.ui.dataField.noRequirement
 import fi.riista.common.ui.intent.IntentHandler
 import fi.riista.common.util.LocalDateTimeProvider
-import fi.riista.common.util.SystemDateTimeProvider
 import fi.riista.common.util.firstAndOnly
 import fi.riista.common.util.hasSameElements
-import fi.riista.common.util.withNumberOfElements
 import kotlinx.serialization.Serializable
 
 /**
@@ -35,24 +40,13 @@ import kotlinx.serialization.Serializable
  */
 abstract class ModifyObservationController internal constructor(
     private val userContext: UserContext,
+    private val observationContext: ObservationContext,
     private val metadataProvider: MetadataProvider,
+    protected val localDateTimeProvider: LocalDateTimeProvider,
     stringProvider: StringProvider,
-    localDateTimeProvider: LocalDateTimeProvider
 ) : ControllerWithLoadableModel<ModifyObservationViewModel>(),
     IntentHandler<ModifyObservationIntent>,
     HasUnreproducibleState<ModifyObservationController.SavedState> {
-
-    constructor(
-        userContext: UserContext,
-        metadataProvider: MetadataProvider,
-        stringProvider: StringProvider,
-    ): this(
-        userContext = userContext,
-        metadataProvider = metadataProvider,
-        stringProvider = stringProvider,
-        localDateTimeProvider = SystemDateTimeProvider()
-    )
-
 
     private val observationFields = ObservationFields(metadataProvider = metadataProvider)
     val eventDispatchers: ModifyObservationEventDispatcher by lazy {
@@ -78,15 +72,34 @@ abstract class ModifyObservationController internal constructor(
         localDateTimeProvider = localDateTimeProvider,
     )
 
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
+    /**
+     * Saves the observation to local database and optionally tries to send it to backend.
+     */
+    suspend fun saveObservation(updateToBackend: Boolean): SaveObservationResponse {
+        val observationToBeSaved = getObservationToSaveOrNull()?.copy(modified = true) ?: kotlin.run {
+            return SaveObservationResponse(
+                databaseSaveResponse = ObservationOperationResponse.Error("Not valid observation"),
+            )
+        }
 
-    fun getValidatedObservation(): CommonObservation? {
-        return getLoadedViewModelOrNull()
-            ?.getValidatedObservationOrNull()
-            ?.toCommonObservation()
+        return when (val saveResponse = observationContext.saveObservation(observationToBeSaved)) {
+            is ObservationOperationResponse.Error,
+            is ObservationOperationResponse.SaveFailure,
+            is ObservationOperationResponse.NetworkFailure -> {
+                SaveObservationResponse(databaseSaveResponse = saveResponse)
+            }
+            is ObservationOperationResponse.Success -> {
+                if (updateToBackend) {
+                    val networkResponse = observationContext.sendObservationToBackend(observation = saveResponse.observation)
+                    SaveObservationResponse(
+                        databaseSaveResponse = saveResponse,
+                        networkSaveResponse = networkResponse,
+                    )
+                } else {
+                    SaveObservationResponse(databaseSaveResponse = saveResponse)
+                }
+            }
+        }
     }
 
     override fun handleIntent(intent: ModifyObservationIntent) {
@@ -157,22 +170,14 @@ abstract class ModifyObservationController internal constructor(
             is ModifyObservationIntent.ChangeDeerHuntingOtherTypeDescription ->
                 observation.copy(deerHuntingOtherTypeDescription = intent.deerHuntingOtherTypeDescription)
             is ModifyObservationIntent.ChangeObservationType ->
-                observation
-                    .copy(observationType = intent.observationType)
-                    .withInvalidatedSpecimens() // possible specimens fields depend on selected observation type
+                observation.changeObservationType(newObservationType = intent.observationType)
             is ModifyObservationIntent.ChangeSpecimenAmount -> {
-                if (intent.specimenAmount == null) {
-                    observation.copy(
-                        totalSpecimenAmount = intent.specimenAmount
-                    )
-                } else {
-                    val updatedSpecimens = observation.specimensOrEmptyList.withNumberOfElements(intent.specimenAmount) {
-                        CommonSpecimenData()
-                    }
-                    observation.updateSpecimens(
-                        specimens = updatedSpecimens
-                    )
-                }
+                // explicitly don't alter specimens, only amount
+                // - observation data allowed to contain different amount of specimens than totalSpecimenAmount
+                //   (allows user to change amount: 10->1->""->2->20 (first 10 being the original ones)
+                observation.copy(
+                    totalSpecimenAmount = intent.specimenAmount
+                )
             }
             is ModifyObservationIntent.ChangeSpecimenData ->
                 observation.updateSpecimens(
@@ -277,11 +282,55 @@ abstract class ModifyObservationController internal constructor(
         )
     }
 
+    private fun CommonObservationData.changeObservationType(
+        newObservationType: BackendEnum<ObservationType>
+    ) : CommonObservationData {
+        return when (newObservationType.value) {
+            ObservationType.PARI -> {
+                // PARI always has 2 adult specimens
+                this.copy(
+                    observationType = newObservationType,
+                    totalSpecimenAmount = 2,
+                    specimens = listOf(
+                        CommonSpecimenData().copy(
+                            gender = Gender.MALE.toBackendEnum(),
+                            age = GameAge.ADULT.toBackendEnum(),
+                        ),
+                        CommonSpecimenData().copy(
+                            gender = Gender.FEMALE.toBackendEnum(),
+                            age = GameAge.ADULT.toBackendEnum(),
+                        ),
+                    )
+                )
+            }
+            ObservationType.POIKUE -> {
+                // Minimum value for of specimens for POIKUE is 2
+                this.copy(
+                    observationType = newObservationType,
+                    totalSpecimenAmount =
+                        if ((this.totalSpecimenAmount ?: 0) < 2) {
+                            2
+                        } else {
+                            this.totalSpecimenAmount
+                        },
+                ).withInvalidatedSpecimens() // possible specimens fields depend on selected observation type
+            }
+            else -> {
+                this.copy(observationType = newObservationType)
+                    .withInvalidatedSpecimens() // possible specimens fields depend on selected observation type
+            }
+        }
+    }
+
     private fun CommonObservationData.withInvalidatedSpecimens(): CommonObservationData {
-        return updateSpecimens(
-            specimens = List(size = totalSpecimenAmount ?: 0) {
-                CommonSpecimenData()
-            },
+        return copy(
+            // don't touch totalSpecimenAmount as it can not contain invalid data
+            // - max specimen amount is not species dependant
+            specimens = emptyList(),
+            // invalidate also pack / litter as currently we don't calculate those in the mobile
+            // client (we could, but not implemented right now)
+            pack = null,
+            litter = null,
         )
     }
 
@@ -290,7 +339,7 @@ abstract class ModifyObservationController internal constructor(
     ): CommonObservationData {
         return copy(
             totalSpecimenAmount = specimens.size,
-            specimens = specimens,
+            specimens = specimens.keepNonEmpty(),
             // invalidate pack / litter as currently we don't calculate those in the mobile
             // client (we could, but not implemented right now)
             pack = null,
@@ -316,7 +365,7 @@ abstract class ModifyObservationController internal constructor(
         observation: CommonObservationData,
     ): ModifyObservationViewModel {
 
-        val fieldsToBeDisplayed = observationFields.getFieldsToBeDisplayed(
+        var fieldsToBeDisplayed = observationFields.getFieldsToBeDisplayed(
             ObservationFields.Context(
                 observation = observation,
                 userIsCarnivoreAuthority = userContext.userIsCarnivoreAuthority,
@@ -332,6 +381,8 @@ abstract class ModifyObservationController internal constructor(
 
         val observationIsValid = validationErrors.isEmpty()
 
+        fieldsToBeDisplayed = fieldsToBeDisplayed.injectErrorLabels(validationErrors)
+
         return ModifyObservationViewModel(
             observation = observation,
             fields = fieldsToBeDisplayed.mapNotNull { fieldSpecification ->
@@ -344,6 +395,28 @@ abstract class ModifyObservationController internal constructor(
         )
     }
 
+    private fun List<FieldSpecification<CommonObservationField>>.injectErrorLabels(
+        validationErrors: List<CommonObservationValidator.Error>
+    ): List<FieldSpecification<CommonObservationField>> {
+        if (validationErrors.isEmpty()) {
+            return this
+        }
+
+        val result = mutableListOf<FieldSpecification<CommonObservationField>>()
+        forEach { fieldSpecification ->
+            when (fieldSpecification.fieldId) {
+                CommonObservationField.SPECIMEN_AMOUNT -> {
+                    result.add(fieldSpecification)
+                    if (validationErrors.contains(CommonObservationValidator.Error.SPECIMEN_AMOUNT_AT_LEAST_TWO)) {
+                        result.add(CommonObservationField.ERROR_SPECIMEN_AMOUNT_AT_LEAST_TWO.noRequirement())
+                    }
+                }
+                else -> result.add(fieldSpecification)
+            }
+        }
+        return result
+    }
+
     protected fun ModifyObservationViewModel.applyPendingIntents(): ModifyObservationViewModel {
         var viewModel = this
         pendingIntents.forEach { intent ->
@@ -354,55 +427,97 @@ abstract class ModifyObservationController internal constructor(
         return viewModel
     }
 
-    private fun ModifyObservationViewModel.getValidatedObservationOrNull(): CommonObservationData? {
+    /**
+     * Attempts to get the observation and prepare it to be saved.
+     *
+     * Validates the current observation data and ensures it only contains data that is allowed
+     * to be saved.
+     */
+    private fun getObservationToSaveOrNull(): CommonObservation? {
+        val viewModel = getLoadedViewModelOrNull() ?: kotlin.run { return null }
+
+        return prepareForSave(saveCandidate = viewModel.observation)
+            ?.toCommonObservation()
+    }
+
+    /**
+     * Prepares the given ([saveCandidate]) observation to be saved. Returns either valid observation with data
+     * that can be saved or `null` if observation could not be validated.
+     */
+    private fun prepareForSave(saveCandidate: CommonObservationData): CommonObservationData? {
         val displayedFields = observationFields.getFieldsToBeDisplayed(
             ObservationFields.Context(
-                observation = observation,
+                observation = saveCandidate,
                 userIsCarnivoreAuthority = userContext.userIsCarnivoreAuthority,
                 mode = ObservationFields.Context.Mode.EDIT
             )
         )
 
-        val validationErrors = CommonObservationValidator.validate(
-            observation = observation,
-            observationMetadata = metadataProvider.observationMetadata,
-            displayedFields = displayedFields,
-        )
-        if (validationErrors.isNotEmpty()) {
-            return null
-        }
-
-        return observation.createCopyWithFields(displayedFields)
-
-    }
-
-    private fun CommonObservationData.createCopyWithFields(
-        fields: List<FieldSpecification<CommonObservationField>>,
-    ): CommonObservationData? {
-        val fieldTypes: Set<CommonObservationField> = fields.map { it.fieldId }.toSet()
+        val observationFields = displayedFields.map { it.fieldId }.toSet()
 
         // check absolutely necessary fields
         val alwaysPresentFields = CommonObservationField.fieldsWithPresence(CommonObservationField.Presence.ALWAYS)
-        if (!fieldTypes.containsAll(alwaysPresentFields)) {
+        if (!observationFields.containsAll(alwaysPresentFields)) {
             logger.w { "Fields didn't contain all always-present fields!" }
             return null
         }
 
+        val specimenFields = metadataProvider.observationMetadata.getSpecimenFields(observation = saveCandidate).keys
+
+        // first validation round: validate this observation with non-filtered data
+        if (!saveCandidate.isValidAgainstFields(displayedFields = displayedFields)) {
+            logger.w { "Observation save-candidate was not valid." }
+            return null
+        }
+
+        val observationToSave = saveCandidate.prepareForSaveWithFields(
+            observationFields = observationFields,
+            specimenFields = specimenFields,
+        ) ?: kotlin.run {
+            logger.w { "Failed to prepare observation for saving (saveCandidate -> observationToSave)" }
+            return null
+        }
+
+        // second validation round: validate the observation that will be saved
+        if (!observationToSave.isValidAgainstFields(displayedFields = displayedFields)) {
+            logger.w { "Observation-to-save was not valid." }
+            return null
+        }
+
+        return observationToSave
+    }
+
+    private fun CommonObservationData.isValidAgainstFields(
+        displayedFields: List<FieldSpecification<CommonObservationField>>,
+    ): Boolean {
+        val validationErrors = CommonObservationValidator.validate(
+            observation = this,
+            observationMetadata = metadataProvider.observationMetadata,
+            displayedFields = displayedFields,
+        )
+
+        return validationErrors.isEmpty()
+    }
+
+    private fun CommonObservationData.prepareForSaveWithFields(
+        observationFields: Set<CommonObservationField>,
+        specimenFields: Set<ObservationSpecimenField>,
+    ): CommonObservationData? {
         val observationCopy = copy(
             location = location.takeIf {
-                fieldTypes.contains(CommonObservationField.LOCATION)
+                observationFields.contains(CommonObservationField.LOCATION)
             } ?: CommonLocation.Unknown,
             species = species.takeIf {
-                fieldTypes.contains(CommonObservationField.SPECIES_AND_IMAGE)
+                observationFields.contains(CommonObservationField.SPECIES_AND_IMAGE)
             } ?: Species.Unknown,
             pointOfTime = pointOfTime.also {
-                if (!fieldTypes.contains(CommonObservationField.DATE_AND_TIME)) {
+                if (!observationFields.contains(CommonObservationField.DATE_AND_TIME)) {
                     logger.e { "Fields didn't contain DATE_AND_TIME!" }
                     return null
                 }
             },
             observationType = observationType.takeIf {
-                fieldTypes.contains(CommonObservationField.OBSERVATION_TYPE)
+                observationFields.contains(CommonObservationField.OBSERVATION_TYPE)
             } ?: BackendEnum.create(null),
 
             // SPECIAL CASE:
@@ -410,68 +525,121 @@ abstract class ModifyObservationController internal constructor(
             observationCategory = observationCategory,
 
             deerHuntingType = deerHuntingType.takeIf {
-                fieldTypes.contains(CommonObservationField.DEER_HUNTING_TYPE)
+                observationFields.contains(CommonObservationField.DEER_HUNTING_TYPE)
             } ?: BackendEnum.create(null),
             deerHuntingOtherTypeDescription = deerHuntingOtherTypeDescription.takeIf {
-                fieldTypes.contains(CommonObservationField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION)
+                observationFields.contains(CommonObservationField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION)
             },
             totalSpecimenAmount = totalSpecimenAmount.takeIf {
-                fieldTypes.contains(CommonObservationField.SPECIMEN_AMOUNT)
+                observationFields.contains(CommonObservationField.SPECIMEN_AMOUNT)
             },
-            specimens = specimens.takeIf {
-                fieldTypes.contains(CommonObservationField.SPECIMENS)
-            },
+            specimens = specimens
+                .takeIf {
+                    observationFields.contains(CommonObservationField.SPECIMENS)
+                }?.prepareForSaveWithFields(
+                    specimenFields = specimenFields,
+                    totalSpecimenAmount = totalSpecimenAmount,
+                ),
             mooselikeMaleAmount = (mooselikeMaleAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_MALE_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_MALE_AMOUNT)
             },
             mooselikeFemaleAmount = (mooselikeFemaleAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_FEMALE_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_FEMALE_AMOUNT)
             },
             mooselikeFemale1CalfAmount = (mooselikeFemale1CalfAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_FEMALE_1CALF_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_FEMALE_1CALF_AMOUNT)
             },
             mooselikeFemale2CalfsAmount = (mooselikeFemale2CalfsAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_FEMALE_2CALFS_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_FEMALE_2CALFS_AMOUNT)
             },
             mooselikeFemale3CalfsAmount = (mooselikeFemale3CalfsAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_FEMALE_3CALFS_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_FEMALE_3CALFS_AMOUNT)
             },
             mooselikeFemale4CalfsAmount = (mooselikeFemale4CalfsAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_FEMALE_4CALFS_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_FEMALE_4CALFS_AMOUNT)
             },
             mooselikeCalfAmount = (mooselikeCalfAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_CALF_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_CALF_AMOUNT)
             },
             mooselikeUnknownSpecimenAmount = (mooselikeUnknownSpecimenAmount ?: 0).takeIf {
-                fieldTypes.contains(CommonObservationField.MOOSE_LIKE_UNKNOWN_SPECIMEN_AMOUNT)
+                observationFields.contains(CommonObservationField.MOOSE_LIKE_UNKNOWN_SPECIMEN_AMOUNT)
             },
             verifiedByCarnivoreAuthority = verifiedByCarnivoreAuthority.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_VERIFIED_BY_CARNIVORE_AUTHORITY)
+                observationFields.contains(CommonObservationField.TASSU_VERIFIED_BY_CARNIVORE_AUTHORITY)
             },
             observerName = observerName.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_OBSERVER_NAME)
+                observationFields.contains(CommonObservationField.TASSU_OBSERVER_NAME)
             },
             observerPhoneNumber = observerPhoneNumber.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_OBSERVER_PHONENUMBER)
+                observationFields.contains(CommonObservationField.TASSU_OBSERVER_PHONENUMBER)
             },
             officialAdditionalInfo = officialAdditionalInfo.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_OFFICIAL_ADDITIONAL_INFO)
+                observationFields.contains(CommonObservationField.TASSU_OFFICIAL_ADDITIONAL_INFO)
             },
             inYardDistanceToResidence = inYardDistanceToResidence.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_IN_YARD_DISTANCE_TO_RESIDENCE)
+                observationFields.contains(CommonObservationField.TASSU_IN_YARD_DISTANCE_TO_RESIDENCE)
             },
             litter = litter.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_LITTER)
+                observationFields.contains(CommonObservationField.TASSU_LITTER)
             },
             pack = pack.takeIf {
-                fieldTypes.contains(CommonObservationField.TASSU_PACK)
+                observationFields.contains(CommonObservationField.TASSU_PACK)
             },
             description = description.takeIf {
-                fieldTypes.contains(CommonObservationField.DESCRIPTION)
+                observationFields.contains(CommonObservationField.DESCRIPTION)
             },
         )
 
         return observationCopy
+    }
+
+    private fun List<CommonSpecimenData>.prepareForSaveWithFields(
+        specimenFields: Set<ObservationSpecimenField>,
+        totalSpecimenAmount: Int?,
+    ): List<CommonSpecimenData> {
+        if (totalSpecimenAmount == null || totalSpecimenAmount == 0) {
+            return emptyList()
+        }
+
+        // strategy:
+        // 1. iterate the specimens and only keep data that should be kept
+        // 2. drop empty specimens
+        // 3. ensure total specimen amount is not exceeded
+
+        return this.map { it.createCopyWithFields(specimenFields) }
+            .keepNonEmpty()
+            .take(totalSpecimenAmount)
+    }
+
+    private fun CommonSpecimenData.createCopyWithFields(
+        specimenFields: Set<ObservationSpecimenField>,
+    ): CommonSpecimenData {
+        return CommonSpecimenData(
+            remoteId = remoteId,
+            revision = revision,
+            gender = gender.takeIf { specimenFields.contains(ObservationSpecimenField.GENDER) },
+            age = age.takeIf { specimenFields.contains(ObservationSpecimenField.AGE) },
+            stateOfHealth = stateOfHealth.takeIf { specimenFields.contains(ObservationSpecimenField.STATE_OF_HEALTH) },
+            marking = marking.takeIf { specimenFields.contains(ObservationSpecimenField.MARKING) },
+            lengthOfPaw = lengthOfPaw.takeIf { specimenFields.contains(ObservationSpecimenField.LENGTH_OF_PAW) },
+            widthOfPaw = widthOfPaw.takeIf { specimenFields.contains(ObservationSpecimenField.WIDTH_OF_PAW) },
+            weight = null,
+            weightEstimated = null,
+            weightMeasured = null,
+            fitnessClass = null,
+            antlersLost = null,
+            antlersType = null,
+            antlersWidth = null,
+            antlerPointsLeft = null,
+            antlerPointsRight = null,
+            antlersGirth = null,
+            antlersLength = null,
+            antlersInnerWidth = null,
+            antlerShaftWidth = null,
+            notEdible = null,
+            alone = null,
+            additionalInfo = null,
+        )
     }
 
     @Serializable
@@ -484,4 +652,3 @@ abstract class ModifyObservationController internal constructor(
         private val logger by getLogger(ModifyObservationController::class)
     }
 }
-

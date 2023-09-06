@@ -1,0 +1,3 @@
+CREATE INDEX harvest_point_of_time ON DbHarvest(username, point_of_time);
+CREATE INDEX observation_point_of_time ON DbObservation(username, point_of_time);
+CREATE INDEX srva_event_point_of_time ON DbSrvaEvent(username, point_of_time);

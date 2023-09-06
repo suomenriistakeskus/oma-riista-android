@@ -16,7 +16,9 @@ class GroupHuntingContextTest {
                 groupHuntingEnabledForAll = false,
                 groupHuntingEnabledForHunters = listOf()
         )
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -38,7 +40,9 @@ class GroupHuntingContextTest {
                 groupHuntingEnabledForAll = true,
                 groupHuntingEnabledForHunters = listOf()
         )
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -60,7 +64,9 @@ class GroupHuntingContextTest {
                 groupHuntingEnabledForAll = false,
                 groupHuntingEnabledForHunters = listOf(MockUserInfo.PenttiHunterNumber)
         )
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -82,7 +88,9 @@ class GroupHuntingContextTest {
                 groupHuntingEnabledForAll = true,
                 groupHuntingEnabledForHunters = listOf()
         )
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -112,7 +120,9 @@ class GroupHuntingContextTest {
         )
         val groupHuntingContext = userContextProvider.userContext.groupHuntingContext
         assertTrue(groupHuntingContext.clubContextsProvider.loadStatus.value is LoadStatus.NotLoaded)
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
         assertTrue(groupHuntingContext.clubContextsProvider.loadStatus.value is LoadStatus.NotLoaded)
     }
 
@@ -132,8 +142,8 @@ class GroupHuntingContextTest {
                 loadingStatusObserved = true
             }
         }
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
             groupHuntingContext.checkAvailabilityAndFetchClubs()
         }
         assertTrue(loadingStatusObserved)
@@ -150,8 +160,8 @@ class GroupHuntingContextTest {
                 groupHuntingEnabledForHunters = listOf()
         )
         val groupHuntingContext = userContextProvider.userContext.groupHuntingContext
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
             groupHuntingContext.checkAvailabilityAndFetchClubs()
         }
         with (userContextProvider.userContext.groupHuntingContext) {
@@ -176,8 +186,8 @@ class GroupHuntingContextTest {
                 observedGroupHuntingAvailability = groupHuntingContext.groupHuntingAvailable
             }
         }
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
             groupHuntingContext.checkAvailabilityAndFetchClubs()
         }
         assertEquals(true, observedGroupHuntingAvailability)
@@ -193,7 +203,9 @@ class GroupHuntingContextTest {
                 groupHuntingEnabledForAll = true,
                 groupHuntingEnabledForHunters = listOf()
         )
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -205,7 +217,9 @@ class GroupHuntingContextTest {
         assertTrue(userContext.groupHuntingContext.groupHuntingAvailable)
         assertEquals(2, groupHuntingContext.clubContexts.size)
 
-        userContext.userLoggedOut()
+        runBlocking {
+            userContext.userLoggedOut()
+        }
 
         assertFalse(userContext.groupHuntingContext.groupHuntingAvailable)
         assertEquals(0, groupHuntingContext.clubContexts.size)
@@ -217,7 +231,9 @@ class GroupHuntingContextTest {
             groupHuntingEnabledForAll = false,
             groupHuntingEnabledForHunters = listOf()
         )
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)

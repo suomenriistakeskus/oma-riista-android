@@ -1,6 +1,7 @@
 package fi.riista.common.resources
 
 import android.content.Context
+import fi.riista.common.model.LocalDate
 
 /**
  * A [StringProvider] that gets the string from the specified [context].
@@ -28,8 +29,20 @@ class ContextStringProvider(
         )
     }
 
+    override fun getFormattedDouble(stringFormatId: RR.stringFormat, arg: Double): String {
+        return context.getString(
+            stringIdMapper.mapToStringFormatResourceId(stringFormatId), arg
+        )
+    }
+
     override fun getQuantityString(pluralsId: RR.plurals, quantity: Int, arg: Int): String {
         return context.resources.getQuantityString(
             stringIdMapper.mapToPluralsResourceId(pluralsId), quantity, arg)
+    }
+
+    override fun getFormattedDate(dateFormatId: RR.stringFormat, arg: LocalDate): String {
+        return context.getString(
+            stringIdMapper.mapToStringFormatResourceId(dateFormatId), arg.dayOfMonth, arg.monthNumber, arg.year
+        )
     }
 }

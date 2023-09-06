@@ -1,16 +1,14 @@
 package fi.riista.common.domain.huntingControl.ui
 
-import fi.riista.common.ui.dataField.DataFieldId
+import fi.riista.common.ui.dataField.IndexedDataFieldId
 
 data class HuntingControlEventField(
-    val type: Type,
-    val index: Int = 0
-) : DataFieldId {
+    override val type: Type,
+    override val index: Int = 0
+) : IndexedDataFieldId<HuntingControlEventField.Type>() {
 
     init {
-        require(index in 0 until MAX_INDEX) {
-            "index not between 0..$MAX_INDEX"
-        }
+        validateIndex()
     }
 
     enum class Type {
@@ -33,6 +31,7 @@ data class HuntingControlEventField(
         NUMBER_OF_PROOF_ORDERS,
         HEADLINE_ATTACHMENTS,
         ERROR_NO_INSPECTORS_FOR_DATE,
+        ERROR_NO_SELF_AS_INSPECTOR,
         ATTACHMENT,
         ADD_ATTACHMENT,
         ;
@@ -40,15 +39,11 @@ data class HuntingControlEventField(
         fun toField(index: Int = 0) = HuntingControlEventField(type = this, index = index)
     }
 
-    override fun toInt() = MAX_INDEX * (type.ordinal + 1) + index
-
     companion object {
-        private const val MAX_INDEX = 1000
-
         fun fromInt(value: Int): HuntingControlEventField? {
-            val typeValue = (value / MAX_INDEX) - 1
-            val indexValue =  value.mod(MAX_INDEX)
-            return Type.values().getOrNull(typeValue)?.toField(indexValue)
+            return toIndexedField(value) { type: Type, index ->
+                HuntingControlEventField(type, index)
+            }
         }
     }
 }

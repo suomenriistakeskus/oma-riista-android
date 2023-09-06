@@ -103,7 +103,7 @@ class GroupHuntingActivity
 
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         if (RiistaSDK.groupHuntingIntroMessageHandler().getMessage() != null) {
             menuInflater.inflate(R.menu.menu_info, menu)
         }

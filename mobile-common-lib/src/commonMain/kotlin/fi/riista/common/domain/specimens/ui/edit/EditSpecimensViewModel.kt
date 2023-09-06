@@ -56,9 +56,11 @@ data class EditSpecimensViewModel internal constructor(
      */
     val specimenData: SpecimenFieldDataContainer
         get() {
+            val specimensList = specimens.get().values.toList()
             return SpecimenFieldDataContainer(
                 species = species,
-                specimens = specimens.get().values.toList(),
+                specimenAmount = specimensList.size,
+                specimens = specimensList,
                 fieldSpecifications = fieldSpecifications,
                 allowedAges = allowedAges,
                 allowedStatesOfHealth = allowedStatesOfHealth,

@@ -1,13 +1,21 @@
 package fi.riista.common.domain.groupHunting.ui.groupSelection
 
 import co.touchlab.stately.concurrency.AtomicLong
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.constants.isMoose
 import fi.riista.common.domain.content.SpeciesResolver
-import fi.riista.common.domain.groupHunting.*
-import fi.riista.common.domain.groupHunting.model.*
-import fi.riista.common.domain.model.*
+import fi.riista.common.domain.groupHunting.GroupHuntingClubContext
+import fi.riista.common.domain.groupHunting.GroupHuntingClubGroupContext
+import fi.riista.common.domain.groupHunting.GroupHuntingContext
+import fi.riista.common.domain.groupHunting.HuntingGroupFilter
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingClubTarget
+import fi.riista.common.domain.groupHunting.model.HuntingGroupId
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.model.HuntingYear
+import fi.riista.common.domain.model.Organization
+import fi.riista.common.domain.model.OrganizationId
+import fi.riista.common.domain.model.toSeasonString
 import fi.riista.common.logging.getLogger
 import fi.riista.common.model.StringWithId
 import fi.riista.common.model.localizedWithFallbacks
@@ -17,7 +25,11 @@ import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.DataFieldProducer
+import fi.riista.common.ui.dataField.DataFieldProducerProxy
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.Padding
+import fi.riista.common.ui.dataField.StringListField
 import fi.riista.common.ui.intent.IntentHandler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -83,7 +95,6 @@ class SelectHuntingGroupController(
             List<DataFieldProducer<SelectionState?, SelectHuntingGroupField>>
 
     init {
-        ensureNeverFrozen()
         initializeDataFieldProducers()
     }
 

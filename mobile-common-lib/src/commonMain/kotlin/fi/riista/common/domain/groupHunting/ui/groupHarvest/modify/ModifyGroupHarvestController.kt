@@ -1,15 +1,32 @@
 package fi.riista.common.domain.groupHunting.ui.groupHarvest.modify
 
-import co.touchlab.stately.ensureNeverFrozen
-import fi.riista.common.domain.constants.isMoose
+import fi.riista.common.domain.content.SpeciesResolver
 import fi.riista.common.domain.dto.toPersonWithHunterNumber
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
-import fi.riista.common.domain.groupHunting.model.*
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
+import fi.riista.common.domain.groupHunting.model.HuntingGroupArea
+import fi.riista.common.domain.groupHunting.model.HuntingGroupMember
+import fi.riista.common.domain.groupHunting.model.HuntingGroupPermit
+import fi.riista.common.domain.groupHunting.model.HuntingGroupStatus
+import fi.riista.common.domain.groupHunting.model.asGroupMember
+import fi.riista.common.domain.groupHunting.model.asGuest
+import fi.riista.common.domain.groupHunting.model.isMember
 import fi.riista.common.domain.groupHunting.ui.groupHarvest.GroupHuntingHarvestFields
-import fi.riista.common.domain.model.HarvestSpecimen
+import fi.riista.common.domain.groupHunting.ui.groupHarvest.validation.GroupHarvestValidator
+import fi.riista.common.domain.harvest.model.CommonHarvestData
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
+import fi.riista.common.domain.harvest.ui.modify.ModifyHarvestEventDispatcher
+import fi.riista.common.domain.harvest.ui.modify.ModifyHarvestEventToIntentMapper
+import fi.riista.common.domain.harvest.ui.modify.ModifyHarvestIntent
+import fi.riista.common.domain.harvest.validation.CommonHarvestValidator
+import fi.riista.common.domain.model.CommonSpecimenData
 import fi.riista.common.domain.model.HunterNumber
 import fi.riista.common.domain.model.PersonWithHunterNumber
+import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.model.isMoose
 import fi.riista.common.logging.getLogger
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.changeDate
@@ -22,6 +39,7 @@ import fi.riista.common.ui.dataField.FieldSpecification
 import fi.riista.common.ui.dataField.contains
 import fi.riista.common.ui.dataField.noRequirement
 import fi.riista.common.ui.intent.IntentHandler
+import fi.riista.common.util.LocalDateTimeProvider
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,16 +47,18 @@ import kotlinx.serialization.Serializable
  */
 abstract class ModifyGroupHarvestController(
     protected val groupHuntingContext: GroupHuntingContext,
+    protected val localDateTimeProvider: LocalDateTimeProvider,
+    speciesResolver: SpeciesResolver,
     stringProvider: StringProvider,
 ) : ControllerWithLoadableModel<ModifyGroupHarvestViewModel>(),
-    IntentHandler<ModifyGroupHarvestIntent>,
+    IntentHandler<ModifyHarvestIntent>,
     HasUnreproducibleState<ModifyGroupHarvestController.SavedState> {
 
-    val eventDispatchers: ModifyGroupHarvestEventDispatcher by lazy {
-        ModifyGroupHarvestEventToIntentMapper(intentHandler = this)
+    val eventDispatchers: ModifyHarvestEventDispatcher by lazy {
+        ModifyHarvestEventToIntentMapper(intentHandler = this)
     }
 
-    protected var restoredHarvestData: GroupHuntingHarvestData? = null
+    internal var restoredHarvestData: CommonHarvestData? = null
 
     /**
      * Can the harvest location be moved automatically?
@@ -48,16 +68,16 @@ abstract class ModifyGroupHarvestController(
      */
     protected var harvestLocationCanBeUpdatedAutomatically: Boolean = true
 
-    private val pendingIntents = mutableListOf<ModifyGroupHarvestIntent>()
+    private val pendingIntents = mutableListOf<ModifyHarvestIntent>()
 
-    private val fieldProducer = EditGroupHuntingHarvestFieldProducer(stringProvider = stringProvider)
+    private val fieldProducer = EditGroupHuntingHarvestFieldProducer(
+        stringProvider = stringProvider,
+        currentDateTimeProvider = localDateTimeProvider,
+    )
 
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
+    private val harvestValidator = GroupHarvestValidator(localDateTimeProvider, speciesResolver)
 
-    override fun handleIntent(intent: ModifyGroupHarvestIntent) {
+    override fun handleIntent(intent: ModifyHarvestIntent) {
         // It is possible that intent is sent already before we have Loaded viewmodel.
         // This is the case e.g. when location is updated in external activity (on android)
         // and the activity/fragment utilizing this controller was destroyed. In that case
@@ -81,159 +101,159 @@ abstract class ModifyGroupHarvestController(
     }
 
     private fun handleIntent(
-        intent: ModifyGroupHarvestIntent,
+        intent: ModifyHarvestIntent,
         viewModel: ModifyGroupHarvestViewModel,
     ): ModifyGroupHarvestViewModel {
 
         var newHuntingDays = viewModel.huntingDays
         val harvest = viewModel.harvest
         val updatedHarvest = when (intent) {
-            is ModifyGroupHarvestIntent.ChangeAdditionalInformation -> {
+            is ModifyHarvestIntent.ChangeAdditionalInformation -> {
                 logger.v { "New additional info ${intent.newAdditionalInformation}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         additionalInfo = intent.newAdditionalInformation
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeGender -> {
+            is ModifyHarvestIntent.ChangeGender -> {
                 logger.v { "New gender ${intent.newGender}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         gender = BackendEnum.create(intent.newGender)
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeDateAndTime -> {
+            is ModifyHarvestIntent.ChangeDateAndTime -> {
                 logger.v { "New date and time ${intent.newDateAndTime}" }
                 harvest.copy(pointOfTime = intent.newDateAndTime)
             }
-            is ModifyGroupHarvestIntent.ChangeTime -> {
+            is ModifyHarvestIntent.ChangeTime -> {
                 logger.v { "New time ${intent.newTime}" }
                 harvest.copy(pointOfTime = harvest.pointOfTime.changeTime(intent.newTime))
             }
-            is ModifyGroupHarvestIntent.ChangeHuntingDay -> {
+            is ModifyHarvestIntent.ChangeHuntingDay -> {
                 newHuntingDays = viewModel.huntingDays.ensureDayExists(intent.huntingDayId)
 
                 updateHuntingDay(harvest, intent.huntingDayId, newHuntingDays)
             }
-            is ModifyGroupHarvestIntent.ChangeDeerHuntingType -> {
+            is ModifyHarvestIntent.ChangeDeerHuntingType -> {
                 harvest.copy(deerHuntingType = intent.deerHuntingType)
             }
-            is ModifyGroupHarvestIntent.ChangeDeerHuntingOtherTypeDescription -> {
+            is ModifyHarvestIntent.ChangeDeerHuntingOtherTypeDescription -> {
                 harvest.copy(deerHuntingOtherTypeDescription = intent.deerHuntingOtherTypeDescription)
             }
-            is ModifyGroupHarvestIntent.ChangeAge -> {
+            is ModifyHarvestIntent.ChangeAge -> {
                 logger.v { "New age ${intent.newAge}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         age = BackendEnum.create(intent.newAge)
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeLocation -> {
+            is ModifyHarvestIntent.ChangeLocation -> {
                 logger.v { "New location ${intent.newLocation}, " +
                         "updated after interaction = ${intent.locationChangedAfterUserInteraction}" }
                 if (intent.locationChangedAfterUserInteraction) {
                     harvestLocationCanBeUpdatedAutomatically = false
                 }
 
-                harvest.copy(geoLocation = intent.newLocation)
+                harvest.copy(location = intent.newLocation.asKnownLocation())
             }
-            is ModifyGroupHarvestIntent.ChangeNotEdible -> {
+            is ModifyHarvestIntent.ChangeNotEdible -> {
                 logger.v { "New notEdible ${intent.newNotEdible}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         notEdible = intent.newNotEdible
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeWeightEstimated -> {
+            is ModifyHarvestIntent.ChangeWeightEstimated -> {
                 logger.v { "New weight estimated ${intent.newWeight}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         weightEstimated = intent.newWeight
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeWeightMeasured -> {
+            is ModifyHarvestIntent.ChangeWeightMeasured -> {
                 logger.v { "New weight measured ${intent.newWeight}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         weightMeasured = intent.newWeight
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeFitnessClass -> {
+            is ModifyHarvestIntent.ChangeFitnessClass -> {
                 logger.v { "New fitness class ${intent.newFitnessClass}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         fitnessClass = intent.newFitnessClass
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlersType -> {
+            is ModifyHarvestIntent.ChangeAntlersType -> {
                 logger.v { "New antlers type ${intent.newAntlersType}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlersType = intent.newAntlersType
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlersWidth -> {
+            is ModifyHarvestIntent.ChangeAntlersWidth -> {
                 logger.v { "New antlers width ${intent.newAntlersWidth}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlersWidth = intent.newAntlersWidth
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlerPointsLeft -> {
+            is ModifyHarvestIntent.ChangeAntlerPointsLeft -> {
                 logger.v { "New antler points left ${intent.newAntlerPointsLeft}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlerPointsLeft = intent.newAntlerPointsLeft
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlerPointsRight -> {
+            is ModifyHarvestIntent.ChangeAntlerPointsRight -> {
                 logger.v { "New antler points right ${intent.newAntlerPointsRight}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlerPointsRight = intent.newAntlerPointsRight
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlersLost -> {
+            is ModifyHarvestIntent.ChangeAntlersLost -> {
                 logger.v { "New antlers lost ${intent.newAntlersLost}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlersLost = intent.newAntlersLost
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlersGirth -> {
+            is ModifyHarvestIntent.ChangeAntlersGirth -> {
                 logger.v { "New antlers girth ${intent.newAntlersGirth}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlersGirth = intent.newAntlersGirth
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlerShaftWidth -> {
+            is ModifyHarvestIntent.ChangeAntlerShaftWidth -> {
                 logger.v { "New antler shaft width ${intent.newAntlerShaftWidth}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlerShaftWidth = intent.newAntlerShaftWidth
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlersLength -> {
+            is ModifyHarvestIntent.ChangeAntlersLength -> {
                 logger.v { "New antlers length ${intent.newAntlersLength}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlersLength = intent.newAntlersLength
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAntlersInnerWidth -> {
+            is ModifyHarvestIntent.ChangeAntlersInnerWidth -> {
                 logger.v { "New antlers inner width ${intent.newAntlersInnerWidth}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(
                         antlersInnerWidth = intent.newAntlersInnerWidth
                 )
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeAlone -> {
+            is ModifyHarvestIntent.ChangeAlone -> {
                 logger.v { "New alone ${intent.newAlone}" }
                 val specimen = getFirstSpecimenOrCreate(harvest).copy(alone = intent.newAlone)
                 updateFirstSpecimen(harvest, specimen)
             }
-            is ModifyGroupHarvestIntent.ChangeActor -> {
+            is ModifyHarvestIntent.ChangeActor -> {
                 logger.v { "New actor ${intent.newActor}" }
                 if (intent.newActor.id != GroupHuntingPerson.SearchingByHunterNumber.ID) {
                     val member = viewModel.huntingGroupMembers.firstOrNull { it.personId == intent.newActor.id }
@@ -263,7 +283,7 @@ abstract class ModifyGroupHarvestController(
                     }
                 }
             }
-            is ModifyGroupHarvestIntent.ChangeActorHunterNumber -> {
+            is ModifyHarvestIntent.ChangeActorHunterNumber -> {
                 (viewModel.harvest.actorInfo as? GroupHuntingPerson.SearchingByHunterNumber)
                     ?.let { currentSearch ->
                         val updatedSearch = currentSearch.withUpdatedHunterNumber(intent.hunterNumber.toString())
@@ -276,6 +296,24 @@ abstract class ModifyGroupHarvestController(
                         harvest.copy(actorInfo = updatedSearch)
                     }
                     ?: harvest
+            }
+            is ModifyHarvestIntent.ChangeIsOwnHarvest,
+            is ModifyHarvestIntent.ChangeSelectedClub,
+            is ModifyHarvestIntent.ChangeSelectedClubOfficialCode,
+            is ModifyHarvestIntent.LaunchPermitSelection,
+            is ModifyHarvestIntent.ClearSelectedPermit,
+            is ModifyHarvestIntent.SelectPermit,
+            is ModifyHarvestIntent.ChangeSpecimenAmount,
+            is ModifyHarvestIntent.ChangeSpecies,
+            is ModifyHarvestIntent.SetEntityImage,
+            is ModifyHarvestIntent.ChangeSpecimenData,
+            is ModifyHarvestIntent.ChangeWeight,
+            is ModifyHarvestIntent.ChangeWildBoarFeedingPlace,
+            is ModifyHarvestIntent.ChangeIsTaigaBean,
+            is ModifyHarvestIntent.ChangeGreySealHuntingMethod,
+            is ModifyHarvestIntent.ChangeDescription -> {
+                logger.w { "Unexpected intent $intent" }
+                harvest
             }
         }
 
@@ -317,10 +355,10 @@ abstract class ModifyGroupHarvestController(
      * hunting day with given [huntingDayId].
      */
     private fun updateHuntingDay(
-        harvest: GroupHuntingHarvestData,
+        harvest: CommonHarvestData,
         huntingDayId: GroupHuntingDayId,
         huntingDays: List<GroupHuntingDay>,
-    ): GroupHuntingHarvestData {
+    ): CommonHarvestData {
         val huntingDay = huntingDays.find { it.id == huntingDayId }
         return if (huntingDay != null) {
             logger.v { "Hunting day exists, changing hunting day to $huntingDayId" }
@@ -356,19 +394,19 @@ abstract class ModifyGroupHarvestController(
         harvestLocationCanBeUpdatedAutomatically = state.harvestLocationCanBeUpdatedAutomatically
     }
 
-    private fun getFirstSpecimenOrCreate(harvest: GroupHuntingHarvestData) : HarvestSpecimen {
+    private fun getFirstSpecimenOrCreate(harvest: CommonHarvestData) : CommonSpecimenData {
         return harvest.specimens.firstOrNull()
-                ?: HarvestSpecimen().ensureDefaultValuesAreSet()
+                ?: CommonSpecimenData().ensureDefaultValuesAreSet()
     }
 
-    private fun updateFirstSpecimen(harvest: GroupHuntingHarvestData, specimen: HarvestSpecimen): GroupHuntingHarvestData {
+    private fun updateFirstSpecimen(harvest: CommonHarvestData, specimen: CommonSpecimenData): CommonHarvestData {
         return harvest.copy(
-                specimens = listOf(specimen) + harvest.specimens.drop(1)
+            specimens = listOf(specimen) + harvest.specimens.drop(1)
         )
     }
 
-    protected fun createViewModel(
-        harvest: GroupHuntingHarvestData,
+    internal fun createViewModel(
+        harvest: CommonHarvestData,
         huntingGroupStatus: HuntingGroupStatus,
         huntingGroupMembers: List<HuntingGroupMember>,
         huntingGroupPermit: HuntingGroupPermit,
@@ -383,7 +421,7 @@ abstract class ModifyGroupHarvestController(
                 )
         )
 
-        val validationErrors = GroupHuntingHarvestValidator.validate(
+        val validationErrors = harvestValidator.validate(
                 harvest, huntingDays, huntingGroupPermit, fieldsToBeDisplayed)
 
         val harvestIsValid = validationErrors.isEmpty()
@@ -396,7 +434,7 @@ abstract class ModifyGroupHarvestController(
                 huntingGroupMembers = huntingGroupMembers,
                 huntingGroupPermit = huntingGroupPermit,
                 huntingDays = huntingDays,
-                fields = fieldsToBeDisplayed.map { fieldSpecification ->
+                fields = fieldsToBeDisplayed.mapNotNull { fieldSpecification ->
                     fieldProducer.createField(fieldSpecification, harvest, huntingGroupMembers)
                 },
                 harvestIsValid = harvestIsValid,
@@ -404,63 +442,81 @@ abstract class ModifyGroupHarvestController(
         )
     }
 
-    private fun List<FieldSpecification<GroupHarvestField>>.injectErrorLabels(
-        validationErrors: List<GroupHuntingHarvestValidator.Error>
-    ): List<FieldSpecification<GroupHarvestField>> {
+    private fun List<FieldSpecification<CommonHarvestField>>.injectErrorLabels(
+        validationErrors: List<CommonHarvestValidator.Error>
+    ): List<FieldSpecification<CommonHarvestField>> {
         if (validationErrors.isEmpty()) {
             return this
         }
 
-        val result = mutableListOf<FieldSpecification<GroupHarvestField>>()
+        val result = mutableListOf<FieldSpecification<CommonHarvestField>>()
 
         forEach { fieldSpecification ->
             when (fieldSpecification.fieldId) {
-                GroupHarvestField.HUNTING_DAY_AND_TIME -> {
+                CommonHarvestField.HUNTING_DAY_AND_TIME -> {
                     result.add(fieldSpecification)
 
-                    if (validationErrors.contains(GroupHuntingHarvestValidator.Error.TIME_NOT_WITHIN_HUNTING_DAY)) {
-                        result.add(GroupHarvestField.ERROR_TIME_NOT_WITHIN_HUNTING_DAY.noRequirement())
+                    if (validationErrors.contains(CommonHarvestValidator.Error.TIME_NOT_WITHIN_HUNTING_DAY)) {
+                        result.add(CommonHarvestField.ERROR_TIME_NOT_WITHIN_HUNTING_DAY.noRequirement())
                     }
                 }
-                GroupHarvestField.DATE_AND_TIME -> {
+                CommonHarvestField.DATE_AND_TIME -> {
                     result.add(fieldSpecification)
 
-                    if (validationErrors.contains(GroupHuntingHarvestValidator.Error.DATE_NOT_WITHIN_GROUP_PERMIT)) {
-                        result.add(GroupHarvestField.ERROR_DATE_NOT_WITHIN_GROUP_PERMIT.noRequirement())
+                    if (validationErrors.contains(CommonHarvestValidator.Error.DATE_NOT_WITHIN_PERMIT)) {
+                        result.add(CommonHarvestField.ERROR_DATE_NOT_WITHIN_PERMIT.noRequirement())
+                    } else if (validationErrors.contains(CommonHarvestValidator.Error.DATETIME_IN_FUTURE)) {
+                        result.add(CommonHarvestField.ERROR_DATETIME_IN_FUTURE.noRequirement())
                     }
                 }
-                GroupHarvestField.SPECIES_CODE,
-                GroupHarvestField.ERROR_DATE_NOT_WITHIN_GROUP_PERMIT,
-                GroupHarvestField.ERROR_TIME_NOT_WITHIN_HUNTING_DAY,
-                GroupHarvestField.LOCATION,
-                GroupHarvestField.DEER_HUNTING_TYPE,
-                GroupHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION,
-                GroupHarvestField.ACTOR_HUNTER_NUMBER,
-                GroupHarvestField.ACTOR_HUNTER_NUMBER_INFO_OR_ERROR,
-                GroupHarvestField.GENDER,
-                GroupHarvestField.AGE,
-                GroupHarvestField.NOT_EDIBLE,
-                GroupHarvestField.ADDITIONAL_INFORMATION,
-                GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS,
-                GroupHarvestField.HEADLINE_SHOOTER,
-                GroupHarvestField.HEADLINE_SPECIMEN,
-                GroupHarvestField.WEIGHT,
-                GroupHarvestField.WEIGHT_ESTIMATED,
-                GroupHarvestField.WEIGHT_MEASURED,
-                GroupHarvestField.FITNESS_CLASS,
-                GroupHarvestField.ANTLER_INSTRUCTIONS,
-                GroupHarvestField.ANTLERS_TYPE,
-                GroupHarvestField.ANTLERS_WIDTH,
-                GroupHarvestField.ANTLER_POINTS_LEFT,
-                GroupHarvestField.ANTLER_POINTS_RIGHT,
-                GroupHarvestField.ANTLERS_LOST,
-                GroupHarvestField.ANTLERS_GIRTH,
-                GroupHarvestField.ANTLER_SHAFT_WIDTH,
-                GroupHarvestField.ANTLERS_LENGTH,
-                GroupHarvestField.ANTLERS_INNER_WIDTH,
-                GroupHarvestField.ACTOR,
-                GroupHarvestField.AUTHOR,
-                GroupHarvestField.ALONE -> {
+                CommonHarvestField.SPECIES_CODE,
+                CommonHarvestField.ERROR_DATE_NOT_WITHIN_PERMIT,
+                CommonHarvestField.ERROR_DATETIME_IN_FUTURE,
+                CommonHarvestField.ERROR_TIME_NOT_WITHIN_HUNTING_DAY,
+                CommonHarvestField.LOCATION,
+                CommonHarvestField.DEER_HUNTING_TYPE,
+                CommonHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION,
+                CommonHarvestField.OWN_HARVEST,
+                CommonHarvestField.ACTOR_HUNTER_NUMBER,
+                CommonHarvestField.ACTOR_HUNTER_NUMBER_INFO_OR_ERROR,
+                CommonHarvestField.SELECTED_CLUB,
+                CommonHarvestField.SELECTED_CLUB_OFFICIAL_CODE,
+                CommonHarvestField.SELECTED_CLUB_OFFICIAL_CODE_INFO_OR_ERROR,
+                CommonHarvestField.GENDER,
+                CommonHarvestField.AGE,
+                CommonHarvestField.NOT_EDIBLE,
+                CommonHarvestField.ADDITIONAL_INFORMATION,
+                CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS,
+                CommonHarvestField.HEADLINE_SHOOTER,
+                CommonHarvestField.HEADLINE_SPECIMEN,
+                CommonHarvestField.WEIGHT,
+                CommonHarvestField.WEIGHT_ESTIMATED,
+                CommonHarvestField.WEIGHT_MEASURED,
+                CommonHarvestField.FITNESS_CLASS,
+                CommonHarvestField.ANTLER_INSTRUCTIONS,
+                CommonHarvestField.ANTLERS_TYPE,
+                CommonHarvestField.ANTLERS_WIDTH,
+                CommonHarvestField.ANTLER_POINTS_LEFT,
+                CommonHarvestField.ANTLER_POINTS_RIGHT,
+                CommonHarvestField.ANTLERS_LOST,
+                CommonHarvestField.ANTLERS_GIRTH,
+                CommonHarvestField.ANTLER_SHAFT_WIDTH,
+                CommonHarvestField.ANTLERS_LENGTH,
+                CommonHarvestField.ANTLERS_INNER_WIDTH,
+                CommonHarvestField.ACTOR,
+                CommonHarvestField.AUTHOR,
+                CommonHarvestField.ALONE,
+                CommonHarvestField.SELECT_PERMIT,
+                CommonHarvestField.PERMIT_INFORMATION,
+                CommonHarvestField.PERMIT_REQUIRED_NOTIFICATION,
+                CommonHarvestField.SPECIES_CODE_AND_IMAGE,
+                CommonHarvestField.HARVEST_REPORT_STATE,
+                CommonHarvestField.SPECIMEN_AMOUNT,
+                CommonHarvestField.SPECIMENS,
+                CommonHarvestField.WILD_BOAR_FEEDING_PLACE,
+                CommonHarvestField.GREY_SEAL_HUNTING_METHOD,
+                CommonHarvestField.IS_TAIGA_BEAN_GOOSE,
+                CommonHarvestField.DESCRIPTION -> {
                     result.add(fieldSpecification)
                 }
             }
@@ -478,19 +534,19 @@ abstract class ModifyGroupHarvestController(
         return viewModel
     }
 
-    protected fun ModifyGroupHarvestViewModel.getValidatedHarvestDataOrNull(): GroupHuntingHarvestData? {
+    internal fun ModifyGroupHarvestViewModel.getValidatedHarvestDataOrNull(): CommonHarvestData? {
         val displayedFields = GroupHuntingHarvestFields.getFieldsToBeDisplayed(
-                GroupHuntingHarvestFields.Context(
-                        harvest = harvest,
-                        mode = GroupHuntingHarvestFields.Context.Mode.EDIT
-                )
+            GroupHuntingHarvestFields.Context(
+                harvest = harvest,
+                mode = GroupHuntingHarvestFields.Context.Mode.EDIT
+            )
         )
 
-        val validationErrors = GroupHuntingHarvestValidator.validate(
-                harvest,
-                huntingDays,
-                huntingGroupPermit,
-                displayedFields
+        val validationErrors = harvestValidator.validate(
+            harvest = harvest,
+            huntingDays = huntingDays,
+            huntingGroupPermit = huntingGroupPermit,
+            displayedFields = displayedFields
         )
         if (validationErrors.isNotEmpty()) {
             return null
@@ -500,28 +556,28 @@ abstract class ModifyGroupHarvestController(
 
     }
 
-    protected fun GroupHuntingHarvestData.ensureDefaultValuesAreSet(): GroupHuntingHarvestData {
+    internal fun CommonHarvestData.ensureDefaultValuesAreSet(): CommonHarvestData {
         return copy(
-                specimens = specimens.map { it.ensureDefaultValuesAreSet() }
+            specimens = specimens.map { it.ensureDefaultValuesAreSet() }
         )
     }
 
-    protected fun HarvestSpecimen.ensureDefaultValuesAreSet(): HarvestSpecimen {
+    internal fun CommonSpecimenData.ensureDefaultValuesAreSet(): CommonSpecimenData {
         return copy(
-                notEdible = notEdible ?: false,
-                alone = alone ?: false,
-                antlersLost = antlersLost ?: false
+            notEdible = notEdible ?: false,
+            alone = alone ?: false,
+            antlersLost = antlersLost ?: false
         )
     }
 
-    protected fun GroupHuntingHarvestData.selectInitialHuntingDayForHarvest(
+    internal fun CommonHarvestData.selectInitialHuntingDayForHarvest(
         huntingDays: List<GroupHuntingDay>
-    ): GroupHuntingHarvestData {
+    ): CommonHarvestData {
         // automatic hunting day selection is relevant only for moose and only
         // if there's no hunting day.
         // - deer animals will get their hunting day when saving harvest
         // - don't replace previously set hunting day in any case
-        if (!gameSpeciesCode.isMoose() || huntingDayId != null) {
+        if (!species.isMoose() || huntingDayId != null) {
             return this
         }
 
@@ -535,61 +591,65 @@ abstract class ModifyGroupHarvestController(
     }
 
     fun shouldCreateObservation(): Boolean {
-        return getLoadedViewModelOrNull()?.harvest?.gameSpeciesCode?.isMoose() == true
+        return getLoadedViewModelOrNull()?.harvest?.species?.isMoose() == true
     }
 
-    private fun GroupHuntingHarvestData.createCopyWithFields(
-        fields: List<FieldSpecification<GroupHarvestField>>,
-    ): GroupHuntingHarvestData {
+    private fun CommonHarvestData.createCopyWithFields(
+        fields: List<FieldSpecification<CommonHarvestField>>,
+    ): CommonHarvestData {
         return copy(
                 // copy deer hunting type even though its requirement status most likely wont change
                 // - species code cannot be changed and thus deer hunting type visibility should
                 //   remain unchanged
                 deerHuntingType = deerHuntingType
-                    .takeIf { fields.contains(GroupHarvestField.DEER_HUNTING_TYPE) }
+                    .takeIf { fields.contains(CommonHarvestField.DEER_HUNTING_TYPE) }
                         ?: BackendEnum.create(null),
                 deerHuntingOtherTypeDescription = deerHuntingOtherTypeDescription
-                    .takeIf { fields.contains(GroupHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION) },
+                    .takeIf { fields.contains(CommonHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION) },
                 specimens = specimens.createCopyWithFields(fields),
         )
     }
 
-    private fun List<HarvestSpecimen>.createCopyWithFields(
-        fields: List<FieldSpecification<GroupHarvestField>>,
-    ): List<HarvestSpecimen> {
+    private fun List<CommonSpecimenData>.createCopyWithFields(
+        fields: List<FieldSpecification<CommonHarvestField>>,
+    ): List<CommonSpecimenData> {
         // fields are determined based on the first specimen i.e. only create copy of the first specimen.
         // Let rest of the specimen be what they currently are (there shouldn't be any though)
         val specimen = first()
 
-        val firstSpecimen = HarvestSpecimen(
-                id = specimen.id,
-                rev = specimen.rev,
-                gender = specimen.gender.takeIf { fields.contains(GroupHarvestField.GENDER) },
-                age = specimen.age.takeIf { fields.contains(GroupHarvestField.AGE) },
-                weight = specimen.weight.takeIf { fields.contains(GroupHarvestField.WEIGHT) },
-                weightEstimated = specimen.weightEstimated.takeIf { fields.contains(GroupHarvestField.WEIGHT_ESTIMATED) },
-                weightMeasured = specimen.weightMeasured.takeIf { fields.contains(GroupHarvestField.WEIGHT_MEASURED) },
-                fitnessClass = specimen.fitnessClass.takeIf { fields.contains(GroupHarvestField.FITNESS_CLASS) },
-                antlersLost = specimen.antlersLost.takeIf { fields.contains(GroupHarvestField.ANTLERS_LOST) },
-                antlersType = specimen.antlersType.takeIf { fields.contains(GroupHarvestField.ANTLERS_TYPE) },
-                antlersWidth = specimen.antlersWidth.takeIf { fields.contains(GroupHarvestField.ANTLERS_WIDTH) },
-                antlerPointsLeft = specimen.antlerPointsLeft.takeIf { fields.contains(GroupHarvestField.ANTLER_POINTS_LEFT) },
-                antlerPointsRight = specimen.antlerPointsRight.takeIf { fields.contains(GroupHarvestField.ANTLER_POINTS_RIGHT) },
-                antlersGirth = specimen.antlersGirth.takeIf { fields.contains(GroupHarvestField.ANTLERS_GIRTH) },
-                antlersLength = specimen.antlersLength.takeIf { fields.contains(GroupHarvestField.ANTLERS_LENGTH) },
-                antlersInnerWidth = specimen.antlersInnerWidth.takeIf { fields.contains(GroupHarvestField.ANTLERS_INNER_WIDTH) },
-                antlerShaftWidth = specimen.antlerShaftWidth.takeIf { fields.contains(GroupHarvestField.ANTLER_SHAFT_WIDTH) },
-                notEdible = specimen.notEdible.takeIf { fields.contains(GroupHarvestField.NOT_EDIBLE) },
-                alone = specimen.alone.takeIf { fields.contains(GroupHarvestField.ALONE) },
-                additionalInfo = specimen.additionalInfo.takeIf { fields.contains(GroupHarvestField.ADDITIONAL_INFORMATION) }
+        val firstSpecimen = CommonSpecimenData(
+            remoteId = specimen.remoteId,
+            revision = specimen.revision,
+            gender = specimen.gender.takeIf { fields.contains(CommonHarvestField.GENDER) },
+            age = specimen.age.takeIf { fields.contains(CommonHarvestField.AGE) },
+            stateOfHealth = null,
+            marking = null,
+            lengthOfPaw = null,
+            widthOfPaw = null,
+            weight = specimen.weight.takeIf { fields.contains(CommonHarvestField.WEIGHT) },
+            weightEstimated = specimen.weightEstimated.takeIf { fields.contains(CommonHarvestField.WEIGHT_ESTIMATED) },
+            weightMeasured = specimen.weightMeasured.takeIf { fields.contains(CommonHarvestField.WEIGHT_MEASURED) },
+            fitnessClass = specimen.fitnessClass.takeIf { fields.contains(CommonHarvestField.FITNESS_CLASS) },
+            antlersLost = specimen.antlersLost.takeIf { fields.contains(CommonHarvestField.ANTLERS_LOST) },
+            antlersType = specimen.antlersType.takeIf { fields.contains(CommonHarvestField.ANTLERS_TYPE) },
+            antlersWidth = specimen.antlersWidth.takeIf { fields.contains(CommonHarvestField.ANTLERS_WIDTH) },
+            antlerPointsLeft = specimen.antlerPointsLeft.takeIf { fields.contains(CommonHarvestField.ANTLER_POINTS_LEFT) },
+            antlerPointsRight = specimen.antlerPointsRight.takeIf { fields.contains(CommonHarvestField.ANTLER_POINTS_RIGHT) },
+            antlersGirth = specimen.antlersGirth.takeIf { fields.contains(CommonHarvestField.ANTLERS_GIRTH) },
+            antlersLength = specimen.antlersLength.takeIf { fields.contains(CommonHarvestField.ANTLERS_LENGTH) },
+            antlersInnerWidth = specimen.antlersInnerWidth.takeIf { fields.contains(CommonHarvestField.ANTLERS_INNER_WIDTH) },
+            antlerShaftWidth = specimen.antlerShaftWidth.takeIf { fields.contains(CommonHarvestField.ANTLER_SHAFT_WIDTH) },
+            notEdible = specimen.notEdible.takeIf { fields.contains(CommonHarvestField.NOT_EDIBLE) },
+            alone = specimen.alone.takeIf { fields.contains(CommonHarvestField.ALONE) },
+            additionalInfo = specimen.additionalInfo.takeIf { fields.contains(CommonHarvestField.ADDITIONAL_INFORMATION) }
         )
 
         return listOf(firstSpecimen) + drop(1)
     }
 
     @Serializable
-    data class SavedState(
-        val harvestData: GroupHuntingHarvestData,
+    data class SavedState internal constructor(
+        internal val harvestData: CommonHarvestData,
         val harvestLocationCanBeUpdatedAutomatically: Boolean,
     )
 

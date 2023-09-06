@@ -3,13 +3,27 @@ package fi.riista.common.domain.season
 import fi.riista.common.model.LocalDate
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.constants.SpeciesCodes
+import fi.riista.common.domain.model.getHuntingYear
+import fi.riista.common.domain.season.provider.BackendHarvestSeasonsProviderImpl
+import fi.riista.common.domain.season.storage.MockHarvestSeasonsRepository
+import fi.riista.common.domain.season.storage.MockHarvestSeasonsStorage
+import fi.riista.common.helpers.runBlockingTest
+import fi.riista.common.model.Date
+import fi.riista.common.model.LocalDateTime
 import fi.riista.common.model.toKotlinxLocalDate
+import fi.riista.common.model.toLocalDateWithinHuntingYear
+import fi.riista.common.network.BackendAPIMock
+import fi.riista.common.network.BackendApiProvider
+import fi.riista.common.network.sync.SynchronizationConfig
+import fi.riista.common.preferences.MockPreferences
+import fi.riista.common.util.MockDateTimeProvider
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class HarvestSeasonsTest {
 
@@ -42,7 +56,7 @@ class HarvestSeasonsTest {
 
     @Test
     fun testHardcodedHarvestSeasonsAreEqual() {
-        val harvestSeasons = HarvestSeasons()
+        val harvestSeasons = TestHarvestSeasons.createMockHarvestSeasons()
 
         var date = firstDate
         while (date <= lastDate) {
@@ -59,54 +73,100 @@ class HarvestSeasonsTest {
     }
 
     @Test
-    fun testOverridingWorks() {
-        val harvestSeasons = HarvestSeasons()
+    fun `fallback seasons are used if there are no seasons for the given hunting year`() = runBlockingTest {
+        val now = LocalDateTime(2023, 8, 10, 12, 0, 0)
+        assertEquals(2023, now.date.getHuntingYear())
+
+        val dateTimeProvider = MockDateTimeProvider(now)
+        val backendHarvestSeasonsProvider = BackendHarvestSeasonsProviderImpl(
+            harvestSeasonsStorage = MockHarvestSeasonsStorage(
+                repository = MockHarvestSeasonsRepository()
+            ),
+            backendApiProvider = object : BackendApiProvider {
+                override val backendAPI = BackendAPIMock()
+            },
+            preferences = MockPreferences(),
+            localDateTimeProvider = dateTimeProvider,
+        )
+        val harvestSeasons = TestHarvestSeasons.createMockHarvestSeasons(
+            backendHarvestSeasonsProvider = backendHarvestSeasonsProvider
+        )
 
         assertMatchesHardcoded(harvestSeasons, SpeciesCodes.COOT_ID)
 
-        assertFalse(harvestSeasons.isDuringHuntingSeason(
+        assertFalse(harvestSeasons.isDuringHarvestSeason(
                 SpeciesCodes.COOT_ID, LocalDate(2020, 8, 19)
         ))
-        assertTrue(harvestSeasons.isDuringHuntingSeason(
+        assertTrue(harvestSeasons.isDuringHarvestSeason(
                 SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)
         ))
-        assertTrue(harvestSeasons.isDuringHuntingSeason(
+        assertTrue(harvestSeasons.isDuringHarvestSeason(
                 SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)
         ))
-        assertFalse(harvestSeasons.isDuringHuntingSeason(
+        assertFalse(harvestSeasons.isDuringHarvestSeason(
                 SpeciesCodes.COOT_ID, LocalDate(2021, 1, 1)
         ))
 
-        harvestSeasons.overridesProvider.parseOverridesFromJson(
-                """
-                    [{
-                        "speciesCode": 27381,
-                        "huntingSeasons": [{
-                            "startYear": 2020,
-                            "endYear": null,
-                            "yearlySeasonPeriods": [
-                                {
-                                    "beginDate": { "month": 8, "day": 21 },
-                                    "endDate": { "month": 12, "day": 30 }
-                                }
-                            ]
-                        }]
-                    }]
-                """.trimIndent()
-        )
+        // synchronize
+        backendHarvestSeasonsProvider.synchronizationContext.startSynchronization(config = SynchronizationConfig.DEFAULT)
 
-        assertFalse(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)
+        assertFalse(backendHarvestSeasonsProvider.hasHarvestSeasons(2020), "2020")
+        assertFalse(backendHarvestSeasonsProvider.hasHarvestSeasons(2021), "2021")
+        assertTrue(backendHarvestSeasonsProvider.hasHarvestSeasons(2022), "2022")
+        assertTrue(backendHarvestSeasonsProvider.hasHarvestSeasons(2023), "2023")
+        assertFalse(backendHarvestSeasonsProvider.hasHarvestSeasons(2024), "2024")
+
+        var matchesHardcoded = true
+        try {
+            assertMatchesHardcoded(harvestSeasons, SpeciesCodes.COOT_ID)
+        } catch (e: Throwable) {
+            matchesHardcoded = false
+        }
+
+        if (matchesHardcoded) {
+            fail("Matched hardcoded even though shouldn't have")
+        }
+
+        // hardcoded values
+        assertFalse(harvestSeasons.isDuringHarvestSeason(
+            SpeciesCodes.COOT_ID, LocalDate(2020, 8, 19)
         ))
-        assertTrue(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 8, 21)
+        assertTrue(harvestSeasons.isDuringHarvestSeason(
+            SpeciesCodes.COOT_ID, LocalDate(2020, 8, 20)
         ))
-        assertTrue(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 30)
+        assertTrue(harvestSeasons.isDuringHarvestSeason(
+            SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)
         ))
-        assertFalse(harvestSeasons.isDuringHuntingSeason(
-                SpeciesCodes.COOT_ID, LocalDate(2020, 12, 31)
+        assertFalse(harvestSeasons.isDuringHarvestSeason(
+            SpeciesCodes.COOT_ID, LocalDate(2021, 1, 1)
         ))
+
+        listOf(2022, 2023).forEach { huntingYear ->
+            Date(3, 31).toLocalDateWithinHuntingYear(huntingYear).let { date ->
+                assertFalse(
+                    actual = harvestSeasons.isDuringHarvestSeason(SpeciesCodes.COOT_ID, date),
+                    message = "huntingYear = $huntingYear, date = ${date.toStringISO8601()}"
+                )
+            }
+            Date(4, 1).toLocalDateWithinHuntingYear(huntingYear).let { date ->
+                assertTrue(
+                    actual = harvestSeasons.isDuringHarvestSeason(SpeciesCodes.COOT_ID, date),
+                    message = "huntingYear = $huntingYear, date = ${date.toStringISO8601()}"
+                )
+            }
+            Date(4, 21).toLocalDateWithinHuntingYear(huntingYear).let { date ->
+                assertTrue(
+                    actual = harvestSeasons.isDuringHarvestSeason(SpeciesCodes.COOT_ID, date),
+                    message = "huntingYear = $huntingYear, date = ${date.toStringISO8601()}"
+                )
+            }
+            Date(4, 22).toLocalDateWithinHuntingYear(huntingYear).let { date ->
+                assertFalse(
+                    actual = harvestSeasons.isDuringHarvestSeason(SpeciesCodes.COOT_ID, date),
+                    message = "huntingYear = $huntingYear, date = ${date.toStringISO8601()}"
+                )
+            }
+        }
     }
 
     private fun assertMatchesHardcoded(
@@ -128,8 +188,8 @@ class HarvestSeasonsTest {
                                        speciesCode: Int,
                                        date: LocalDate
     ) {
-        val harvestSeasonUtilResult = HardCodedSeasons.isInsideHuntingSeason(date, speciesCode)
-        val harvestSeasonsResult = harvestSeasons.isDuringHuntingSeason(speciesCode, date)
+        val harvestSeasonUtilResult = HardCodedSeasons.isInsideHarvestSeason(date, speciesCode)
+        val harvestSeasonsResult = harvestSeasons.isDuringHarvestSeason(speciesCode, date)
 
         assertEquals(harvestSeasonUtilResult, harvestSeasonsResult,
                      "Species $speciesCode, date: $date")

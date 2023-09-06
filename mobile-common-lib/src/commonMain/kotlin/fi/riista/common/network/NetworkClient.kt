@@ -7,7 +7,7 @@ import fi.riista.common.network.cookies.CustomCookiesStorage
 import fi.riista.common.util.JsonHelper
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.features.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -106,7 +106,7 @@ class NetworkClient internal constructor(
 
     private inline fun <reified DataType> createDefaultSuccessHandler(): StatusCodeHandler<DataType> {
         return { response ->
-            val rawData: String = response.receive()
+            val rawData: String = response.bodyAsText()
             val networkResponse: NetworkResponse<DataType> = try {
                 val typedData = JsonHelper.deserializeFromJsonUnsafe<DataType>(rawData)
                 NetworkResponse.Success(statusCode = response.status.value,

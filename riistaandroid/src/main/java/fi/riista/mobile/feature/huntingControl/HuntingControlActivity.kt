@@ -51,8 +51,6 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
     private lateinit var controller: SelectHuntingControlEventController
     private val disposeBag = DisposeBag()
 
-    private var shouldRefreshGroupDataNextTime: Boolean = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_hunting_control)
@@ -66,9 +64,6 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
 
         if (savedInstanceState != null) {
             controller.restoreFromBundle(savedInstanceState, PREFIX_CONTROLLER_STATE)
-            shouldRefreshGroupDataNextTime = savedInstanceState.getBoolean(
-                KEY_SHOULD_REFRESH_NEXT_TIME, false
-            )
         }
 
         layoutHuntingControlAvailable = findViewById(R.id.layout_hunting_control_available)
@@ -102,7 +97,7 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
         progressBar = findViewById(R.id.progress_horizontal)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_refresh, menu)
         return true
     }
@@ -121,7 +116,6 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
 
     override fun onSaveInstanceState(outState: Bundle) {
         controller.saveToBundle(outState, PREFIX_CONTROLLER_STATE)
-        outState.putBoolean(KEY_SHOULD_REFRESH_NEXT_TIME, shouldRefreshGroupDataNextTime)
         super.onSaveInstanceState(outState)
     }
 
@@ -139,7 +133,7 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
             }
         }.disposeBy(disposeBag)
 
-        loadViewModelIfNotLoaded()
+        loadViewModel(refresh = false)
     }
 
     override fun onPause() {
@@ -148,7 +142,6 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
     }
 
     override fun huntingControlEventSelected(eventId: HuntingControlEventId) {
-        shouldRefreshGroupDataNextTime = true
         controller.getLoadedViewModelOrNull()?.selectedRhy?.id?.let { rhyId ->
             val intent = HuntingControlEventActivity.getLaunchIntentForViewing(
                 context = this,
@@ -207,34 +200,11 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
             eventsView.visibility = View.VISIBLE
             newEventButton.isEnabled = true
         }
-
-        fetchRhyDataIfNeeded(refresh = shouldRefreshGroupDataNextTime)
-        shouldRefreshGroupDataNextTime = false
-    }
-
-    private fun loadViewModelIfNotLoaded() {
-        if (controller.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded &&
-            !shouldRefreshGroupDataNextTime) {
-            return
-        }
-
-        // don't refresh here, instead refresh _rhy_ data
-        loadViewModel(refresh = false)
     }
 
     private fun loadViewModel(refresh: Boolean) {
         MainScope().launch {
             controller.loadViewModel(refresh = refresh)
-
-            if (refresh) {
-                controller.fetchRhyDataIfNeeded(refresh = true)
-            }
-        }
-    }
-
-    private fun fetchRhyDataIfNeeded(refresh: Boolean) {
-        MainScope().launch {
-            controller.fetchRhyDataIfNeeded(refresh = refresh)
         }
     }
 
@@ -243,7 +213,6 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
     }
 
     private fun onNewEventClicked() {
-        shouldRefreshGroupDataNextTime = true
         controller.getLoadedViewModelOrNull()?.selectedRhy?.id?.let { rhyId ->
             val intent = HuntingControlEventActivity.getLaunchIntentForCreating(
                 packageContext = this,
@@ -264,7 +233,6 @@ class HuntingControlActivity : BaseActivity(), HuntingControlEventViewHolder.Sel
 
     companion object {
         private const val PREFIX_CONTROLLER_STATE = "HGA_controller"
-        private const val KEY_SHOULD_REFRESH_NEXT_TIME = "HGA_key_should_refresh_group_data"
     }
 }
 

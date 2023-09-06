@@ -140,52 +140,28 @@
         </RadioGroup>
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/settings_privacy_statement_btn"
+            android:id="@+id/settings_harvest_settings_btn"
             style="@style/OutlineButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/default_button_height"
             android:layout_marginTop="40dp"
-            android:text="@string/settings_privacy_statement"
+            android:text="@string/harvest_settings"
             android:textAllCaps="true"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/settings_language_group" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/settings_terms_of_service_btn"
+            android:id="@+id/settings_map_settings_btn"
             style="@style/OutlineButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/default_button_height"
             android:layout_marginTop="@dimen/item_spacing_normal"
-            android:text="@string/settings_terms_of_service"
+            android:text="@string/map_settings"
             android:textAllCaps="true"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/settings_privacy_statement_btn" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/settings_accessibility_btn"
-            style="@style/OutlineButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/item_spacing_normal"
-            android:minHeight="@dimen/default_button_height"
-            android:text="@string/settings_accessibility"
-            android:textAllCaps="true"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/settings_terms_of_service_btn" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/settings_licences_btn"
-            style="@style/OutlineButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="@dimen/default_button_height"
-            android:layout_marginTop="@dimen/item_spacing_normal"
-            android:text="@string/settings_third_party_libraries"
-            android:textAllCaps="true"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/settings_accessibility_btn" />
+            app:layout_constraintTop_toBottomOf="@id/settings_harvest_settings_btn" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/settings_unregister_account_btn"
@@ -197,7 +173,7 @@
             android:text="@string/settings_unregister_user_account"
             android:textAllCaps="true"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/settings_licences_btn" />
+            app:layout_constraintTop_toBottomOf="@id/settings_map_settings_btn" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

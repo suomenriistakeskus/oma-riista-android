@@ -206,6 +206,18 @@
                 app:layout_constraintTop_toBottomOf="@id/my_details_membership_barrier"
                 tools:visibility="visible" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_insurance_instructions"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:backgroundTint="@android:color/white"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/default_button_height"
+                android:text="@string/my_details_insurance_instructions_link_title"
+                android:textAllCaps="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/my_details_insurance_policy" />
+
             <ImageView
                 android:id="@+id/my_details_qr_code_image"
                 android:layout_width="240dp"
@@ -215,7 +227,7 @@
                 android:scaleType="fitCenter"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/my_details_insurance_policy"
+                app:layout_constraintTop_toBottomOf="@id/btn_insurance_instructions"
                 tools:src="@drawable/ic_placeholder" />
 
             <androidx.constraintlayout.widget.Group

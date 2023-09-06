@@ -4,7 +4,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
@@ -166,6 +167,9 @@
             android:configChanges="orientation|keyboardHidden|screenSize|locale"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".feature.harvest.HarvestSettingsActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".feature.specimens.SpecimensActivity"
             android:configChanges="orientation|keyboardHidden|screenSize|locale"
             android:screenOrientation="portrait" />
@@ -175,6 +179,15 @@
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".feature.unregister.UnregisterUserAccountActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".feature.permits.ListPermitsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".feature.permits.ViewPermitActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".feature.sunriseAndSunset.ViewSunriseAndSunsetTimesActivity"
             android:screenOrientation="portrait" />
 
         <service

@@ -54,7 +54,7 @@ class MapSettingsActivity : BaseActivity() {
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map_settings)
-        setCustomTitle(getString(R.string.more_settings))
+        setCustomTitle(getString(R.string.map_settings))
 
         val mapTileSource = AppPreferences.getMapTileSource(this)
         val mapTypeGroup = findViewById<RadioGroup>(R.id.map_type_select)
@@ -105,6 +105,12 @@ class MapSettingsActivity : BaseActivity() {
         gameTrianglesCheck.isChecked = AppPreferences.getShowGameTriangles(this)
         gameTrianglesCheck.setOnCheckedChangeListener { _, b ->
             AppPreferences.setShowGameTriangles(this, b)
+        }
+
+        val leadShotBanCheck = findViewById<SwitchMaterial>(R.id.enable_layer_lead_shot_ban)
+        leadShotBanCheck.isChecked = AppPreferences.getShowLeadShotBan(this)
+        leadShotBanCheck.setOnCheckedChangeListener { _, b ->
+            AppPreferences.setShowLeadShotBan(this, b)
         }
 
         val mooseRestrictionsCheck = findViewById<SwitchMaterial>(R.id.enable_layer_moose_restrictions)
@@ -270,8 +276,7 @@ class MapSettingsActivity : BaseActivity() {
             val clipboardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
             val clipData = ClipData.newPlainText(getString(R.string.map_area_code), areaId)
             clipboardManager.setPrimaryClip(clipData)
-            val androidSv2 = Build.VERSION_CODES.S + 1 // TODO: Use build code S_V2 when updated to target API 32
-            if (Build.VERSION.SDK_INT <= androidSv2) {
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
                 // Android 13+ automatically shows something similar
                 Toast.makeText(this, getString(R.string.copied), Toast.LENGTH_SHORT).show()
             }

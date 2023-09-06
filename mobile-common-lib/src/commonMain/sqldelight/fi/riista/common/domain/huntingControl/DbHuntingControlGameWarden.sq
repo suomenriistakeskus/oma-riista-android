@@ -5,8 +5,8 @@ CREATE TABLE DbHuntingControlGameWarden(
     remote_id INTEGER NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    start_date TEXT NOT NULL CHECK(start_date IS strftime('%Y-%m-%d', start_date)),
-    end_date TEXT NOT NULL CHECK(end_date IS strftime('%Y-%m-%d', end_date)),
+    start_date TEXT CHECK(start_date IS strftime('%Y-%m-%d', start_date)),
+    end_date TEXT CHECK(end_date IS strftime('%Y-%m-%d', end_date)),
 
     CONSTRAINT fk_DbHuntingControlRhy
       FOREIGN KEY (rhy_id, username)

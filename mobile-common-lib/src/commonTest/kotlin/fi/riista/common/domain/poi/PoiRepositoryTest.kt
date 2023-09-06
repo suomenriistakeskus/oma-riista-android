@@ -5,6 +5,7 @@ import fi.riista.common.domain.poi.model.PoiLocation
 import fi.riista.common.domain.poi.model.PoiLocationGroup
 import fi.riista.common.domain.poi.model.PointOfInterestType
 import fi.riista.common.helpers.createDatabaseDriverFactory
+import fi.riista.common.helpers.runBlockingTest
 import fi.riista.common.model.ETRMSGeoLocation
 import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.model.LocalDateTime
@@ -15,7 +16,7 @@ import kotlin.test.assertEquals
 class PoiRepositoryTest {
 
     @Test
-    fun testReplace() {
+    fun testReplace() = runBlockingTest {
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = PoiRepository(database)

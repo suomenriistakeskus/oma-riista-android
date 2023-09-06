@@ -1,7 +1,9 @@
 package fi.riista.common
 
 import android.content.Context
+import co.touchlab.crashkios.crashlytics.enableCrashlytics
 import fi.riista.common.database.DatabaseDriverFactory
+import fi.riista.common.logging.CrashlyticsLogger
 import fi.riista.common.logging.getLogger
 
 actual class RiistaSdkBuilder private constructor(
@@ -26,7 +28,13 @@ actual class RiistaSdkBuilder private constructor(
         }
         ApplicationContextHolder.applicationContext = applicationContext
 
+        setupCrashlytics()
+
         RiistaSDK.initialize(configuration, DatabaseDriverFactory(applicationContext))
+    }
+
+    internal actual fun setupCrashlytics() {
+        enableCrashlytics()
     }
 
     companion object {
@@ -35,9 +43,14 @@ actual class RiistaSdkBuilder private constructor(
             applicationVersion: String,
             buildVersion: String,
             serverBaseAddress: String,
+            crashlyticsLogger: CrashlyticsLogger,
         ): RiistaSdkBuilder {
             val configuration = RiistaSdkConfiguration(
-                    applicationVersion, buildVersion, serverBaseAddress)
+                applicationVersion = applicationVersion,
+                applicationBuild = buildVersion,
+                serverBaseAddress = serverBaseAddress,
+                crashlyticsLogger = crashlyticsLogger,
+            )
 
             return RiistaSdkBuilder(configuration)
         }

@@ -20,11 +20,13 @@ import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.controller.restoreFromBundle
 import fi.riista.common.ui.controller.saveToBundle
 import fi.riista.mobile.R
+import fi.riista.mobile.sync.SyncConfig
 import fi.riista.mobile.ui.AlertDialogFragment
 import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.NoChangeAnimationsItemAnimator
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import kotlinx.coroutines.*
+import javax.inject.Inject
 
 class EditHuntingControlEventFragment : ModifyHuntingControlEventFragment<EditHuntingControlEventController>() {
 
@@ -45,6 +47,9 @@ class EditHuntingControlEventFragment : ModifyHuntingControlEventFragment<EditHu
     private lateinit var controller: EditHuntingControlEventController
     private val disposeBag = DisposeBag()
     private var saveScope: CoroutineScope? = null
+
+    @Inject
+    lateinit var syncConfig: SyncConfig
 
     override fun onAttach(context: Context) {
         AndroidSupportInjection.inject(this)
@@ -148,7 +153,7 @@ class EditHuntingControlEventFragment : ModifyHuntingControlEventFragment<EditHu
         val scope = MainScope()
 
         scope.launch {
-            val result = controller.saveHuntingControlEvent()
+            val result = controller.saveHuntingControlEvent(updateToBackend = syncConfig.isAutomatic())
 
             // allow cancellation to take effect i.e don't continue updating UI
             // if saveScope has been cancelled

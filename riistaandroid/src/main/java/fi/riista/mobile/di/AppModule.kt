@@ -2,7 +2,6 @@ package fi.riista.mobile.di
 
 import android.app.Application
 import android.content.Context
-import androidx.room.Room
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.joda.JodaModule
 import dagger.Module
@@ -11,11 +10,9 @@ import fi.riista.mobile.database.HarvestDatabase
 import fi.riista.mobile.database.PermitManager
 import fi.riista.mobile.database.SpeciesInformation
 import fi.riista.mobile.database.SpeciesResolver
-import fi.riista.mobile.database.room.MetsahallitusPermitDAO
-import fi.riista.mobile.database.room.Migrations.MIGRATION_1_2
-import fi.riista.mobile.database.room.RiistaDatabase
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_CONTEXT_NAME
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_WORK_CONTEXT_NAME
+import fi.riista.mobile.feature.filter.SharedEntityFilterState
 import fi.riista.mobile.network.AppDownloadManager
 import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.utils.Authenticator
@@ -25,7 +22,6 @@ import fi.riista.mobile.utils.CookieStoreSingleton
 import fi.riista.mobile.utils.CredentialsStore
 import fi.riista.mobile.utils.CredentialsStoreImpl
 import fi.riista.mobile.utils.LogoutHelper
-import fi.riista.mobile.utils.ROOM_DATABASE_NAME
 import fi.riista.mobile.utils.UserInfoConverter
 import fi.riista.mobile.utils.UserInfoStore
 import fi.riista.mobile.utils.UserInfoStoreImpl
@@ -49,25 +45,6 @@ class AppModule {
     @Provides
     @Named(APPLICATION_WORK_CONTEXT_NAME)
     fun applicationWorkContext(application: WorkApplication): WorkContext = application.workContext
-
-    @Singleton
-    @Provides
-    fun db(@Named(APPLICATION_CONTEXT_NAME) appContext: Context): RiistaDatabase {
-        return Room
-                .databaseBuilder(appContext, RiistaDatabase::class.java, ROOM_DATABASE_NAME)
-                .addMigrations(MIGRATION_1_2)
-
-                // Will delete all data from Room database table if a migration is missing!
-                //.fallbackToDestructiveMigration()
-
-                .build()
-    }
-
-    @Singleton
-    @Provides
-    fun metsahallitusPermitDAO(db: RiistaDatabase): MetsahallitusPermitDAO {
-        return db.metsahallitusPermitDao()
-    }
 
 
     @Singleton
@@ -141,5 +118,11 @@ class AppModule {
             credentialsStore = credentialsStore,
             permitManager = permitManager,
         )
+    }
+
+    @Singleton
+    @Provides
+    fun sharedEntityFilterState(): SharedEntityFilterState {
+        return SharedEntityFilterState()
     }
 }

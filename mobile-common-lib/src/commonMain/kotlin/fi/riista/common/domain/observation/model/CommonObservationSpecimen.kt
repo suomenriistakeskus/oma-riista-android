@@ -5,6 +5,7 @@ import fi.riista.common.domain.model.GameAge
 import fi.riista.common.domain.model.Gender
 import fi.riista.common.domain.observation.dto.CommonObservationSpecimenDTO
 import fi.riista.common.model.BackendEnum
+import fi.riista.common.model.toBackendEnum
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,7 +18,22 @@ data class CommonObservationSpecimen(
     val marking: BackendEnum<ObservationSpecimenMarking>,
     val widthOfPaw: Double?,
     val lengthOfPaw: Double?,
+) {
+    fun isEmpty() = this == EMPTY_OBSERVATION_SPECIMEN
+}
+
+private val EMPTY_OBSERVATION_SPECIMEN = CommonObservationSpecimen(
+    remoteId = null,
+    revision = null,
+    gender = BackendEnum.create(null),
+    age = BackendEnum.create(null),
+    stateOfHealth = BackendEnum.create(null),
+    marking = BackendEnum.create(null),
+    widthOfPaw = null,
+    lengthOfPaw = null,
 )
+
+internal fun Iterable<CommonObservationSpecimen>.keepNonEmpty() = filter { !it.isEmpty() }
 
 internal fun CommonObservationSpecimen.toObservationSpecimenDTO() =
     CommonObservationSpecimenDTO(
@@ -35,10 +51,26 @@ internal fun CommonObservationSpecimen.toCommonSpecimenData() =
     CommonSpecimenData(
         remoteId = remoteId,
         revision = revision,
-        gender = gender,
-        age = age,
-        stateOfHealth = stateOfHealth,
-        marking = marking,
+        gender = gender.rawBackendEnumValue?.toBackendEnum(),
+        age = age.rawBackendEnumValue?.toBackendEnum(),
+        stateOfHealth = stateOfHealth.rawBackendEnumValue?.toBackendEnum(),
+        marking = marking.rawBackendEnumValue?.toBackendEnum(),
         lengthOfPaw = lengthOfPaw,
         widthOfPaw = widthOfPaw,
+        weight = null,
+        weightEstimated = null,
+        weightMeasured = null,
+        fitnessClass = null,
+        antlersLost = null,
+        antlersType = null,
+        antlersWidth = null,
+        antlerPointsLeft = null,
+        antlerPointsRight = null,
+        antlersGirth = null,
+        antlersLength = null,
+        antlersInnerWidth = null,
+        antlerShaftWidth = null,
+        notEdible = null,
+        alone = null,
+        additionalInfo = null,
     )

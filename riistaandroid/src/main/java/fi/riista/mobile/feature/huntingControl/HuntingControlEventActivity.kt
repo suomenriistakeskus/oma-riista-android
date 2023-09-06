@@ -21,6 +21,7 @@ import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.ui.FullScreenEntityImageDialog
+import fi.riista.mobile.utils.isResumed
 import java.io.File
 
 class HuntingControlEventActivity
@@ -66,6 +67,7 @@ class HuntingControlEventActivity
                 huntingControlRhyTarget = huntingControlRhyTarget,
                 stringProvider = ContextStringProviderFactory.createForContext(this),
                 commonFileProvider = RiistaSDK.commonFileProvider,
+                userContext = RiistaSDK.currentUserContext,
             )
         }
 
@@ -76,6 +78,7 @@ class HuntingControlEventActivity
                 huntingControlEventTarget = huntingControlEventTarget,
                 stringProvider = ContextStringProviderFactory.createForContext(this),
                 commonFileProvider = RiistaSDK.commonFileProvider,
+                userContext = RiistaSDK.currentUserContext,
             )
         }
 
@@ -196,7 +199,7 @@ class HuntingControlEventActivity
     }
 
     override fun onHuntingControlEventSaveCompleted(success: Boolean, indicatorsDismissed: () -> Unit) {
-        if (isFinishing) {
+        if (!lifecycle.isResumed()) {
             return
         }
         if (success) {

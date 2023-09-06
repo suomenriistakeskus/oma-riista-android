@@ -9,6 +9,7 @@ import fi.riista.common.domain.model.GameAge
 import fi.riista.common.domain.model.Gender
 import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.model.createForTests
 import fi.riista.common.domain.srva.model.CommonSrvaEventApprover
 import fi.riista.common.domain.srva.model.CommonSrvaEventAuthor
 import fi.riista.common.domain.srva.model.CommonSrvaEventData
@@ -213,6 +214,8 @@ class SrvaEventFieldsTest {
             state = SrvaEventState.UNFINISHED.toBackendEnum(),
             rhyId = 12,
             canEdit = true,
+            modified = true,
+            deleted = false,
             location = ETRMSGeoLocation(
                 latitude = 12,
                 longitude =  13,
@@ -233,7 +236,7 @@ class SrvaEventFieldsTest {
             otherSpeciesDescription = null,
             specimenAmount = 1,
             specimens = listOf(
-                CommonSpecimenData(
+                CommonSpecimenData.createForTests(
                     gender = Gender.MALE.toBackendEnum(),
                     age = GameAge.ADULT.toBackendEnum(),
                 )

@@ -29,8 +29,8 @@ class LocalDateTest {
 
     @Test
     fun testConvertingToString() {
-        assertEquals("2021-01-01", LocalDate(2021, 1, 1).toString())
-        assertEquals("2021-12-31", LocalDate(2021, 12, 31).toString())
+        assertEquals("2021-01-01", LocalDate(2021, 1, 1).toStringISO8601())
+        assertEquals("2021-12-31", LocalDate(2021, 12, 31).toStringISO8601())
     }
 
     @Test

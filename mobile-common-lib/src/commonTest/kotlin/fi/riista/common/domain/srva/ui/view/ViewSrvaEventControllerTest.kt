@@ -1,7 +1,9 @@
 package fi.riista.common.domain.srva.ui.view
 
+import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.constants.Constants
 import fi.riista.common.domain.constants.SpeciesCodes
+import fi.riista.common.domain.dto.UserInfoDTO
 import fi.riista.common.helpers.*
 import fi.riista.common.metadata.MetadataProvider
 import fi.riista.common.metadata.MockMetadataProvider
@@ -10,26 +12,35 @@ import fi.riista.common.resources.RR
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.localized
 import fi.riista.common.domain.specimens.ui.SpecimenFieldType
+import fi.riista.common.domain.srva.SrvaContext
+import fi.riista.common.domain.srva.SrvaEventOperationResponse
 import fi.riista.common.domain.srva.model.*
 import fi.riista.common.domain.srva.ui.SrvaEventField
+import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
+import fi.riista.common.dto.LocalizedStringDTO
+import fi.riista.common.io.CommonFileProviderMock
 import fi.riista.common.model.*
+import fi.riista.common.network.BackendAPI
+import fi.riista.common.network.BackendAPIMock
+import fi.riista.common.network.BackendApiProvider
+import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.ui.controller.ViewModelLoadStatus
+import fi.riista.common.util.MockDateTimeProvider
+import kotlinx.coroutines.runBlocking
 import kotlin.test.*
 
 class ViewSrvaEventControllerTest {
 
     @Test
-    fun testDataInitiallyNotLoaded() {
-        val controller = getController()
+    fun testDataInitiallyNotLoaded() = runBlockingTest {
+        val (controller, _) = getController()
         assertTrue(controller.viewModelLoadStatus.value is ViewModelLoadStatus.NotLoaded)
     }
 
     @Test
     fun testDataCanBeLoaded() = runBlockingTest {
-        val controller = getController()
+        val (controller, initialSrva) = getController(srvaEvent = getSrvaEvent())
 
-        val initialSrva = getSrvaEvent()
-        controller.srvaEvent = initialSrva
         controller.loadViewModel()
 
         assertTrue(controller.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded)
@@ -40,10 +51,8 @@ class ViewSrvaEventControllerTest {
 
     @Test
     fun testProducedFieldsMatchData() = runBlockingTest {
-        val controller = getController()
+        val (controller, initialSrva) = getController(srvaEvent = getSrvaEvent())
 
-        val initialSrva = getSrvaEvent()
-        controller.srvaEvent = initialSrva
         controller.loadViewModel()
 
         val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
@@ -131,12 +140,12 @@ class ViewSrvaEventControllerTest {
 
     @Test
     fun testProducedFieldsMatchDataForApprover() = runBlockingTest {
-        val controller = getController()
-
-        val initialSrva = getSrvaEvent().copy(
-            state = SrvaEventState.APPROVED.toBackendEnum()
+        val (controller, _) = getController(
+            srvaEvent = getSrvaEvent().copy(
+                state = SrvaEventState.APPROVED.toBackendEnum()
+            )
         )
-        controller.srvaEvent = initialSrva
+
         controller.loadViewModel()
 
         val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
@@ -152,12 +161,12 @@ class ViewSrvaEventControllerTest {
 
     @Test
     fun testProducedFieldsMatchDataForRejector() = runBlockingTest {
-        val controller = getController()
-
-        val initialSrva = getSrvaEvent().copy(
-            state = SrvaEventState.REJECTED.toBackendEnum()
+        val (controller, _) = getController(
+            srvaEvent = getSrvaEvent().copy(
+                state = SrvaEventState.REJECTED.toBackendEnum()
+            )
         )
-        controller.srvaEvent = initialSrva
+
         controller.loadViewModel()
 
         val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
@@ -173,18 +182,18 @@ class ViewSrvaEventControllerTest {
 
     @Test
     fun testFieldsAreProducedForMissingData() = runBlockingTest {
-        val controller = getController()
-
-        val initialSrva = getSrvaEvent().copy(
-            eventCategory = BackendEnum.create(null),
-            eventType = BackendEnum.create(null),
-            eventResult = BackendEnum.create(null),
-            images = EntityImages(
-                remoteImageIds = listOf(),
-                localImages = listOf(),
+        val (controller, initialSrva) = getController(
+            srvaEvent = getSrvaEvent().copy(
+                eventCategory = BackendEnum.create(null),
+                eventType = BackendEnum.create(null),
+                eventResult = BackendEnum.create(null),
+                images = EntityImages(
+                    remoteImageIds = listOf(),
+                    localImages = listOf(),
+                )
             )
         )
-        controller.srvaEvent = initialSrva
+
         controller.loadViewModel()
 
         val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
@@ -270,18 +279,18 @@ class ViewSrvaEventControllerTest {
 
     @Test
     fun testDescriptionsAreDisplayedForOtherValues() = runBlockingTest {
-        val controller = getController()
-
-        val initialSrva = getSrvaEvent().copy(
-            eventType = SrvaEventType.OTHER.toBackendEnum(),
-            otherEventTypeDescription = "Lehmä katolla",
-            methods = listOf(
-                SrvaMethodType.TRACED_WITH_DOG.toBackendEnum().toCommonSrvaMethod(selected = true),
-                SrvaMethodType.OTHER.toBackendEnum().toCommonSrvaMethod(selected = true),
-            ),
-            otherMethodDescription = "Kiikareilla katsottiin"
+        val (controller, initialSrva) = getController(
+            srvaEvent = getSrvaEvent().copy(
+                eventType = SrvaEventType.OTHER.toBackendEnum(),
+                otherEventTypeDescription = "Lehmä katolla",
+                methods = listOf(
+                    SrvaMethodType.TRACED_WITH_DOG.toBackendEnum().toCommonSrvaMethod(selected = true),
+                    SrvaMethodType.OTHER.toBackendEnum().toCommonSrvaMethod(selected = true),
+                ),
+                otherMethodDescription = "Kiikareilla katsottiin"
+            )
         )
-        controller.srvaEvent = initialSrva
+
         controller.loadViewModel()
 
         val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
@@ -379,18 +388,18 @@ class ViewSrvaEventControllerTest {
 
     @Test
     fun testProducedFieldsMatchDataForDeportation() = runBlockingTest {
-        val controller = getController()
-
-        val initialSrva = getSrvaEvent().copy(
-            eventCategory = SrvaEventCategoryType.DEPORTATION.toBackendEnum(),
-            deportationOrderNumber = "deportationOrderNumber",
-            eventType = SrvaEventType.ANIMAL_NEAR_HOUSES_AREA.toBackendEnum(),
-            eventTypeDetail = SrvaEventTypeDetail.OTHER.toBackendEnum(),
-            otherEventTypeDetailDescription = "otherEventTypeDetailDescription",
-            eventResult = SrvaEventResult.ANIMAL_DEPORTED.toBackendEnum(),
-            eventResultDetail = SrvaEventResultDetail.ANIMAL_CONTACTED.toBackendEnum(),
+        val (controller, initialSrva) = getController(
+            srvaEvent = getSrvaEvent().copy(
+                eventCategory = SrvaEventCategoryType.DEPORTATION.toBackendEnum(),
+                deportationOrderNumber = "deportationOrderNumber",
+                eventType = SrvaEventType.ANIMAL_NEAR_HOUSES_AREA.toBackendEnum(),
+                eventTypeDetail = SrvaEventTypeDetail.OTHER.toBackendEnum(),
+                otherEventTypeDetailDescription = "otherEventTypeDetailDescription",
+                eventResult = SrvaEventResult.ANIMAL_DEPORTED.toBackendEnum(),
+                eventResultDetail = SrvaEventResultDetail.ANIMAL_CONTACTED.toBackendEnum(),
+            )
         )
-        controller.srvaEvent = initialSrva
+
         controller.loadViewModel()
 
         val viewModel = assertNotNull(controller.viewModelLoadStatus.value.loadedViewModel)
@@ -496,9 +505,54 @@ class ViewSrvaEventControllerTest {
         }
     }
 
+    @Test
+    fun testDeletingSrvaEventMarksItDeleted() = runBlockingTest {
+        val srvaContext = getSrvaContext()
+        val (controller, srvaEvent) = getController(srvaContext = srvaContext)
+
+        // not loaded yet
+        assertNull(srvaContext.srvaEventProvider.srvaEvents)
+
+        controller.loadViewModel(refresh = false)
+
+        assertEquals(1, srvaContext.srvaEventProvider.srvaEvents?.size)
+
+        assertTrue(controller.deleteSrvaEvent(updateToBackend = false), "deletion")
+
+        srvaContext.srvaEventProvider.fetch(refresh = true)
+
+        assertEquals(0, srvaContext.srvaEventProvider.srvaEvents?.size)
+
+        assertNotNull(srvaEvent.localId, "missing srva local id")
+        val deletedSrvaEvent = srvaContext.repository.getByLocalId(srvaEvent.localId!!)
+        assertTrue(deletedSrvaEvent.deleted, "srvaEvent deleted")
+    }
+
+    @Test
+    fun testDeletingSrvaEventCallsBackend() = runBlockingTest {
+        val srvaContext = getSrvaContext()
+        val (controller, srvaEvent) = getController(srvaContext = srvaContext)
+
+        assertEquals(0, backendAPIMock.callCount(BackendAPI::deleteSrvaEvent))
+
+        controller.loadViewModel(refresh = false)
+        assertTrue(controller.deleteSrvaEvent(updateToBackend = true), "deletion")
+
+        assertEquals(
+            expected = 1,
+            actual = backendAPIMock.callCount(BackendAPI::deleteSrvaEvent),
+            message = "delete count"
+        )
+        assertEquals(
+            expected = srvaEvent.remoteId,
+            actual = backendAPIMock.callParameter(BackendAPI::deleteSrvaEvent),
+            message = "deleted srvaEvent"
+        )
+    }
+
     private fun getSrvaEvent(): CommonSrvaEvent {
         return CommonSrvaEvent(
-            localId = 99,
+            localId = null,
             localUrl = null,
             remoteId = 100,
             revision = 2,
@@ -507,6 +561,8 @@ class ViewSrvaEventControllerTest {
             state = SrvaEventState.UNFINISHED.toBackendEnum(),
             rhyId = 12,
             canEdit = true,
+            modified = false,
+            deleted = false,
             location = ETRMSGeoLocation(
                 latitude = 12,
                 longitude =  13,
@@ -525,6 +581,7 @@ class ViewSrvaEventControllerTest {
             ),
             species = Species.Known(speciesCode = SpeciesCodes.MOOSE_ID),
             otherSpeciesDescription = null,
+            totalSpecimenAmount = 1,
             specimens = listOf(
                 CommonSrvaSpecimen(
                     gender = Gender.MALE.toBackendEnum(),
@@ -575,15 +632,77 @@ class ViewSrvaEventControllerTest {
         assertEquals(expected, this)
     }
 
-    private fun getController(
+
+    private suspend fun getController(
+        srvaEvent: CommonSrvaEvent = getSrvaEvent(),
+        srvaContext: SrvaContext = getSrvaContext(),
         metadataProvider: MetadataProvider = getMetadataProvider(),
         stringProvider: StringProvider = getStringProvider()
-    ) = ViewSrvaEventController(
-        metadataProvider = metadataProvider,
-        stringProvider = stringProvider,
-    )
+    ): Pair<ViewSrvaEventController, CommonSrvaEvent> {
+        val response = srvaContext.saveSrvaEvent(srvaEvent)
+        val resultingEvent = (response as? SrvaEventOperationResponse.Success)?.srvaEvent
+
+        assertNotNull(resultingEvent, "Failed to save srva event")
+
+        val controller = ViewSrvaEventController(
+            srvaEventId = resultingEvent.localId!!,
+            srvaContext = srvaContext,
+            metadataProvider = metadataProvider,
+            stringProvider = stringProvider,
+        )
+
+        return controller to resultingEvent
+    }
+
+    private fun getSrvaContext(): SrvaContext {
+        val dbDriverFactory = createDatabaseDriverFactory()
+        val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
+
+        val mockUserContextProvider = CurrentUserContextProviderFactory.createMocked()
+        runBlocking {
+            mockUserContextProvider.userLoggedIn(MOCK_USER_INFO)
+        }
+
+        return SrvaContext(
+            backendApiProvider = object : BackendApiProvider {
+                override val backendAPI: BackendAPI = backendAPIMock
+            },
+            preferences = MockPreferences(),
+            localDateTimeProvider = MockDateTimeProvider(),
+            commonFileProvider = CommonFileProviderMock(),
+            database = database,
+            currentUserContextProvider = mockUserContextProvider,
+        )
+    }
 
     private fun getMetadataProvider(): MetadataProvider = MockMetadataProvider.INSTANCE
     private fun getStringProvider(): StringProvider = TestStringProvider.INSTANCE
+    private val backendAPIMock = BackendAPIMock()
 
+    companion object {
+        private val MOCK_USER_INFO = UserInfoDTO(
+            username = "user",
+            personId = 123L,
+            firstName = "user_first",
+            lastName = "user_last",
+            birthDate = null,
+            address = null,
+            homeMunicipality = LocalizedStringDTO(null, null, null),
+            rhy = null,
+            hunterNumber = null,
+            hunterExamDate = null,
+            huntingCardStart = null,
+            huntingCardEnd = null,
+            huntingBanStart = null,
+            huntingBanEnd = null,
+            huntingCardValidNow = true,
+            qrCode = null,
+            timestamp = "2022-01-01",
+            shootingTests = emptyList(),
+            occupations = emptyList(),
+            enableSrva = true,
+            enableShootingTests = false,
+            deerPilotUser = true,
+        )
+    }
 }

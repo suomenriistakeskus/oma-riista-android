@@ -1,0 +1,5 @@
+listClubsSelectedForHarvest:
+SELECT DISTINCT organization_remote_id, organization_official_code, organization_name_fi, organization_name_sv, organization_name_en
+FROM DbOrganization
+INNER JOIN DbHarvest ON DbOrganization.organization_remote_id = DbHarvest.selected_club_id
+WHERE DbHarvest.username = ?;

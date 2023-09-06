@@ -54,7 +54,7 @@ class CommonSrvaEventValidatorTest {
         val validationErrors = validate(srvaEvent = getSrvaEvent().copy(
             specimens = listOf(),
         ))
-        assertTrue(validationErrors.contains(CommonSrvaEventValidator.Error.INVALID_SPECIMEN_AMOUNT))
+        assertFalse(validationErrors.contains(CommonSrvaEventValidator.Error.INVALID_SPECIMEN_AMOUNT))
     }
 
     @Test
@@ -214,6 +214,8 @@ class CommonSrvaEventValidatorTest {
             state = SrvaEventState.UNFINISHED.toBackendEnum(),
             rhyId = 12,
             canEdit = true,
+            modified = true,
+            deleted = false,
             location = ETRMSGeoLocation(
                 latitude = 12,
                 longitude =  13,
@@ -234,7 +236,7 @@ class CommonSrvaEventValidatorTest {
             otherSpeciesDescription = null,
             specimenAmount = 1,
             specimens = listOf(
-                CommonSpecimenData(
+                CommonSpecimenData.createForTests(
                     gender = Gender.MALE.toBackendEnum(),
                     age = GameAge.ADULT.toBackendEnum(),
                 )

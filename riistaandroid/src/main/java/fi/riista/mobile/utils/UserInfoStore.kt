@@ -11,6 +11,13 @@ interface UserInfoStore {
      */
     fun getUserInfo(): UserInfo?
 
+    /**
+     * Get stored user information (if any) in json format.
+     *
+     * @return Latest user info or null
+     */
+    fun getUserInfoJson(): String?
+
     fun getUsernameOrEmpty(): String = getUserInfo()?.username.orEmpty()
 
     /**

@@ -83,14 +83,6 @@ object CoordinateConverter {
                 longitude = longitude
         )
     }
-
-    private fun deg2rad(deg: Double): Double {
-        return deg * PI / 180.0
-    }
-
-    private fun rad2deg(rad: Double): Double {
-        return rad * 180 / PI
-    }
 }
 
 fun Coordinate.toETRSCoordinate() = CoordinateConverter.convertWGS84toETRSTM35FIN(latitude, longitude)

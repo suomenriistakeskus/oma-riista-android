@@ -9,6 +9,7 @@ import fi.riista.common.ui.dataField.DataFields
 data class ModifyHuntingControlEventViewModel(
     internal val event: HuntingControlEventData,
     internal val gameWardens: List<HuntingControlGameWarden>,
+    internal val selfInspectorWarning: Boolean,
 
     override val fields: DataFields<HuntingControlEventField> = listOf(),
     val eventIsValid: Boolean = false,

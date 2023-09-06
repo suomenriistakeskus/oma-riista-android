@@ -1,12 +1,9 @@
 package fi.riista.common.domain.huntingControl.sync
 
-import co.touchlab.stately.collections.IsoMutableList
 import co.touchlab.stately.concurrency.AtomicReference
 import fi.riista.common.domain.huntingControl.sync.dto.LoadRhysAndHuntingControlEventsDTO
 import fi.riista.common.domain.huntingControl.sync.dto.toLoadRhyHuntingControlEvents
 import fi.riista.common.domain.huntingControl.sync.model.LoadRhyHuntingControlEvents
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LoadStatus
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.network.BackendApiProvider
@@ -21,7 +18,7 @@ internal class HuntingControlRhyFromNetworkProvider(
 
     val syncTimestamp: AtomicReference<LocalDateTime?> = AtomicReference(null)
 
-    private val _rhys = IsoMutableList<LoadRhyHuntingControlEvents>()
+    private val _rhys = mutableListOf<LoadRhyHuntingControlEvents>()
     val rhys: List<LoadRhyHuntingControlEvents>?
         get() {
             return if (_rhys.isEmpty() && !loadStatus.value.loaded) {
@@ -48,11 +45,5 @@ internal class HuntingControlRhyFromNetworkProvider(
     internal fun clear() {
         _rhys.clear()
         loadStatus.set(LoadStatus.NotLoaded())
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(HuntingControlRhyFromNetworkProvider::class)
     }
 }

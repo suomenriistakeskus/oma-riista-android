@@ -1,6 +1,8 @@
 package fi.riista.common.domain.model
 
+import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.RepresentsBackendEnum
+import fi.riista.common.model.toBackendEnum
 import fi.riista.common.resources.LocalizableEnum
 import fi.riista.common.resources.RR
 
@@ -14,4 +16,9 @@ enum class GameFitnessClass(
     SKINNY("LAIHA", RR.string.harvest_fitness_class_laiha),
     EXHAUSTED("NAANTYNYT", RR.string.harvest_fitness_class_naantynyt),
     ;
+
+    // for iOS compatibility
+    companion object {
+        fun toBackendEnumCompat(value: String?): BackendEnum<GameFitnessClass> = value.toBackendEnum()
+    }
 }

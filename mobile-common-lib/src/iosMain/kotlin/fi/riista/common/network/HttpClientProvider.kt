@@ -2,17 +2,20 @@ package fi.riista.common.network
 
 import fi.riista.common.RiistaSdkConfiguration
 import fi.riista.common.logging.NetworkCallLogging
-import io.ktor.client.*
-import io.ktor.client.engine.ios.*
-import io.ktor.client.features.*
-import io.ktor.client.features.cookies.*
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.darwin.Darwin
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.UserAgent
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.plugins.defaultRequest
 
 internal actual class HttpClientProvider {
-    actual fun getConfiguredHttpClient(sdkConfiguration: RiistaSdkConfiguration,
-                                       cookiesStorage: CookiesStorage): HttpClient {
-        return HttpClient(Ios) {
+    actual fun getConfiguredHttpClient(
+        sdkConfiguration: RiistaSdkConfiguration,
+        cookiesStorage: CookiesStorage,
+    ): HttpClient {
+        return HttpClient(Darwin) {
             engine {
                 configureRequest {
                     setAllowsCellularAccess(true)
@@ -25,9 +28,13 @@ internal actual class HttpClientProvider {
             install(HttpCookies) {
                 storage = cookiesStorage
             }
+            install(HttpTimeout)
             defaultRequest {
                 configureDefaultRequest(this, sdkConfiguration)
             }
+
+            // expect all requests to succeed and thus receive exceptions for non-2xx responses
+            expectSuccess = true
         }
     }
 }

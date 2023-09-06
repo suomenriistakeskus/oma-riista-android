@@ -9,7 +9,7 @@ class CommonObservationFieldTest {
     @Test
     fun testAlwaysPresentFields() {
         val fields = CommonObservationField.fieldsWithPresence(CommonObservationField.Presence.ALWAYS)
-        assertEquals(27, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
+        assertEquals(28, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
         assertEquals(5, fields.size)
         assertTrue(fields.contains(CommonObservationField.LOCATION))
         assertTrue(fields.contains(CommonObservationField.SPECIES_AND_IMAGE))
@@ -21,7 +21,7 @@ class CommonObservationFieldTest {
     @Test
     fun testFieldsDependingOnMetadata() {
         val fields = CommonObservationField.fieldsWithPresence(CommonObservationField.Presence.DEPENDING_ON_METADATA)
-        assertEquals(27, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
+        assertEquals(28, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
         assertEquals(19, fields.size)
 
         assertTrue(fields.contains(CommonObservationField.OBSERVATION_CATEGORY))
@@ -48,11 +48,20 @@ class CommonObservationFieldTest {
     @Test
     fun testFieldsDependingOnCurrentValue() {
         val fields = CommonObservationField.fieldsWithPresence(CommonObservationField.Presence.DEPENDING_ON_CURRENT_VALUE)
-        assertEquals(27, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
+        assertEquals(28, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
         assertEquals(3, fields.size)
 
         assertTrue(fields.contains(CommonObservationField.TASSU_IN_YARD_DISTANCE_TO_RESIDENCE))
         assertTrue(fields.contains(CommonObservationField.TASSU_LITTER))
         assertTrue(fields.contains(CommonObservationField.TASSU_PACK))
+    }
+
+    @Test
+    fun testErrorFields() {
+        val fields = CommonObservationField.fieldsWithPresence(CommonObservationField.Presence.ERROR)
+        assertEquals(28, CommonObservationField.values().size) // for ensuring test is updated if new fields are added
+        assertEquals(1, fields.size)
+
+        assertTrue(fields.contains(CommonObservationField.ERROR_SPECIMEN_AMOUNT_AT_LEAST_TWO))
     }
 }

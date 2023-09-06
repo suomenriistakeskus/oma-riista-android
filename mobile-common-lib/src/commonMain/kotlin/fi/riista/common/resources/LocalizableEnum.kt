@@ -6,3 +6,7 @@ package fi.riista.common.resources
 interface LocalizableEnum {
     val resourcesStringId: RR.string
 }
+
+fun <E> E.localized(stringProvider: StringProvider): String where E : Enum<E>, E : LocalizableEnum {
+    return stringProvider.getString(resourcesStringId)
+}

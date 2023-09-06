@@ -1,11 +1,16 @@
 package fi.riista.common.domain.groupHunting.ui.groupHarvest
 
+import fi.riista.common.domain.constants.SpeciesCodes
 import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
 import fi.riista.common.domain.model.GameAge
 import fi.riista.common.domain.model.Gender
-import fi.riista.common.domain.constants.SpeciesCodes
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.FieldRequirement
+import fi.riista.common.ui.dataField.FieldSpecification
+import fi.riista.common.ui.dataField.noRequirement
+import fi.riista.common.ui.dataField.required
+import fi.riista.common.ui.dataField.voluntary
+import fi.riista.common.ui.dataField.withRequirement
 import kotlin.test.Test
 
 private const val speciesCode = SpeciesCodes.MOOSE_ID
@@ -16,10 +21,10 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testViewMoose() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
         )
 
         assertFields(expectedFields,
@@ -33,11 +38,11 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testEditMoose() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
         )
 
         assertFields(expectedFields,
@@ -54,11 +59,11 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
                 actorHunterNumberRequirement = FieldRequirement.voluntary(),
                 includeActorHunterNumber = true,
             ),
-            GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-            GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-            GroupHarvestField.FITNESS_CLASS.voluntary(),
-            GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
-            GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
+            CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+            CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+            CommonHarvestField.FITNESS_CLASS.voluntary(),
+            CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+            CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
         )
 
         assertFields(expectedFields,
@@ -77,11 +82,11 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
                 includeActorHunterNumber = true,
                 includeActorHunterNumberInfoOrError = true,
             ),
-            GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-            GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-            GroupHarvestField.FITNESS_CLASS.voluntary(),
-            GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
-            GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
+            CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+            CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+            CommonHarvestField.FITNESS_CLASS.voluntary(),
+            CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+            CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
         )
 
         assertFields(expectedFields,
@@ -96,11 +101,11 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testViewMooseYoung() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.ALONE.required(indicateRequirementStatus = false),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.ALONE.required(indicateRequirementStatus = false),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
         )
 
         assertFields(expectedFields,
@@ -130,12 +135,12 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testEditMooseYoung() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.ALONE.required(indicateRequirementStatus = false),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
+                CommonHarvestField.ALONE.required(indicateRequirementStatus = false),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
         )
 
         assertFields(expectedFields,
@@ -165,16 +170,16 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testViewMooseAdultMaleAntlersNotLost() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
-                GroupHarvestField.ANTLERS_TYPE.voluntary(),
-                GroupHarvestField.ANTLERS_WIDTH.voluntary(),
-                GroupHarvestField.ANTLER_POINTS_LEFT.voluntary(),
-                GroupHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
-                GroupHarvestField.ANTLERS_GIRTH.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.ANTLERS_TYPE.voluntary(),
+                CommonHarvestField.ANTLERS_WIDTH.voluntary(),
+                CommonHarvestField.ANTLER_POINTS_LEFT.voluntary(),
+                CommonHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
+                CommonHarvestField.ANTLERS_GIRTH.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
         )
 
         assertFields(expectedFields, getFields(
@@ -198,18 +203,18 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testEditMooseAdultMaleAntlersNotLost() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
-                GroupHarvestField.ANTLER_INSTRUCTIONS.noRequirement(),
-                GroupHarvestField.ANTLERS_TYPE.voluntary(),
-                GroupHarvestField.ANTLERS_WIDTH.voluntary(),
-                GroupHarvestField.ANTLER_POINTS_LEFT.voluntary(),
-                GroupHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
-                GroupHarvestField.ANTLERS_GIRTH.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.ANTLER_INSTRUCTIONS.noRequirement(),
+                CommonHarvestField.ANTLERS_TYPE.voluntary(),
+                CommonHarvestField.ANTLERS_WIDTH.voluntary(),
+                CommonHarvestField.ANTLER_POINTS_LEFT.voluntary(),
+                CommonHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
+                CommonHarvestField.ANTLERS_GIRTH.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
         )
 
         assertFields(expectedFields, getFields(
@@ -233,11 +238,11 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testViewMooseAdultMaleAntlersLost() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
         )
 
         assertFields(expectedFields, getFields(
@@ -253,12 +258,12 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun testEditMooseAdultMaleAntlersLost() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.FITNESS_CLASS.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
-                GroupHarvestField.ADDITIONAL_INFORMATION.voluntary(),
-                GroupHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.FITNESS_CLASS.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.ADDITIONAL_INFORMATION.voluntary(),
+                CommonHarvestField.ADDITIONAL_INFORMATION_INSTRUCTIONS.noRequirement(),
         )
 
         assertFields(expectedFields, getFields(
@@ -270,16 +275,16 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
         ))
     }
 
-    private fun getCommonViewFields(): Array<FieldSpecification<GroupHarvestField>> {
+    private fun getCommonViewFields(): Array<FieldSpecification<CommonHarvestField>> {
         return listOf(
-                GroupHarvestField.LOCATION.required(),
-                GroupHarvestField.SPECIES_CODE.required(),
-                GroupHarvestField.DATE_AND_TIME.required(),
-                GroupHarvestField.ACTOR.required(),
-                GroupHarvestField.AUTHOR.required(),
-                GroupHarvestField.GENDER.required(),
-                GroupHarvestField.AGE.required(),
-                GroupHarvestField.NOT_EDIBLE.required(indicateRequirementStatus = false),
+                CommonHarvestField.LOCATION.required(),
+                CommonHarvestField.SPECIES_CODE.required(),
+                CommonHarvestField.DATE_AND_TIME.required(),
+                CommonHarvestField.ACTOR.required(),
+                CommonHarvestField.AUTHOR.required(),
+                CommonHarvestField.GENDER.required(),
+                CommonHarvestField.AGE.required(),
+                CommonHarvestField.NOT_EDIBLE.required(indicateRequirementStatus = false),
         ).toTypedArray()
     }
 
@@ -287,22 +292,22 @@ class MooseHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
         actorHunterNumberRequirement: FieldRequirement = FieldRequirement.voluntary(),
         includeActorHunterNumber: Boolean = true,
         includeActorHunterNumberInfoOrError: Boolean = false,
-    ): Array<FieldSpecification<GroupHarvestField>> {
+    ): Array<FieldSpecification<CommonHarvestField>> {
         return listOfNotNull(
-                GroupHarvestField.LOCATION.required(),
-                GroupHarvestField.SPECIES_CODE.required(),
-                GroupHarvestField.HUNTING_DAY_AND_TIME.required(),
-                GroupHarvestField.HEADLINE_SHOOTER.noRequirement(),
-                GroupHarvestField.ACTOR.required(),
-                GroupHarvestField.ACTOR_HUNTER_NUMBER
+                CommonHarvestField.LOCATION.required(),
+                CommonHarvestField.SPECIES_CODE.required(),
+                CommonHarvestField.HUNTING_DAY_AND_TIME.required(),
+                CommonHarvestField.HEADLINE_SHOOTER.noRequirement(),
+                CommonHarvestField.ACTOR.required(),
+                CommonHarvestField.ACTOR_HUNTER_NUMBER
                     .withRequirement { actorHunterNumberRequirement }
                     .takeIf { includeActorHunterNumber },
-                GroupHarvestField.ACTOR_HUNTER_NUMBER_INFO_OR_ERROR.voluntary()
+                CommonHarvestField.ACTOR_HUNTER_NUMBER_INFO_OR_ERROR.voluntary()
                     .takeIf { includeActorHunterNumberInfoOrError },
-                GroupHarvestField.HEADLINE_SPECIMEN.noRequirement(),
-                GroupHarvestField.GENDER.required(),
-                GroupHarvestField.AGE.required(),
-                GroupHarvestField.NOT_EDIBLE.required(indicateRequirementStatus = false),
+                CommonHarvestField.HEADLINE_SPECIMEN.noRequirement(),
+                CommonHarvestField.GENDER.required(),
+                CommonHarvestField.AGE.required(),
+                CommonHarvestField.NOT_EDIBLE.required(indicateRequirementStatus = false),
         ).toTypedArray()
     }
 }

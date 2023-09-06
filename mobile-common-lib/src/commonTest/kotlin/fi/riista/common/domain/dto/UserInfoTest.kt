@@ -64,22 +64,6 @@ class UserInfoTest {
     }
 
     @Test
-    fun testHarvestYears() {
-        val expectedYears = listOf(2000, 2008, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020)
-        val years = parseUserInfo(MockUserInfo.Pentti).harvestYears
-        assertTrue(years.containsAll(expectedYears))
-        assertEquals(expectedYears.size, years.size)
-    }
-
-    @Test
-    fun testObservationYears() {
-        val expectedYears = listOf(2005, 2012, 2014, 2015, 2016, 2017, 2018, 2019, 2020)
-        val years = parseUserInfo(MockUserInfo.Pentti).observationYears
-        assertTrue(years.containsAll(expectedYears))
-        assertEquals(expectedYears.size, years.size)
-    }
-
-    @Test
     fun testShootingTests() {
         // TODO: 11.2.2021 get data for shooting tests!
         val userInfo = parseUserInfo(MockUserInfo.Pentti)

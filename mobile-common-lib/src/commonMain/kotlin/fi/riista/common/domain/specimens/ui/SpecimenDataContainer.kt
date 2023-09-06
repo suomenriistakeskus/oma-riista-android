@@ -30,7 +30,7 @@ abstract class SpecimenSpecifications {
     internal abstract val minWidthOfPawCentimetres: Double?
 
     internal val containsOnlyAdultYoungOrUnknownAgeValues: Boolean by lazy {
-        val ages = setOf(GameAge.ADULT, GameAge.YOUNG, GameAge.UNKNOWN).map { BackendEnum.create(it) }
+        val ages = setOf(GameAge.ADULT, GameAge.YOUNG, GameAge.UNKNOWN).mapTo(HashSet()) { BackendEnum.create(it) }
         (allowedAges - ages).isEmpty()
     }
 
@@ -73,6 +73,15 @@ abstract class SpecimenSpecifications {
 @Serializable
 data class SpecimenFieldDataContainer internal constructor(
     override val species: Species,
+    /**
+     * The amount of specimens to be displayed.
+     */
+    internal val specimenAmount: Int,
+
+    /**
+     * The raw specimen information. The list size may differ from [specimenAmount] (it may be larger or smaller)
+     * and thus [specimenAmount] should be the key factor when deciding how many specimens are displayed.
+     */
     internal val specimens: List<CommonSpecimenData>,
 
     /**
@@ -94,13 +103,34 @@ data class SpecimenFieldDataContainer internal constructor(
     companion object {
         internal fun createForSrva(
             species: Species,
+            specimenAmount: Int,
             specimens: List<CommonSpecimenData>,
             fieldSpecifications: List<SpecimenFieldSpecification>,
         ) = SpecimenFieldDataContainer(
             species = species,
+            specimenAmount = specimenAmount,
             specimens = specimens,
             fieldSpecifications = fieldSpecifications,
             allowedAges = listOf(GameAge.ADULT, GameAge.YOUNG, GameAge.UNKNOWN).map { BackendEnum.create(it) },
+            allowedStatesOfHealth = listOf(),
+            allowedMarkings = listOf(),
+            maxLengthOfPawCentimetres = null,
+            minLengthOfPawCentimetres = null,
+            maxWidthOfPawCentimetres = null,
+            minWidthOfPawCentimetres = null,
+        )
+
+        internal fun createForHarvest(
+            species: Species,
+            specimenAmount: Int,
+            specimens: List<CommonSpecimenData>,
+            fieldSpecifications: List<SpecimenFieldSpecification>,
+        ) = SpecimenFieldDataContainer(
+            species = species,
+            specimenAmount = specimenAmount,
+            specimens = specimens,
+            fieldSpecifications = fieldSpecifications,
+            allowedAges = listOf(GameAge.ADULT, GameAge.YOUNG).map { BackendEnum.create(it) },
             allowedStatesOfHealth = listOf(),
             allowedMarkings = listOf(),
             maxLengthOfPawCentimetres = null,

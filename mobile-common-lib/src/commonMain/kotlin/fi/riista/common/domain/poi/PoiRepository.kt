@@ -1,30 +1,40 @@
 package fi.riista.common.domain.poi
 
+import fi.riista.common.database.DatabaseWriteContext
 import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.poi.model.PoiLocation
 import fi.riista.common.domain.poi.model.PoiLocationGroup
 import fi.riista.common.model.ETRMSGeoLocation
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.model.toBackendEnum
+import kotlinx.coroutines.withContext
 
 internal class PoiRepository(database: RiistaDatabase) {
 
     private val poiLocationGroupQueries = database.dbPoiLocationGroupQueries
     private val poiLocationQueries = database.dbPoiLocationQueries
 
-    fun getPoiLocationGroups(externalId: String): List<PoiLocationGroup> {
-        val dbPoiLocationGroups: List<DbPoiLocationGroup> = poiLocationGroupQueries.selectByExternalId(externalId).executeAsList()
-        val poiLocationGroups = dbPoiLocationGroups.map { dbPoiLocationGroup ->
-            val dbPoiLocations: List<DbPoiLocation> = poiLocationQueries.selectByPoiId(dbPoiLocationGroup.id).executeAsList()
-            val poiLocations = dbPoiLocations.map { dbPoiLocation ->
-                dbPoiLocation.toPoiLocation()
+    suspend fun getPoiLocationGroups(externalId: String): List<PoiLocationGroup> = withContext(DatabaseWriteContext) {
+        return@withContext poiLocationGroupQueries.transactionWithResult {
+            val dbPoiLocationGroups = poiLocationGroupQueries.selectByExternalId(externalId).executeAsList()
+            val poiLocationGroups = dbPoiLocationGroups.map { dbPoiLocationGroup ->
+                val poiLocations = poiLocationQueries.selectByPoiId(dbPoiLocationGroup.id)
+                    .executeAsList().map { dbPoiLocation ->
+                        dbPoiLocation.toPoiLocation()
+                    }
+
+                dbPoiLocationGroup.toPoiLocationGroup(poiLocations)
             }
-            dbPoiLocationGroup.toPoiLocationGroup(poiLocations)
+
+            poiLocationGroups
         }
-        return poiLocationGroups
+
     }
 
-    fun replacePoiLocationGroups(externalId: String, poiLocationGroups: List<PoiLocationGroup>) {
+    suspend fun replacePoiLocationGroups(
+        externalId: String,
+        poiLocationGroups: List<PoiLocationGroup>,
+    ) = withContext(DatabaseWriteContext) {
         poiLocationGroupQueries.transaction {
             poiLocationGroupQueries.deleteByExternalId(externalId)
 

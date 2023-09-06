@@ -9,6 +9,7 @@ import android.view.View
 import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import dagger.android.AndroidInjection
@@ -19,6 +20,7 @@ import fi.riista.mobile.models.announcement.Announcement
 import fi.riista.mobile.network.CheckVersionTask
 import fi.riista.mobile.storage.StorageDatabase
 import fi.riista.mobile.sync.AppSync
+import fi.riista.mobile.sync.AppSyncPrecondition
 import fi.riista.mobile.ui.AlertDialogFragment
 import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.UpdateAvailableDialog
@@ -30,6 +32,7 @@ import fi.riista.mobile.utils.JsonUtils
 import fi.riista.mobile.utils.KeyboardUtils
 import fi.riista.mobile.utils.LocaleUtil.localeFromLanguageSetting
 import fi.riista.mobile.utils.Utils
+import fi.riista.mobile.utils.isResumed
 import fi.vincit.androidutilslib.activity.WorkActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
@@ -238,13 +241,12 @@ class LoginActivity
         }
 
         override fun onLoginFailed(httpStatusCode: Int) {
-            mActivityReference.get()?.takeIf { !it.isFinishing }?.onLoginFailed(httpStatusCode)
+            mActivityReference.get()?.takeIf { it.lifecycle.isResumed() }?.onLoginFailed(httpStatusCode)
         }
-
     }
 
     private fun onLoginSuccessful() {
-        appSync.enableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+        appSync.enableSyncPrecondition(AppSyncPrecondition.CREDENTIALS_VERIFIED)
 
         val intent = Intent(this, MainActivity::class.java)
         replaceActivity(intent)
@@ -258,7 +260,7 @@ class LoginActivity
                 R.string.version_outdated
             }
             403 -> {
-                appSync.disableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+                appSync.disableSyncPrecondition(AppSyncPrecondition.CREDENTIALS_VERIFIED)
                 R.string.login_failed
             }
             else -> {
@@ -315,10 +317,10 @@ class LoginActivity
         private fun updateCredentialsPrecondition(credentialsShouldBeValid: Boolean) {
             if (credentialsShouldBeValid) {
                 // other failures shouldn't prevent appsync attempts
-                appSync.enableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+                appSync.enableSyncPrecondition(AppSyncPrecondition.CREDENTIALS_VERIFIED)
             } else {
                 // only clear logged in status if credentials were not ok
-                appSync.disableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+                appSync.disableSyncPrecondition(AppSyncPrecondition.CREDENTIALS_VERIFIED)
             }
         }
     }

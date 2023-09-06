@@ -13,9 +13,11 @@ import kotlin.test.assertNull
 class HuntingClubsContextTest {
 
     @Test
-    fun testMembershipsAndInvitationsAreCreated() {
+    fun testInvitationsAreCreated() {
         val userContextProvider = CurrentUserContextProviderFactory.createMocked()
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -24,23 +26,22 @@ class HuntingClubsContextTest {
 
         runBlocking {
             huntingClubsContext.fetchInvitations()
-            huntingClubsContext.fetchMemberships()
         }
 
         assertEquals(1, huntingClubsContext.invitations!!.size)
-        assertEquals(1, huntingClubsContext.memberships!!.size)
     }
 
     @Test
-    fun testEmptyInvitationsAndMembershipsAreLoaded() {
+    fun testEmptyInvitationsAreLoaded() {
         val userContextProvider = CurrentUserContextProviderFactory.createMocked(
             backendAPI = BackendAPIMock(
-                huntingClubMembershipResponse = MockResponse.success(MockHuntingClubData.EmptyHuntingClubMemberships),
                 huntingClubMemberInvitationsResponse = MockResponse.success(MockHuntingClubData.EmptyHuntingClubMemberInvitations),
             ),
         )
 
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -49,19 +50,18 @@ class HuntingClubsContextTest {
 
         runBlocking {
             huntingClubsContext.fetchInvitations()
-            huntingClubsContext.fetchMemberships()
         }
 
-        assertEquals(true, huntingClubsContext.huntingClubMembershipProvider.loadStatus.value.loaded)
         assertEquals(true, huntingClubsContext.huntingClubMemberInvitationProvider.loadStatus.value.loaded)
         assertEquals(0, huntingClubsContext.invitations!!.size)
-        assertEquals(0, huntingClubsContext.memberships!!.size)
     }
 
     @Test
     fun testHuntingClubsContextIsClearedAfterLoggingOut() {
         val userContextProvider = CurrentUserContextProviderFactory.createMocked()
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        runBlocking {
+            userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        }
 
         val userContext = userContextProvider.userContext
         assertNotNull(userContext)
@@ -70,15 +70,14 @@ class HuntingClubsContextTest {
 
         runBlocking {
             huntingClubsContext.fetchInvitations()
-            huntingClubsContext.fetchMemberships()
         }
 
         assertEquals(1, huntingClubsContext.invitations!!.size)
-        assertEquals(1, huntingClubsContext.memberships!!.size)
 
-        userContext.userLoggedOut()
+        runBlocking {
+            userContext.userLoggedOut()
+        }
 
         assertNull(huntingClubsContext.invitations)
-        assertNull(huntingClubsContext.memberships)
     }
 }

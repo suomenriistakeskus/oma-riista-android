@@ -41,6 +41,7 @@ internal class ModifyHuntingControlEventFieldProducer(
             HuntingControlEventField.Type.NUMBER_OF_CUSTOMERS -> numberOfCustomers(fieldSpecification, event)
             HuntingControlEventField.Type.NUMBER_OF_PROOF_ORDERS -> numberOfProofOrders(fieldSpecification, event)
             HuntingControlEventField.Type.ERROR_NO_INSPECTORS_FOR_DATE -> errorNoInspectorsForDate(fieldSpecification)
+            HuntingControlEventField.Type.ERROR_NO_SELF_AS_INSPECTOR -> errorNoSelfInspector(fieldSpecification)
             HuntingControlEventField.Type.HEADLINE_ATTACHMENTS -> attachmentHeadline(fieldSpecification)
             HuntingControlEventField.Type.ATTACHMENT -> attachment(fieldSpecification, event)
             HuntingControlEventField.Type.ADD_ATTACHMENT -> addAttachment(fieldSpecification)
@@ -303,6 +304,18 @@ internal class ModifyHuntingControlEventFieldProducer(
         return LabelField(
             id = fieldSpecification.fieldId,
             text = stringProvider.getString(RR.string.hunting_control_error_no_inspectors_for_selected_date),
+            type = LabelField.Type.ERROR,
+        ) {
+            paddingTop = Padding.NONE
+        }
+    }
+
+    private fun errorNoSelfInspector(
+        fieldSpecification: FieldSpecification<HuntingControlEventField>,
+    ): LabelField<HuntingControlEventField> {
+        return LabelField(
+            id = fieldSpecification.fieldId,
+            text = stringProvider.getString(RR.string.hunting_control_error_no_self_as_inspector),
             type = LabelField.Type.ERROR,
         ) {
             paddingTop = Padding.NONE

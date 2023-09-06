@@ -1,0 +1,32 @@
+CREATE TABLE DbHarvestShooter (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER NOT NULL,
+    rev INTEGER AS Int NOT NULL,
+    byName TEXT NOT NULL,
+    lastName TEXT NOT NULL,
+    hunterNumber TEXT,
+    extendedName TEXT
+);
+
+CREATE UNIQUE INDEX harvest_shooter_remote_id_unique ON DbHarvestShooter(username, remote_id);
+
+insert:
+INSERT INTO DbHarvestShooter(username, remote_id, rev, byName, lastName, hunterNumber, extendedName)
+    VALUES (?, ?, ?, ?, ?, ?, ?);
+
+update:
+UPDATE DbHarvestShooter SET rev = ?, byName = ?, lastName = ?, hunterNumber = ?, extendedName = ?
+    WHERE username = ? AND remote_id = ?;
+
+getByLocalId:
+SELECT * FROM DbHarvestShooter WHERE local_id = ?;
+
+getAll:
+SELECT * FROM DbHarvestShooter WHERE username = ?;
+
+exists:
+SELECT EXISTS(SELECT 1 FROM DbHarvestShooter WHERE username = ? AND remote_id = ?);
+
+getByRemoteId:
+SELECT * FROM DbHarvestShooter WHERE username = ? AND remote_id = ?;

@@ -12,6 +12,7 @@ sealed class EditSpecimenIntent {
 
     class ChangeGender(override val fieldId: SpecimenFieldId, val gender: Gender?): EditSpecimenIntent()
     class ChangeAge(override val fieldId: SpecimenFieldId, val age: BackendEnum<GameAge>): EditSpecimenIntent()
+    class ChangeWeight(override val fieldId: SpecimenFieldId, val weight: Double?): EditSpecimenIntent()
     class ChangeStateOfHealth(
         override val fieldId: SpecimenFieldId,
         val stateOfHealth: BackendEnum<ObservationSpecimenState>?,

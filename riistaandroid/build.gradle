@@ -11,34 +11,19 @@ def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 android {
-    compileSdkVersion 31
-
-    def roomSchemasLocation = "$projectDir/schemas".toString()
-
-    sourceSets {
-        androidTest.assets.srcDirs += files(roomSchemasLocation)
-    }
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "fi.riista.mobile"
-        versionCode 1296
-        versionName "2.6.2"
+        versionCode 1316
+        versionName "2.6.8"
 
         manifestPlaceholders = [
                 use_crashlytics:false
         ]
 
         minSdkVersion 21
-        targetSdkVersion 31
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = [
-                        "room.schemaLocation": roomSchemasLocation,
-                        "room.incremental"   : "true"
-                ]
-            }
-        }
+        targetSdkVersion 33
     }
 
     buildFeatures {
@@ -132,23 +117,22 @@ android {
     namespace 'fi.riista.mobile'
 }
 
-def dagger_version = '2.35.1'
+def dagger_version = '2.46.1'
 def joda_version = '2.10.7'
-def lifecycle_version = '2.4.1'
-def room_version = '2.4.1'
+def lifecycle_version = '2.6.1'
 def glide_version = '4.12.0'
 
 def mockitoVersion = '2.28.2'
 def hamcrestVersion = '2.2'
-def kotlinxDatetimeVersion = '0.2.1'
-def kotlinxSerializationVersion = "1.2.2" // Use same as in mobile-common-lib
+def kotlinxDatetimeVersion = '0.4.0'
+def kotlinxSerializationVersion = "1.5.0" // Use same as in mobile-common-lib
 
 dependencies {
     implementation project(':mobile-common-lib')
     implementation project(':AndroidUtilsLib')
 
     // core library desugaring as required by mobile-common-lib
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
@@ -176,15 +160,17 @@ dependencies {
     }
 
     // Support libraries
-    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation "androidx.appcompat:appcompat:$appcompat_version"
-    implementation("androidx.fragment:fragment-ktx:1.3.6")
+    implementation "androidx.fragment:fragment-ktx:1.5.7"
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+    implementation "androidx.window:window:1.1.0"
 
     // For loading and tinting drawables on older versions of the platform
     implementation "androidx.appcompat:appcompat-resources:$appcompat_version"
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
 
@@ -194,17 +180,12 @@ dependencies {
     kapt "com.google.dagger:dagger-compiler:$dagger_version"
     kapt "com.google.dagger:dagger-android-processor:$dagger_version"
 
-    // Room database
-    implementation "androidx.room:room-runtime:$room_version"
-    implementation "androidx.room:room-ktx:$room_version"
-    kapt "androidx.room:room-compiler:$room_version"
-
     // Lifecycle
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-common-java8:$lifecycle_version"
 
-    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'com.google.protobuf.nano:protobuf-javanano:3.1.0'
     implementation 'com.google.zxing:core:3.5.1'
     implementation 'com.google.maps.android:android-maps-utils:2.2.3'
@@ -216,14 +197,14 @@ dependencies {
     implementation "com.github.bumptech.glide:glide:$glide_version"
     kapt "com.github.bumptech.glide:compiler:$glide_version"
 
-    implementation 'com.google.android.gms:play-services-oss-licenses:17.0.0'
+    implementation 'com.google.android.gms:play-services-oss-licenses:17.0.1'
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'junit:junit:4.13.2'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation "org.hamcrest:hamcrest:$hamcrestVersion"
 
     // Test helpers for LiveData
-    testImplementation "androidx.arch.core:core-testing:2.1.0"
+    testImplementation "androidx.arch.core:core-testing:2.2.0"
 
     // Separate Joda artifact for tests in order to not require Android-specific initialization in JUnit tests.
     testImplementation "joda-time:joda-time:$joda_version"

@@ -3,7 +3,7 @@ package fi.riista.common.util
 import co.touchlab.stately.concurrency.AtomicBoolean
 import co.touchlab.stately.concurrency.AtomicReference
 import co.touchlab.stately.concurrency.value
-import fi.riista.common.logging.Logger
+import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LoadStatus
 import fi.riista.common.reactive.Observable
 import kotlinx.coroutines.*
@@ -20,10 +20,11 @@ import kotlinx.coroutines.*
  * the data loading has completed.
  */
 abstract class SequentialDataFetcher: DataFetcher {
-
     override val loadStatus: Observable<LoadStatus> = Observable(LoadStatus.NotLoaded())
 
     private var existingFetch = AtomicReference<Job?>(null)
+
+    protected val logger by getLogger(this::class)
 
     /**
      * Should the data be refreshed when loading it the next time.
@@ -41,7 +42,7 @@ abstract class SequentialDataFetcher: DataFetcher {
 
     override suspend fun fetch(refresh: Boolean): Unit = coroutineScope {
         if (!refresh && !shouldRefresh.value && loadStatus.value.loaded) {
-            logger()?.v { "Data has been already loaded, not refreshing" }
+            logger.v { "Data has been already loaded, not refreshing" }
             return@coroutineScope
         }
 
@@ -49,9 +50,9 @@ abstract class SequentialDataFetcher: DataFetcher {
         // don't allow simultaneous fetches even if refreshing
         var activeFetch = existingFetch.value
         if (activeFetch != null) {
-            logger()?.v { "An active fetch operation found." }
+            logger.v { "An active fetch operation found." }
         } else {
-            logger()?.v { "No active fetch operation, creating one.." }
+            logger.v { "No active fetch operation, creating one.." }
 
             shouldRefresh.value = false
 
@@ -66,12 +67,12 @@ abstract class SequentialDataFetcher: DataFetcher {
             }
         }
 
-        logger()?.v { "Waiting for the fetch operation to be performed.."}
+        logger.v { "Waiting for the fetch operation to be performed.."}
         try {
             activeFetch.join()
             existingFetch.value = null
         } catch (e: CancellationException) {
-            logger()?.i { "Fetch operation was cancelled." }
+            logger.i { "Fetch operation was cancelled." }
 
             existingFetch.value = null
             // todo: should a separate status be used for cancelled?
@@ -81,7 +82,7 @@ abstract class SequentialDataFetcher: DataFetcher {
             throw e
         }
 
-        logger()?.v { "Fetch operation completed."}
+        logger.v { "Fetch operation completed."}
     }
 
     /**
@@ -92,10 +93,4 @@ abstract class SequentialDataFetcher: DataFetcher {
      * The subclass should preferably also perform logging using [logger].
      */
     protected abstract suspend fun doFetch()
-
-
-    /**
-     * Return a logger in order to log stuff from this class..
-     */
-    protected abstract fun logger(): Logger?
 }

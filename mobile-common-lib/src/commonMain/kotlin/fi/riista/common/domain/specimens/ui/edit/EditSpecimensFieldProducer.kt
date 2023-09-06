@@ -1,5 +1,6 @@
 package fi.riista.common.domain.specimens.ui.edit
 
+import fi.riista.common.domain.constants.SpeciesConstants
 import fi.riista.common.domain.content.SpeciesResolver
 import fi.riista.common.domain.model.CommonSpecimenData
 import fi.riista.common.domain.model.GameAge
@@ -18,11 +19,15 @@ import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.toLocalizedStringWithId
 import fi.riista.common.ui.dataField.AgeField
 import fi.riista.common.ui.dataField.DataField
+import fi.riista.common.ui.dataField.DoubleField
 import fi.riista.common.ui.dataField.EnumStringListFieldFactory
 import fi.riista.common.ui.dataField.GenderField
 import fi.riista.common.ui.dataField.LabelField
 import fi.riista.common.ui.dataField.Padding
 import fi.riista.common.ui.dataField.StringListField
+import fi.riista.common.ui.helpers.DoubleFormatter
+import fi.riista.common.ui.helpers.WeightFormatter
+import fi.riista.common.ui.helpers.formatWithOneDecimal
 import kotlin.math.round
 
 internal class EditSpecimensFieldProducer(
@@ -38,6 +43,7 @@ internal class EditSpecimensFieldProducer(
         }
     private val markingFactory = EnumStringListFieldFactory.create<ObservationSpecimenMarking>(stringProvider)
     private val stateOrHealthFactory = EnumStringListFieldFactory.create<ObservationSpecimenState>(stringProvider)
+    private val doubleFormatter = DoubleFormatter(stringProvider)
 
     fun createSpeciesHeader(
         // the stable index of the specimen -> allows identifying the specimen at later point
@@ -117,6 +123,18 @@ internal class EditSpecimensFieldProducer(
                     paddingBottom = Padding.SMALL
                 }
             }
+            SpecimenFieldType.WEIGHT -> {
+                DoubleField(
+                    id = fieldSpecification.fieldType.toField(stableSpecimenIndex),
+                    value = specimen.weight
+                ) {
+                    readOnly = false
+                    decimals = WeightFormatter.getDecimalCount(species)
+                    requirementStatus = fieldSpecification.requirementStatus
+                    maxValue = SpeciesConstants.MAX_WEIGHT
+                    label = fieldSpecification.label
+                }
+            }
             SpecimenFieldType.STATE_OF_HEALTH ->
                 stateOrHealthFactory.create(
                     fieldId = fieldSpecification.fieldType.toField(stableSpecimenIndex),
@@ -191,7 +209,10 @@ internal class EditSpecimensFieldProducer(
         }
 
         val possibleValues = listOfNotNull(noDimensionValue) + possibleDimensionValuesInMillimeters.map {
-            StringWithId(string = (it / 10f).toString(), id = it.toLong())
+            StringWithId(
+                string = (it / 10.0).formatWithOneDecimal(doubleFormatter),
+                id = it.toLong()
+            )
         }
 
         return StringListField(

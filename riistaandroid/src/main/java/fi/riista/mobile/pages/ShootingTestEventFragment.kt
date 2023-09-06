@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.lifecycle.ViewModelProvider
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
@@ -40,8 +41,10 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
     private var calendarEvent: ShootingTestCalendarEvent? = null
     private val selectedOfficials: MutableList<ShootingTestOfficial> = mutableListOf()
     private val availableOfficials: MutableList<ShootingTestOfficial> = mutableListOf()
+    private var shootingTestResponsibleOccupationId: Long? = null
     private val selectedOfficialsMaster: MutableList<ShootingTestOfficial> = mutableListOf()
     private val availableOfficialsMaster: MutableList<ShootingTestOfficial> = mutableListOf()
+    private var shootingTestResponsibleOccupationIdMaster: Long? = null
     private var isEditing = false
     private var hasSelectedOfficials = false
     private var hasAvailableOfficials = false
@@ -91,6 +94,19 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
         }
         refreshButtonStates()
     }
+    private val mOnMakeResponsibleClickListener = View.OnClickListener { view: View ->
+        val event = calendarEvent
+        if (isEditing || event != null && event.isWaitingToStart) {
+            val occupationId = view.tag as Long
+            if (shootingTestResponsibleOccupationId == occupationId) {
+                return@OnClickListener
+            }
+            shootingTestResponsibleOccupationId = occupationId
+
+            populateListView(selectedOfficialsView, selectedOfficials, true, isEditing)
+        }
+        refreshButtonStates()
+    }
 
     // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     override fun onAttach(context: Context) {
@@ -132,9 +148,13 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
         viewModel = ViewModelProvider(requireActivity(), viewModelFactory!!)[ShootingTestMainViewModel::class.java]
         viewModel.selectedOfficials.observe(viewLifecycleOwner) { selectedOfficials: List<ShootingTestOfficial> ->
             selectedOfficialsMaster.clear()
+            shootingTestResponsibleOccupationIdMaster = null
             if (selectedOfficials.isNotEmpty()) {
                 selectedOfficialsMaster.addAll(selectedOfficials)
+                shootingTestResponsibleOccupationIdMaster = selectedOfficials
+                    .firstOrNull { it.shootingTestResponsible }?.occupationId
             }
+
             this.selectedOfficials.clear()
             if (selectedOfficialsMaster.isNotEmpty()) {
                 hasSelectedOfficials = true
@@ -142,6 +162,7 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
                 filterAvailableOfficials(availableOfficials)
                 refreshButtonStates()
             }
+            this.shootingTestResponsibleOccupationId = shootingTestResponsibleOccupationIdMaster
             selectedOfficialsView.removeAllViews()
             populateListView(selectedOfficialsView, this.selectedOfficials, true, isEditing)
         }
@@ -231,7 +252,12 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
         val testEventId = viewModel.testEventId
         val calendarEventId = viewModel.calendarEventId
         if (officialIds.size >= 2 && testEventId == null && calendarEventId != null) {
-            startEvent(officialIds, calendarEventId, testEventId)
+            startEvent(
+                officialIds = officialIds,
+                responsibleOfficialOccupationId = shootingTestResponsibleOccupationId,
+                calendarEventId = calendarEventId,
+                testEventId = testEventId
+            )
         }
     }
 
@@ -291,16 +317,23 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
             for (official in selectedOfficials) {
                 officialIds.add(official.occupationId)
             }
+
             val testEventId = viewModel.testEventId
             val calendarEventId = viewModel.calendarEventId
             if (officialIds.size >= 2 && testEventId != null && calendarEventId != null) {
-                updateEventOfficials(officialIds, calendarEventId, testEventId)
+                updateEventOfficials(
+                    officialIds = officialIds,
+                    responsibleOfficialOccupationId = shootingTestResponsibleOccupationId,
+                    calendarEventId = calendarEventId,
+                    testEventId = testEventId,
+                )
             }
         }
     }
 
     private fun startEvent(
         officialIds: List<Long>,
+        responsibleOfficialOccupationId: Long?,
         calendarEventId: Long,
         testEventId: Long?
     ) {
@@ -309,6 +342,7 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
                 calendarEventId = calendarEventId,
                 shootingTestEventId = testEventId,
                 occupationIds = officialIds,
+                responsibleOccupationId = responsibleOfficialOccupationId,
             )
 
             if (!isResumed) {
@@ -331,6 +365,7 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
 
     private fun updateEventOfficials(
         officialIds: List<Long>,
+        responsibleOfficialOccupationId: Long?,
         calendarEventId: Long,
         testEventId: Long
     ) {
@@ -339,6 +374,7 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
                 calendarEventId = calendarEventId,
                 shootingTestEventId = testEventId,
                 officialOccupationIds = officialIds,
+                responsibleOccupationId = responsibleOfficialOccupationId,
             )
 
             if (!isResumed) {
@@ -470,10 +506,11 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
         for (item in data) {
             parent.addView(
                 createOfficialView(
-                    item,
-                    parent,
-                    isSelected,
-                    isEdit || event != null && event.isWaitingToStart
+                    item = item,
+                    parent = parent,
+                    isSelected = isSelected,
+                    isShootingTestResponsible = isSelected && shootingTestResponsibleOccupationId == item.occupationId,
+                    isEdit = isEdit || event != null && event.isWaitingToStart,
                 )
             )
         }
@@ -483,13 +520,26 @@ class ShootingTestEventFragment : ShootingTestTabContentFragment() {
         item: ShootingTestOfficial,
         parent: ViewGroup?,
         isSelected: Boolean,
+        isShootingTestResponsible: Boolean,
         isEdit: Boolean
     ): View {
         val inflater = LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.view_shooting_official_item, parent, false)
         val nameLabel = view.findViewById<TextView>(R.id.official_name)
         nameLabel.text = String.format("%s %s", item.lastName, item.firstName)
+
+        val makeResponsibleButton = view.findViewById<AppCompatImageButton>(R.id.make_responsible_btn)
+        makeResponsibleButton.setImageResource(
+            when (isShootingTestResponsible) {
+                true -> R.drawable.star_filled
+                false -> R.drawable.star
+            }
+        )
+        makeResponsibleButton.visibility = isSelected.toVisibility()
+        makeResponsibleButton.tag = item.occupationId
+
         if (isEdit) {
+            makeResponsibleButton.setOnClickListener(mOnMakeResponsibleClickListener)
             if (isSelected) {
                 val removeButton = view.findViewById<Button>(R.id.remove_official_btn)
                 removeButton.setOnClickListener(onRemoveClickListener)

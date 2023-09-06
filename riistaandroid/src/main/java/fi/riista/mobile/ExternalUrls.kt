@@ -53,6 +53,13 @@ class ExternalUrls(selectedLanguage: SupportedLanguage?) {
             SWEDISH -> TERMS_OF_SERVICE_URL_SV
         }
 
+    // Separate English URL not available
+    val insuranceInstructionsUrl: String
+        get() = when (selectedLanguage) {
+            FINNISH, ENGLISH -> INSURANCE_INSTRUCTIONS_URL_FI
+            SWEDISH -> INSURANCE_INSTRUCTIONS_URL_SV
+        }
+
     companion object {
 
         internal const val MAGAZINE_URL_FI = "https://www.metsastajalehti.fi"
@@ -74,6 +81,9 @@ class ExternalUrls(selectedLanguage: SupportedLanguage?) {
         internal const val TERMS_OF_SERVICE_URL_FI = "https://riista.fi/riistahallinto/sahkoinen-asiointi/oma-riista-kayttoehdot/"
         internal const val TERMS_OF_SERVICE_URL_SV = "https://riista.fi/sv/viltforvaltningen/elektroniska-tjanster/anvandarvillkor/"
 
+        internal const val INSURANCE_INSTRUCTIONS_URL_FI = "https://riista.fi/metsastys/palvelut-metsastajalle/vakuutukset/metsastajavakuutus/"
+        internal const val INSURANCE_INSTRUCTIONS_URL_SV = "https://riista.fi/sv/jakt/tjanster-for-jagarna/forsakringar/jagarforsakring/"
+
         @JvmStatic
         fun getHuntingSeasonsUrl(languageCode: String?): String = ExternalUrls(languageCode).huntingSeasonsUrl
 
@@ -91,5 +101,8 @@ class ExternalUrls(selectedLanguage: SupportedLanguage?) {
 
         @JvmStatic
         fun getTermsOfServiceUrl(languageCode: String?): String = ExternalUrls(languageCode).termsOfServiceUrl
+
+        @JvmStatic
+        fun getInsuranceInstructionsUrl(languageCode: String?): String = ExternalUrls(languageCode).insuranceInstructionsUrl
     }
 }

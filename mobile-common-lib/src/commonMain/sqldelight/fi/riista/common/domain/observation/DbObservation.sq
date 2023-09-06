@@ -1,0 +1,138 @@
+CREATE TABLE DbObservation (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER,
+    rev INTEGER,
+    mobile_client_ref_id INTEGER,
+
+    can_edit INTEGER AS Boolean NOT NULL,
+    modified INTEGER AS Boolean NOT NULL,
+    deleted INTEGER AS Boolean NOT NULL,
+
+    spec_version INTEGER AS Int NOT NULL,
+    game_species_code INTEGER AS Int,
+    observation_category TEXT,
+    observation_type TEXT,
+
+    deer_hunting_type TEXT,
+    deer_hunting_other_type_description TEXT,
+
+    point_of_time TEXT NOT NULL,
+    description TEXT,
+
+    specimens TEXT,
+    total_specimen_amount INTEGER AS Int,
+
+    mooselike_male_amount INTEGER AS Int,
+    mooselike_female_amount INTEGER AS Int,
+    mooselike_female_1calf_amount INTEGER AS Int,
+    mooselike_female_2calfs_amount INTEGER AS Int,
+    mooselike_female_3calfs_amount INTEGER AS Int,
+    mooselike_female_4calfs_amount INTEGER AS Int,
+    mooselike_calf_amount INTEGER AS Int,
+    mooselike_unknown_specimen_amount INTEGER AS Int,
+
+    observer_name TEXT,
+    observer_phone_number TEXT,
+    official_additional_info TEXT,
+    verified_by_carnivore_authority INTEGER AS Boolean,
+
+    in_yard_distance_to_residence INTEGER AS Int,
+    litter INTEGER AS Boolean,
+    pack INTEGER AS Boolean,
+
+    local_images TEXT,
+    remote_images TEXT,
+    has_new_images INTEGER AS Boolean NOT NULL,
+
+    -- GeoLocation
+    location_latitude INTEGER AS Int NOT NULL,
+    location_longitude INTEGER AS Int NOT NULL,
+    location_source TEXT,
+    location_accuracy REAL,
+    location_altitude REAL,
+    location_altitudeAccuracy REAL
+);
+
+CREATE UNIQUE INDEX observation_remote_id_unique ON DbObservation(username, remote_id);
+
+CREATE INDEX observation_point_of_time ON DbObservation(username, point_of_time);
+
+selectByLocalId:
+SELECT * FROM DbObservation WHERE local_id = ?;
+
+selectByRemoteId:
+SELECT * FROM DbObservation WHERE username = ? AND remote_id = ?;
+
+getModifiedObservations:
+SELECT * FROM DbObservation WHERE username = ? AND modified = 1 AND deleted = 0;
+
+selectByMobileClientRefId:
+SELECT * FROM DbObservation WHERE username = ? AND mobile_client_ref_id = ?;
+
+insert:
+INSERT INTO DbObservation(username, remote_id, rev, mobile_client_ref_id, can_edit, modified, deleted, spec_version,
+    game_species_code, observation_category, observation_type, deer_hunting_type, deer_hunting_other_type_description,
+    point_of_time, description, specimens, total_specimen_amount, mooselike_male_amount, mooselike_female_amount,
+    mooselike_female_1calf_amount, mooselike_female_2calfs_amount, mooselike_female_3calfs_amount,
+    mooselike_female_4calfs_amount, mooselike_calf_amount, mooselike_unknown_specimen_amount, observer_name,
+    observer_phone_number, official_additional_info, verified_by_carnivore_authority, in_yard_distance_to_residence,
+    litter, pack, local_images, remote_images, has_new_images, location_latitude, location_longitude, location_source,
+    location_accuracy, location_altitude, location_altitudeAccuracy)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateByLocalId:
+UPDATE DbObservation SET
+    remote_id=?, rev=?, mobile_client_ref_id=?, can_edit=?, modified=?, deleted=?, spec_version=?,
+    game_species_code=?, observation_category=?, observation_type=?, deer_hunting_type=?, deer_hunting_other_type_description=?,
+    point_of_time=?, description=?, specimens=?, total_specimen_amount=?, mooselike_male_amount=?,
+    mooselike_female_amount=?, mooselike_female_1calf_amount=?, mooselike_female_2calfs_amount=?,
+    mooselike_female_3calfs_amount=?, mooselike_female_4calfs_amount=?, mooselike_calf_amount=?,
+    mooselike_unknown_specimen_amount=?, observer_name=?, observer_phone_number=?, official_additional_info=?,
+    verified_by_carnivore_authority=?, in_yard_distance_to_residence=?, litter=?, pack=?,
+    local_images=?, remote_images=?, has_new_images=?, location_latitude=?, location_longitude=?, location_source=?,
+    location_accuracy=?, location_altitude=?, location_altitudeAccuracy=?
+WHERE local_id=?;
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+selectByUser:
+SELECT * FROM DbObservation WHERE username = ? AND deleted = 0 ORDER BY point_of_time DESC;
+
+markDeleted:
+UPDATE DbObservation SET deleted = 1 WHERE local_id = ?;
+
+hardDelete:
+DELETE FROM DbObservation WHERE local_id = ?;
+
+hardDeleteByRemoteId:
+DELETE FROM DbObservation WHERE username = ? AND remote_id = ?;
+
+getDeletedObservations:
+SELECT * FROM DbObservation WHERE username = ? AND deleted = 1;
+
+getObservationIdsWithLocalImages:
+SELECT local_id FROM DbObservation WHERE username = ? AND deleted = 0 AND local_images IS NOT NULL;
+
+getObservationsWithNewImages:
+SELECT * FROM DbObservation WHERE username = ? AND deleted = 0 AND has_new_images = 1;
+
+getObservationsWithLocalIds:
+SELECT * FROM DbObservation WHERE local_id IN ? ORDER BY point_of_time DESC;
+
+getObservationDateTimes:
+SELECT point_of_time FROM DbObservation WHERE username = ? AND deleted = 0;
+
+getLatestObservationSpecies:
+SELECT game_species_code FROM DbObservation WHERE username = ? AND deleted = 0 GROUP BY game_species_code ORDER BY MAX(datetime(point_of_time)) DESC LIMIT :limit;
+
+filter:
+SELECT * FROM DbObservation WHERE
+    username = :username
+    AND deleted = 0
+    AND CASE WHEN :startDateTime IS NOT NULL THEN point_of_time >= :startDateTime ELSE 1 END
+    AND CASE WHEN :endDateTime IS NOT NULL THEN point_of_time <= :endDateTime ELSE 1 END
+    AND CASE WHEN :filterSpecies THEN game_species_code IN :species ELSE 1 END
+    AND CASE WHEN :requireImages THEN local_images IS NOT NULL OR remote_images IS NOT NULL ELSE 1 END
+    ORDER BY point_of_time DESC;

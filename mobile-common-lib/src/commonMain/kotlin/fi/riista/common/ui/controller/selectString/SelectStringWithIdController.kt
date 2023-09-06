@@ -1,7 +1,5 @@
 package fi.riista.common.ui.controller.selectString
 
-import co.touchlab.stately.collections.IsoMutableList
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.model.StringId
 import fi.riista.common.model.StringWithId
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
@@ -9,6 +7,7 @@ import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.StringListField
 import fi.riista.common.ui.intent.IntentHandler
+import fi.riista.common.util.contains
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
@@ -27,15 +26,12 @@ class SelectStringWithIdController(
     HasUnreproducibleState<SelectStringWithIdController.State> {
 
     private var stateToRestore: State? = null
-    private val _selectedValues = IsoMutableList<StringWithId>()
+    private val _selectedValues = mutableListOf<StringWithId>()
     val selectedValues: List<StringWithId>
         get() = _selectedValues
 
     val eventDispatcher: SelectStringWithIdEventDispatcher = SelectStringWithIdEventToIntentMapper(intentHandler = this)
 
-    init {
-        ensureNeverFrozen()
-    }
 
     override fun createLoadViewModelFlow(refresh: Boolean):
             Flow<ViewModelLoadStatus<SelectStringWithIdViewModel>> = flow {
@@ -59,7 +55,7 @@ class SelectStringWithIdController(
         val allValues = possibleValues.map { value ->
             SelectableStringWithId(
                 value = value,
-                selected = (selectedValues.firstOrNull { it.id == value.id } != null)
+                selected = selectedValues.contains { it.id == value.id }
             )
         }
         emit(
@@ -153,13 +149,13 @@ class SelectStringWithIdController(
         val newAllValues = viewModel.allValues.map { selectableStringWithId ->
             SelectableStringWithId(
                 value = selectableStringWithId.value,
-                selected = (selectedValues.firstOrNull { it.id == selectableStringWithId.value.id } != null)
+                selected = selectedValues.contains { it.id == selectableStringWithId.value.id }
             )
         }
         val newFilteredValues = viewModel.filteredValues.map { selectableStringWithId ->
             SelectableStringWithId(
                 value = selectableStringWithId.value,
-                selected = (selectedValues.firstOrNull { it.id == selectableStringWithId.value.id } != null)
+                selected = selectedValues.contains { it.id == selectableStringWithId.value.id }
             )
         }
         updateViewModel(

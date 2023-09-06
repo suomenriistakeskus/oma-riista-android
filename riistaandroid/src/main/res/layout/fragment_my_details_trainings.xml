@@ -19,20 +19,27 @@
         app:layout_constraintStart_toStartOf="parent"
         />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_data_fields"
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/srl_refresh_layout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:paddingStart="@dimen/page_padding_horizontal"
-        android:paddingEnd="@dimen/page_padding_horizontal"
-        android:paddingVertical="@dimen/page_padding_vertical"
-        app:layoutManager="LinearLayoutManager"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/item_training"
-        />
+        app:layout_constraintBottom_toBottomOf="parent" >
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_data_fields"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="@dimen/page_padding_horizontal"
+            android:paddingEnd="@dimen/page_padding_horizontal"
+            android:paddingVertical="@dimen/page_padding_vertical"
+            app:layoutManager="LinearLayoutManager"
+            tools:listitem="@layout/item_training"
+            />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <TextView
         android:id="@+id/tv_content_not_loaded"
@@ -44,10 +51,10 @@
         style="@style/PrimaryTextBody"
         android:gravity="center"
         android:padding="@dimen/padding_large"
+        android:layout_marginTop="@dimen/item_spacing_xxlarge"
         android:minHeight="100dp"
         android:visibility="gone"
         tools:text="@string/loading_content"
         tools:visibility="visible"
         />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

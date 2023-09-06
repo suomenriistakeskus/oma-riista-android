@@ -131,10 +131,10 @@ class SelectGroupHuntingDayActivity
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_add, menu)
         menuInflater.inflate(R.menu.menu_refresh, menu)
-        menu?.findItem(R.id.item_add)?.apply {
+        menu.findItem(R.id.item_add)?.apply {
             isVisible = canCreateHuntingDay
         }
         return true

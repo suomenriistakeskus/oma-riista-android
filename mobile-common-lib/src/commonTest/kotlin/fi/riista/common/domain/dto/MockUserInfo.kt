@@ -16,6 +16,7 @@ object MockUserInfo {
     const val Pentti =
         "{\n" +
         "  \"username\" : \"$PenttiUsername\",\n" +
+        "  \"personId\" : 123,\n" +
         "  \"firstName\" : \"Pentti\",\n" +
         "  \"lastName\" : \"Mujunen\",\n" +
         "  \"birthDate\" : \"1911-11-11\",\n" +
@@ -114,6 +115,7 @@ object MockUserInfo {
     const val PenttiWithMissingData =
         "{\n" +
         "  \"username\" : \"user\",\n" +
+        "  \"personId\" : 123,\n" +
         "  \"firstName\" : \"Pentti\",\n" +
         "  \"lastName\" : \"Mujunen\",\n" +
         "  \"homeMunicipality\" : {\n" +

@@ -23,7 +23,7 @@ abstract class MetadataMemoryCache<Metadata : Any> internal constructor(
             }
         }
 
-    fun storeMetadata(metadata: Metadata) {
+    suspend fun storeMetadata(metadata: Metadata) {
         if (cachedMetadata == metadata) {
             return
         }

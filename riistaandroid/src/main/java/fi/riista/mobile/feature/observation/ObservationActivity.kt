@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import dagger.android.AndroidInjection
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.observation.model.CommonObservation
 import fi.riista.common.domain.observation.ui.modify.EditableObservation
@@ -12,8 +13,10 @@ import fi.riista.common.extensions.deserializeJson
 import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
+import fi.riista.mobile.feature.filter.SharedEntityFilterState
 import fi.riista.mobile.pages.PageFragment
 import fi.riista.mobile.ui.BusyIndicatorView
+import javax.inject.Inject
 
 class ObservationActivity
     : BaseActivity()
@@ -32,12 +35,16 @@ class ObservationActivity
         val fragmentTag = "${this}ObservationFragment"
     }
 
+    @Inject
+    internal lateinit var sharedEntityFilterState: SharedEntityFilterState
+
     private var observation: CommonObservation? = null
     private var observationModifiedOrCreated: Boolean = false
 
     private lateinit var busyIndicatorView: BusyIndicatorView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_observation)
 
@@ -132,6 +139,8 @@ class ObservationActivity
             this.observation = observation
             observationModifiedOrCreated = true
 
+            sharedEntityFilterState.ensureObservationIsShown(observation)
+
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
@@ -156,6 +165,8 @@ class ObservationActivity
         busyIndicatorView.hide {
             this.observation = observation
             observationModifiedOrCreated = true
+
+            sharedEntityFilterState.ensureObservationIsShown(observation)
 
             supportFragmentManager.popBackStack()
         }

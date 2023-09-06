@@ -23,4 +23,20 @@ object MockTrainingData {
             ]
         }
         """
+
+    const val TrainingsWithNoLocation =
+        """
+        {
+            "jhtTrainings": [
+                {
+                    "id": 123,
+                    "trainingType": "LAHI",
+                    "occupationType": "AMPUMAKOKEEN_VASTAANOTTAJA",
+                    "date": "2021-10-21",
+                    "location": null
+                }
+            ],
+            "occupationTrainings": []
+        }
+        """
 }

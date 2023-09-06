@@ -2,6 +2,7 @@ package fi.riista.mobile.pages
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -14,6 +15,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
+import fi.riista.common.network.sync.SynchronizationLevel
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.mobile.R
@@ -29,6 +31,7 @@ import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.sync.AppSync.AppSyncListener
 import fi.riista.mobile.sync.SyncConfig
 import fi.riista.mobile.sync.SyncMode
+import fi.riista.mobile.sync.SynchronizationEvent
 import fi.riista.mobile.ui.HomeButtonView
 import fi.riista.mobile.ui.MessageDialogFragment
 import fi.riista.mobile.utils.Constants
@@ -38,6 +41,10 @@ import fi.riista.mobile.utils.toVisibility
 import javax.inject.Inject
 
 class HomeViewFragment : PageFragment(), AppSyncListener {
+
+    interface Manager {
+        fun navigateToGameLog()
+    }
 
     @Inject
     internal lateinit var userInfoStore: UserInfoStore
@@ -50,6 +57,8 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
 
     @Inject
     internal lateinit var syncConfig: SyncConfig
+
+    private lateinit var manager: Manager
 
     private val disposeBagStarted = DisposeBag()
     private val disposeBagResumed = DisposeBag()
@@ -64,13 +73,38 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
         StartActivityForResult()
     ) { result: ActivityResult ->
         if (result.resultCode == Activity.RESULT_OK) {
-            appSync.syncImmediatelyIfAutomaticSyncEnabled()
+            appSync.scheduleImmediateSyncIfAutomaticSyncEnabled()
+
+            navigateToGameLogIfCreated(activityResultData = result.data)
+        }
+    }
+
+    private val navigateToGameLogAfterEventCreated = registerForActivityResult(
+        StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            navigateToGameLogIfCreated(activityResultData = result.data)
+        }
+    }
+
+    private fun navigateToGameLogIfCreated(activityResultData: Intent?) {
+        val resultBundle = activityResultData?.extras
+
+        val created = ObservationActivity.getObservationCreatedOrModified(resultBundle) ||
+                HarvestActivity.getHarvestCreatedOrModified(resultBundle) ||
+                SrvaActivity.getSrvaEventCreatedOrModified(resultBundle)
+
+        if (created) {
+            manager.navigateToGameLog()
         }
     }
 
     // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     override fun onAttach(context: Context) {
         AndroidSupportInjection.inject(this)
+        this.manager = requireNotNull(context as? Manager) {
+            "Activity is required to implement Manager interface!"
+        }
         super.onAttach(context)
     }
 
@@ -120,7 +154,7 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.item_refresh) {
-            appSync.synchronizeUsing(syncMode = SyncMode.SYNC_MANUAL)
+            appSync.scheduleImmediateSyncUsing(syncMode = SyncMode.SYNC_MANUAL)
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -135,7 +169,7 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
         appSync.manualSynchronizationPossible.bindAndNotify { manualSyncPossible ->
             refreshItem?.let { item ->
                 item.isEnabled = manualSyncPossible
-                item.icon.alpha = when (manualSyncPossible) {
+                item.icon?.alpha = when (manualSyncPossible) {
                     true -> 255
                     false -> Constants.DISABLED_ALPHA
                 }
@@ -190,7 +224,7 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
         refreshItem?.let { item ->
             item.isVisible = syncConfig.syncMode == SyncMode.SYNC_MANUAL
             item.isEnabled = manualSyncPossible
-            item.icon.alpha = when (manualSyncPossible) {
+            item.icon?.alpha = when (manualSyncPossible) {
                 true -> 255
                 false -> Constants.DISABLED_ALPHA
             }
@@ -279,7 +313,7 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
         val intent = SrvaActivity.getLaunchIntentForCreating(requireActivity())
 
         // srva gets synchronized internally, no need to synchronize here
-        startActivity(intent)
+        navigateToGameLogAfterEventCreated.launch(intent)
     }
 
     private fun onMyDetailsClick() {
@@ -307,12 +341,15 @@ class HomeViewFragment : PageFragment(), AppSyncListener {
         }
     }
 
-    override fun onSyncStarted() {
-        // nop
+    override fun onSynchronizationEvent(synchronizationEvent: SynchronizationEvent) {
+        if (synchronizationEvent is SynchronizationEvent.Completed &&
+            synchronizationEvent.synchronizationLevel == SynchronizationLevel.USER_CONTENT) {
+            updateQuickButtons()
+        }
     }
 
-    override fun onSyncCompleted() {
-        updateQuickButtons()
+    override fun onSynchronizationScheduled(isImmediateUserContentSync: Boolean) {
+        // nop
     }
 
     companion object {

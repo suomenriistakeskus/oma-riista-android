@@ -19,6 +19,7 @@ import fi.riista.mobile.ui.AlertDialogFragment
 import fi.riista.mobile.ui.AlertDialogId
 import fi.riista.mobile.ui.registerAlertDialogFragmentResultListener
 import fi.riista.mobile.utils.DateTimeUtils
+import fi.riista.mobile.utils.isResumed
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -69,7 +70,7 @@ class ShootingTestUserAttemptsActivity : BaseActivity() {
         MainScope().launch {
             val response = shootingTestContext.fetchShootingTestParticipantDetailed(participantId)
 
-            if (isFinishing) {
+            if (!lifecycle.isResumed()) {
                 return@launch
             }
 
@@ -135,7 +136,7 @@ class ShootingTestUserAttemptsActivity : BaseActivity() {
         MainScope().launch {
             val response = shootingTestContext.removeShootingTestAttempt(attemptId)
 
-            if (isFinishing) {
+            if (!lifecycle.isResumed()) {
                 return@launch
             }
 

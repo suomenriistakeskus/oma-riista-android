@@ -9,8 +9,6 @@ import fi.riista.common.domain.groupHunting.model.HuntingGroup
 import fi.riista.common.domain.model.Organization
 import fi.riista.common.domain.model.OrganizationId
 import fi.riista.common.dto.toLocalizedString
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LoadStatus
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
@@ -93,11 +91,5 @@ internal class GroupHuntingClubContextsFromNetworkProvider(
         }
 
         return groupsByClub
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(GroupHuntingClubContextsFromNetworkProvider::class)
     }
 }

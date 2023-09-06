@@ -99,12 +99,4 @@ object GroupHuntingObservationValidator {
                 (observation.mooselikeCalfAmount != null) &&
                 (observation.mooselikeUnknownSpecimenAmount != null)
     }
-
-    private fun <R> FieldSpecification<GroupObservationField>.ifRequired(block: () -> R?): R? {
-        return if (requirementStatus.isRequired()) {
-            block()
-        } else {
-            null
-        }
-    }
 }

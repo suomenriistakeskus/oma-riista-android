@@ -1,15 +1,15 @@
 package fi.riista.common.domain.huntingclub.ui
 
+import fi.riista.common.RiistaSDK
 import fi.riista.common.helpers.TestStringProvider
+import fi.riista.common.helpers.initializeMocked
 import fi.riista.common.helpers.runBlockingTest
-import fi.riista.common.domain.huntingclub.HuntingClubsContext
 import fi.riista.common.model.Language
 import fi.riista.common.network.BackendAPI
 import fi.riista.common.network.BackendAPIMock
 import fi.riista.common.resources.LanguageProvider
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
@@ -19,22 +19,13 @@ class HuntingClubControllerTest {
 
     @Test
     fun testDataInitiallyNotLoaded() {
-        val controller = HuntingClubController(
-            huntingClubsContext = getHuntingClubContext(),
-            languageProvider = getLanguageProvider(),
-            stringProvider = getStringProvider(),
-        )
-
+        val controller = getController()
         assertSame(ViewModelLoadStatus.NotLoaded, controller.viewModelLoadStatus.value)
     }
 
     @Test
     fun testDataCanBeLoaded() = runBlockingTest {
-        val controller = HuntingClubController(
-            huntingClubsContext = getHuntingClubContext(),
-            languageProvider = getLanguageProvider(),
-            stringProvider = getStringProvider(),
-        )
+        val controller = getController()
         controller.loadViewModel()
 
         assertTrue(controller.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded)
@@ -43,32 +34,21 @@ class HuntingClubControllerTest {
     @Test
     fun testRefreshLoadsDataFromNetwork() = runBlockingTest {
         val backendAPI = BackendAPIMock()
-        val controller = HuntingClubController(
-            huntingClubsContext = getHuntingClubContext(backendAPI = backendAPI),
-            languageProvider = getLanguageProvider(),
-            stringProvider = getStringProvider(),
-        )
+        val controller = getController(backendAPIMock = backendAPI)
         controller.loadViewModel()
 
         assertTrue(controller.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded)
 
         assertEquals(1, backendAPI.callCount(BackendAPI::fetchHuntingClubMemberInvitations.name))
-        assertEquals(1, backendAPI.callCount(BackendAPI::fetchHuntingClubMemberships.name))
         controller.loadViewModel(refresh = true)
         assertEquals(2, backendAPI.callCount(BackendAPI::fetchHuntingClubMemberInvitations.name))
-        assertEquals(2, backendAPI.callCount(BackendAPI::fetchHuntingClubMemberships.name))
         controller.loadViewModel(refresh = false)
         assertEquals(2, backendAPI.callCount(BackendAPI::fetchHuntingClubMemberInvitations.name))
-        assertEquals(2, backendAPI.callCount(BackendAPI::fetchHuntingClubMemberships.name))
     }
 
     @Test
     fun testHuntingClubViewModelHasCorrectData() = runBlockingTest {
-        val controller = HuntingClubController(
-            huntingClubsContext = getHuntingClubContext(),
-            languageProvider = getLanguageProvider(),
-            stringProvider = getStringProvider(),
-        )
+        val controller = getController()
         controller.loadViewModel()
 
         assertTrue(controller.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded)
@@ -96,11 +76,23 @@ class HuntingClubControllerTest {
         assertEquals("Nokian metsästysseura", membership.name)
     }
 
-    private fun getHuntingClubContext(backendAPI: BackendAPI = BackendAPIMock()): HuntingClubsContext {
-        val userContextProvider = CurrentUserContextProviderFactory.createMocked(
-            backendAPI = backendAPI
+    private fun getController(
+        backendAPIMock: BackendAPIMock = BackendAPIMock(),
+    ): HuntingClubController {
+        RiistaSDK.initializeMocked(
+            mockBackendAPI = backendAPIMock,
+            performLoginWithPentti = true
         )
-        return userContextProvider.userContext.huntingClubsContext
+
+        val userContext = RiistaSDK.currentUserContext
+
+        return HuntingClubController(
+            huntingClubsContext = userContext.huntingClubsContext,
+            usernameProvider = userContext,
+            huntingClubOccupationsProvider = RiistaSDK.huntingClubOccupations,
+            languageProvider = getLanguageProvider(),
+            stringProvider = getStringProvider(),
+        )
     }
 
     private fun getLanguageProvider(): LanguageProvider {

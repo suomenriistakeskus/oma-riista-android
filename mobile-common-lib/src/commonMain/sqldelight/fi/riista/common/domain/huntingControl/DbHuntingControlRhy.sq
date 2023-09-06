@@ -12,8 +12,14 @@ CREATE TABLE DbHuntingControlRhy (
 selectByUser:
 SELECT * FROM DbHuntingControlRhy WHERE username = ?;
 
+hasRhys:
+SELECT EXISTS(SELECT 1 FROM DbHuntingControlRhy WHERE username = ?);
+
 rhyExists:
 SELECT EXISTS(SELECT 1 FROM DbHuntingControlRhy WHERE username = ? AND remote_id = ?);
+
+getByRemoteId:
+SELECT * FROM DbHuntingControlRhy WHERE username = ? AND remote_id = ?;
 
 insertRhy:
 INSERT INTO DbHuntingControlRhy(username, remote_id, name_fi, name_sv, name_en, official_code)

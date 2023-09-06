@@ -4,26 +4,25 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import fi.riista.common.RiistaSDK
-import fi.riista.common.domain.harvest.model.CommonHarvest
-import fi.riista.common.domain.observation.model.CommonObservation
-import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.mobile.database.SpeciesInformation
+import fi.riista.mobile.feature.filter.SharedEntityFilterState
 import fi.riista.mobile.models.GameLog
-import fi.riista.mobile.riistaSdkHelpers.toJodaDateTime
 import fi.riista.mobile.utils.DateTimeUtils
 import org.joda.time.LocalDate
-import java.util.*
 import java.util.Collections.emptyList
 import javax.inject.Inject
 
-class GameLogViewModel @Inject constructor() : ViewModel() {
+class GameLogViewModel @Inject constructor(
+    private val sharedEntityFilterState: SharedEntityFilterState
+) : ViewModel() {
 
-    private val typeSelected: MutableLiveData<String> = MutableLiveData(GameLog.TYPE_HARVEST)
-    private val seasonSelected: MutableLiveData<Int> = MutableLiveData(DateTimeUtils.getHuntingYearForCalendar(Calendar.getInstance()))
-    private val speciesSelected: MutableLiveData<List<Int>> = MutableLiveData(emptyList())
-    private val categorySelected: MutableLiveData<Int> = MutableLiveData()
+    private val ownHarvests: MutableLiveData<Boolean> by sharedEntityFilterState::ownHarvests
+    private val typeSelected: MutableLiveData<String> by sharedEntityFilterState::typeSelected
+    private val seasonSelected: MutableLiveData<Int> by sharedEntityFilterState::seasonSelected
+    private val speciesSelected: MutableLiveData<List<Int?>> by sharedEntityFilterState::speciesSelected
+    private val categorySelected: MutableLiveData<Int?> by sharedEntityFilterState::categorySelected
 
-    private val seasons: MutableLiveData<List<Int>> = MutableLiveData()
+    private val seasons: MutableLiveData<List<Int>?> = MutableLiveData()
 
     private val harvestSeasons: MutableLiveData<List<Int>> = MutableLiveData(emptyList())
     private val observationSeasons: MutableLiveData<List<Int>> = MutableLiveData(emptyList())
@@ -31,6 +30,16 @@ class GameLogViewModel @Inject constructor() : ViewModel() {
 
     init {
         refreshSeasons()
+    }
+
+    fun isOwnHarvests(): LiveData<Boolean> {
+        return ownHarvests
+    }
+
+    fun setOwnHarvests(ownHarvests: Boolean) {
+        if (this.ownHarvests.value != ownHarvests) {
+            this.ownHarvests.value = ownHarvests
+        }
     }
 
     fun getTypeSelected(): LiveData<String> {
@@ -55,15 +64,15 @@ class GameLogViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun getSpeciesSelected(): LiveData<List<Int>> {
+    fun getSpeciesSelected(): LiveData<List<Int?>> {
         return speciesSelected
     }
 
-    private fun setSpeciesSelected(speciesIds: List<Int>) {
+    private fun setSpeciesSelected(speciesIds: List<Int?>) {
         speciesSelected.value = speciesIds
     }
 
-    fun getCategorySelected(): LiveData<Int> {
+    fun getCategorySelected(): LiveData<Int?> {
         return categorySelected
     }
 
@@ -71,7 +80,7 @@ class GameLogViewModel @Inject constructor() : ViewModel() {
         categorySelected.value = categoryId
     }
 
-    fun getSeasons(): LiveData<List<Int>> {
+    fun getSeasons(): LiveData<List<Int>?> {
         return seasons
     }
 
@@ -160,106 +169,5 @@ class GameLogViewModel @Inject constructor() : ViewModel() {
         GameLog.TYPE_OBSERVATION -> observationSeasons.value.let { seasons.value = it }
         GameLog.TYPE_SRVA -> srvaSeasons.value.let { seasons.value = it }
         else -> seasons.value = null
-    }
-
-    fun filterHarvestsWithCurrent(items: List<CommonHarvest>): List<CommonHarvest> {
-        val season = seasonSelected.value!!
-        val startDate = DateTimeUtils.getHuntingYearStart(season)
-        val endDate = DateTimeUtils.getHuntingYearEnd(season)
-
-        val filtered = ArrayList<CommonHarvest>(items.size)
-
-        for (event in items) {
-            val eventTime = event.pointOfTime.toJodaDateTime()
-
-            if (eventTime.isAfter(startDate) && eventTime.isBefore(endDate)) {
-                filtered.add(event)
-            }
-        }
-        return filterHarvestsForSpecies(filtered)
-    }
-
-    private fun filterHarvestsForSpecies(items: List<CommonHarvest>): List<CommonHarvest> {
-        val speciesCodes = speciesSelected.value
-
-        if (speciesCodes == null || speciesCodes.isEmpty()) {
-            return items
-        }
-
-        val filtered = ArrayList<CommonHarvest>(items.size)
-
-        for (event in items) {
-            if (speciesCodes.contains(event.species.knownSpeciesCodeOrNull())) {
-                filtered.add(event)
-            }
-        }
-
-        return filtered
-    }
-
-    fun filterObservationsWithCurrent(items: List<CommonObservation>): List<CommonObservation> {
-        val season = seasonSelected.value!!
-        val startDate = DateTimeUtils.getHuntingYearStart(season)
-        val endDate = DateTimeUtils.getHuntingYearEnd(season)
-
-        val filtered = ArrayList<CommonObservation>(items.size)
-
-        for (event in items) {
-            val eventTime = event.pointOfTime.toJodaDateTime()
-
-            if (eventTime.isAfter(startDate) && eventTime.isBefore(endDate)) {
-                filtered.add(event)
-            }
-        }
-
-        return filterObservationsForSpecies(filtered)
-    }
-
-    private fun filterObservationsForSpecies(items: List<CommonObservation>): List<CommonObservation> {
-        val speciesCodes = speciesSelected.value
-
-        if (speciesCodes == null || speciesCodes.isEmpty()) {
-            return items
-        }
-
-        val filtered = ArrayList<CommonObservation>(items.size)
-
-        for (event in items) {
-            if (speciesCodes.contains(event.species.knownSpeciesCodeOrNull())) {
-                filtered.add(event)
-            }
-        }
-
-        return filtered
-    }
-
-    fun filterSrvasWithCurrent(items: List<CommonSrvaEvent>): List<CommonSrvaEvent> {
-        val filtered = ArrayList<CommonSrvaEvent>(items.size)
-        val calendarYear = seasonSelected.value!!
-
-        for (event in items) {
-            if (event.pointOfTime.year == calendarYear) {
-                filtered.add(event)
-            }
-        }
-        return filterSrvasForSpecies(filtered)
-    }
-
-    private fun filterSrvasForSpecies(items: List<CommonSrvaEvent>): List<CommonSrvaEvent> {
-        val speciesCodes = speciesSelected.value
-
-        if (speciesCodes == null || speciesCodes.isEmpty()) {
-            return items
-        }
-
-        val filtered = ArrayList<CommonSrvaEvent>(items.size)
-
-        for (event in items) {
-            if (speciesCodes.contains(event.species.knownSpeciesCodeOrNull())) {
-                filtered.add(event)
-            }
-        }
-
-        return filtered
     }
 }

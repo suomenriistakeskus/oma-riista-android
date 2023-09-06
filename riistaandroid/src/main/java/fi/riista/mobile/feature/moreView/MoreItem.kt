@@ -1,6 +1,7 @@
 package fi.riista.mobile.feature.moreView
 
 enum class MoreItemType {
+    // More view
     MY_DETAILS,
     GALLERY,
     CONTACT_DETAILS,
@@ -8,10 +9,18 @@ enum class MoreItemType {
     SETTINGS,
     HUNTING_DIRECTOR,
     HUNTING_CONTROL,
+    SUNRISE_AND_SUNSET,
     EVENT_SEARCH,
     MAGAZINE,
     SEASONS,
+    ABOUT,
     LOGOUT,
+
+    // About view
+    PRIVACY_STATEMENT,
+    TERMS_OF_SERVICE,
+    ACCESSIBILITY,
+    LICENSES,
     ;
 }
 

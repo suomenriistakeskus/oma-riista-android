@@ -1,9 +1,15 @@
 package fi.riista.common.domain.groupHunting.ui.diary
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
 import fi.riista.common.domain.groupHunting.HuntingClubGroupDataPiece
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.DiaryEntryType
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservation
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationId
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.model.createTargetForHarvest
+import fi.riista.common.domain.groupHunting.model.createTargetForObservation
 import fi.riista.common.logging.getLogger
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.ViewModelLoadStatus
@@ -19,11 +25,6 @@ class ListGroupDiaryEntriesController(
     private val groupHuntingContext: GroupHuntingContext,
     private val huntingGroupTarget: HuntingGroupTarget,
 ) : ControllerWithLoadableModel<ListGroupDiaryEntriesViewModel>() {
-
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
 
     var harvestIds: List<GroupHuntingHarvestId> = listOf()
     var observationIds: List<GroupHuntingObservationId> = listOf()

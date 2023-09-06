@@ -13,7 +13,7 @@ sealed class TrainingViewModel {
         override val trainingType: String,
         override val occupationType: String,
         override val date: LocalDate,
-        val location: String,
+        val location: String?,
     ) : TrainingViewModel()
 
     data class OccupationTraining(

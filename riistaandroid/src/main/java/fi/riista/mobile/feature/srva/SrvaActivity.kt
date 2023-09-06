@@ -5,14 +5,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import dagger.android.AndroidInjection
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.ui.modify.EditableSrvaEvent
 import fi.riista.common.extensions.deserializeJson
 import fi.riista.common.extensions.serializeToBundleAsJson
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.BaseActivity
+import fi.riista.mobile.feature.filter.SharedEntityFilterState
 import fi.riista.mobile.pages.PageFragment
 import fi.riista.mobile.ui.BusyIndicatorView
+import javax.inject.Inject
 
 class SrvaActivity
     : BaseActivity()
@@ -31,12 +34,16 @@ class SrvaActivity
         val fragmentTag = "${this}SrvaFragment"
     }
 
+    @Inject
+    internal lateinit var sharedEntityFilterState: SharedEntityFilterState
+
     private var srvaEvent: CommonSrvaEvent? = null
     private var srvaEventModifiedOrCreated: Boolean = false
 
     private lateinit var busyIndicatorView: BusyIndicatorView
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AndroidInjection.inject(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_srva)
 
@@ -143,6 +150,8 @@ class SrvaActivity
             this.srvaEvent = srvaEvent
             srvaEventModifiedOrCreated = true
 
+            sharedEntityFilterState.ensureSrvaIsShown(srvaEvent)
+
             supportFragmentManager.beginTransaction()
                 .replace(
                     R.id.fragment_container,
@@ -157,6 +166,8 @@ class SrvaActivity
         busyIndicatorView.hide {
             this.srvaEvent = srvaEvent
             srvaEventModifiedOrCreated = true
+
+            sharedEntityFilterState.ensureSrvaIsShown(srvaEvent)
 
             supportFragmentManager.popBackStack()
         }

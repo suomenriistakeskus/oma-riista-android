@@ -8,20 +8,14 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GameWardenDTO(
     val inspector: InspectorDTO,
-    val beginDate: LocalDateDTO,
-    val endDate: LocalDateDTO,
+    val beginDate: LocalDateDTO? = null,
+    val endDate: LocalDateDTO? = null,
 )
 
-fun GameWardenDTO.toGameWarden(): GameWarden? {
-    val beginDate = beginDate.toLocalDate()
-    val endDate = endDate.toLocalDate()
-    if (beginDate == null || endDate == null) {
-        return null
-    }
-
+fun GameWardenDTO.toGameWarden(): GameWarden {
     return GameWarden(
         inspector = inspector.toHuntingControlEventInspector(),
-        beginDate = beginDate,
-        endDate = endDate,
+        beginDate = beginDate?.toLocalDate(),
+        endDate = endDate?.toLocalDate(),
     )
 }

@@ -2,6 +2,7 @@ package fi.riista.common.util
 
 import android.location.Location
 import android.os.Build
+import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.ETRMSGeoLocation
 import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.model.toBackendEnum
@@ -24,21 +25,25 @@ fun ETRMSGeoLocation.toLocation(): Location {
 }
 
 fun Location.toETRMSGeoLocation(source: GeoLocationSource): ETRMSGeoLocation {
+    return toETRMSGeoLocation(source = source.toBackendEnum())
+}
+
+fun Location.toETRMSGeoLocation(source: BackendEnum<GeoLocationSource>): ETRMSGeoLocation {
     val coordinates = CoordinateConverter.convertWGS84toETRSTM35FIN(
-            latitude = latitude,
-            longitude = longitude
+        latitude = latitude,
+        longitude = longitude
     )
 
     return ETRMSGeoLocation(
-            latitude = coordinates.x.toInt(),
-            longitude = coordinates.y.toInt(),
-            source = source.toBackendEnum(),
-            accuracy = accuracy.takeIf { it != 0.0f }?.toDouble(),
-            altitude = altitude.takeIf { it != 0.0 },
-            altitudeAccuracy = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                verticalAccuracyMeters.takeIf { it != 0.0f }?.toDouble()
-            } else {
-                null
-            }
+        latitude = coordinates.x.toInt(),
+        longitude = coordinates.y.toInt(),
+        source = source,
+        accuracy = accuracy.takeIf { it != 0.0f }?.toDouble(),
+        altitude = altitude.takeIf { it != 0.0 },
+        altitudeAccuracy = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            verticalAccuracyMeters.takeIf { it != 0.0f }?.toDouble()
+        } else {
+            null
+        }
     )
 }

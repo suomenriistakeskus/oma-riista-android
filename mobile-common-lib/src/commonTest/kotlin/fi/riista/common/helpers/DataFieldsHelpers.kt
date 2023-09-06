@@ -95,6 +95,11 @@ internal fun <FieldId: DataFieldId> DataFields<FieldId>.getChipField(expectedInd
     return getField(expectedIndex, id)
 }
 
+internal fun <FieldId: DataFieldId> DataFields<FieldId>.getCustomField(expectedIndex: Int, id: FieldId):
+        CustomUserInterfaceField<FieldId> {
+    return getField(expectedIndex, id)
+}
+
 internal inline fun <FieldId: DataFieldId, reified FieldType> DataFields<FieldId>.getField(
     expectedIndex: Int, id: FieldId
 ): FieldType where FieldType : DataField<FieldId> {
@@ -103,6 +108,20 @@ internal inline fun <FieldId: DataFieldId, reified FieldType> DataFields<FieldId
                  "Field $id at wrong index $foundIndex (expected $expectedIndex)")
 
     val field = get(foundIndex)
+    @Suppress("UNCHECKED_CAST")
+    return try {
+        field as FieldType
+    } catch (e: Throwable) {
+        fail("Field $id type was ${field::class} instead of ${FieldType::class}")
+    }
+}
+
+internal inline fun <FieldId: DataFieldId, reified FieldType> DataFields<FieldId>.findField(
+    id: FieldId,
+): FieldType where FieldType : DataField<FieldId> {
+    val foundIndex = indexOfFirst { it.id == id }
+    val field = get(foundIndex)
+
     @Suppress("UNCHECKED_CAST")
     return try {
         field as FieldType

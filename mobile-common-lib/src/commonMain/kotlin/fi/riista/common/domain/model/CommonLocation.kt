@@ -10,6 +10,14 @@ sealed class CommonLocation {
 
     @Serializable
     object Unknown: CommonLocation()
+
+    val etrsLocationOrNull: ETRMSGeoLocation?
+        get() {
+            return when (this) {
+                is Known -> etrsLocation
+                Unknown -> null
+            }
+        }
 }
 
 internal fun ETRMSGeoLocation.asKnownLocation() = CommonLocation.Known(etrsLocation = this)

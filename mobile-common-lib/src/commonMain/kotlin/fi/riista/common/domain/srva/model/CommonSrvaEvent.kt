@@ -20,6 +20,8 @@ data class CommonSrvaEvent(
     val rhyId: Int?,
 
     val canEdit: Boolean,
+    val modified: Boolean,
+    val deleted: Boolean,
 
     val location: ETRMSGeoLocation,
     val pointOfTime: LocalDateTime,
@@ -28,6 +30,7 @@ data class CommonSrvaEvent(
 
     val species: Species,
     val otherSpeciesDescription: String?,
+    val totalSpecimenAmount: Int,
     val specimens: List<CommonSrvaSpecimen>,
 
     val eventCategory: BackendEnum<SrvaEventCategoryType>,
@@ -59,13 +62,15 @@ internal fun CommonSrvaEvent.toSrvaEventData(): CommonSrvaEventData {
         state = state,
         rhyId = rhyId,
         canEdit = canEdit,
+        modified = modified,
+        deleted = deleted,
         location = location.asKnownLocation(),
         pointOfTime = pointOfTime,
         author = author,
         approver = approver,
         species = species,
         otherSpeciesDescription = otherSpeciesDescription,
-        specimenAmount = specimens.size,
+        specimenAmount = totalSpecimenAmount,
         specimens = specimens.map { it.toCommonSpecimenData() },
         eventCategory = eventCategory,
         deportationOrderNumber = deportationOrderNumber,

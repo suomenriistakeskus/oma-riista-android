@@ -1,11 +1,9 @@
 package fi.riista.mobile.utils
 
 import android.content.Context
-import android.graphics.Point
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
 import android.view.View
-import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.ListView
 import androidx.annotation.ColorRes
@@ -14,6 +12,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.window.layout.WindowMetricsCalculator
 import fi.riista.mobile.models.user.UserInfo
 
 object UiUtils {
@@ -62,11 +61,9 @@ object UiUtils {
 
     @JvmStatic
     fun getViewHeightInPixels(view: View): Int {
-        val wm = view.context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val display = wm.defaultDisplay
-        val size = Point()
-        display.getSize(size)
-        val deviceWidth = size.x
+        val windowMetrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(view.context)
+        val deviceWidth = windowMetrics.bounds.width()
+
         val widthMeasureSpec = View.MeasureSpec.makeMeasureSpec(deviceWidth, View.MeasureSpec.AT_MOST)
         val heightMeasureSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         view.measure(widthMeasureSpec, heightMeasureSpec)

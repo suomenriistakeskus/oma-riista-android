@@ -22,4 +22,7 @@ public class ShootingTestOfficial implements Serializable {
 
     @JsonProperty("lastName")
     public String lastName;
+
+    @JsonProperty("shootingTestResponsible")
+    public boolean shootingTestResponsible;
 }

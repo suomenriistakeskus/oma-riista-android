@@ -58,6 +58,7 @@
     <string name="more_show_magazine">Read latest Metsästäjä magazine</string>
     <string name="more_view_hunting_seasons">Open seasons</string>
     <string name="more_gallery">Gallery</string>
+    <string name="more_about">About</string>
     <string name="logout">Logout</string>
 
     <string name="menu_add_item">Add</string>
@@ -132,6 +133,7 @@
     <!-- Settings page -->
     <string name="language">Language</string>
     <string name="language_prompt">Select language</string>
+    <string name="map_settings">Map settings</string>
 
     <string name="Finnish">Suomi</string>
     <string name="Swedish">Svenska</string>
@@ -173,7 +175,8 @@
     <string name="my_details_title_registry">Hunter registry</string>
     <string name="my_details_hunter_id">Hunter number</string>
     <string name="my_details_title_hunting_license">Hunting license</string>
-    <string name="my_details_insurance_policy_text">The valid Hunting card includes the Hunter`s Insurance, which is valid in all Nordic Countries, in Switzerland and in EU-Countries</string>
+    <string name="my_details_insurance_policy_text">The valid Hunting card includes the Hunter`s Insurance, which is valid in all Nordic Countries, EU member states, Switzerland and in Great Britain for hunting trips lasting up to 60 days.</string>
+    <string name="my_details_insurance_instructions_link_title">Insurance instructions</string>
     <string name="my_details_payment">Game management fee</string>
     <string name="my_details_exam_date">Exam date</string>
     <string name="my_details_membership">RHY membership</string>
@@ -217,11 +220,11 @@
     <string name="occupation_type_petoyhdyshenkilo">Large carnivore contact person</string>
 
     <string name="unregister_account_title">Delete user account</string>
-    <string name="unregister_account_message">I want to delete my voluntary game data, user account and personal data from the Oma\u00A0riista\u00A0service.\n\nI understand that my data cannot be restored after deletion.</string>
-    <string name="unregister_account_question">Are you sure you want to delete your user account?</string>
+    <string name="unregister_account_message">I want to delete my voluntary game data, user account and personal data from the Oma\u00A0riista\u00A0service. I understand that my data cannot be restored after\u00A0deletion.\n\nDeleting your Oma riista account does not delete your information from the register of hunters. You must contact the register of hunters in writing if you want your information to be deleted from the register of hunters as well. Deleting data from the register of hunters means ending the hunting hobby.</string>
+    <string name="unregister_account_question">Changing the username/email address in the Oma riista service does not require deleting the user account, this is done by registering for the service again. In this case, all the information you previously entered in the service will also remain as before.\n\nAre you sure you want to delete your user account?</string>
     <string name="unregister_account_request_sent_title_short">Request sent</string>
     <string name="unregister_account_request_sent_title">User account deletion request has been sent</string>
-    <string name="unregister_account_request_sent_message_at_timeime">An automatic e-mail message regarding the user account deletion request has been sent to the customer service of the Oma riista service %1$s, and a copy of the message has also been forwarded to the e-mail address specified in your personal information. Typically, the user account is deleted by the customer service in two\u00A0weeks.\n\nPlease contact customer service at oma@riista.fi, if you requested to delete the user account in error.</string>
+    <string name="unregister_account_request_sent_message_at_timeime">An automatic e-mail message regarding the user account deletion request has been sent to the customer service of the Oma riista service %1$s, and a copy of the message has also been forwarded to the e-mail address specified in your personal information. Typically, the user account is deleted by the customer service in two\u00A0weeks.\n\nPlease contact customer service at oma@riista.fi, if you requested to delete the user account in error.\n\nDeleting your Oma riista account does not delete your information from the register of hunters. You must contact the register of hunters in writing if you want your information to be deleted from the register of hunters as well. Deleting data from the register of hunters means ending the hunting hobby.</string>
     <string name="unregister_account_continue_using">Continue using the service</string>
 
     <!-- New diary entry page -->
@@ -269,6 +272,28 @@
     <string name="harvest_feeding_place_title">Shot at feeding place?</string>
     <string name="harvest_taiga_bean_goose_title">Is taiga bean goose?</string>
 
+    <string name="harvest_settings">Harvest settings</string>
+    <string name="harvest_settings_add_harvest_for_other_hunter">Report harvests for others</string>
+    <string name="harvest_settings_add_harvest_for_other_hunter_explanation">\u25CF Report harvests that are shot by other hunters</string>
+    <string name="harvest_settings_enable_club_selection">Report harvests to different clubs</string>
+    <string name="harvest_settings_enable_club_selection_explanation">\u25CF Select a club for which the harvest is reported</string>
+    <string name="harvest_label_own_harvest">Own harvest</string>
+    <string name="harvest_showing_harvests_added_for_others">Showing harvests added for others</string>
+
+    <string name="harvest_label_hunting_club">Hunting club</string>
+    <string name="harvest_label_hunting_club_official_code">Club customer number</string>
+
+    <string name="hunting_club_selection_select_club">Select hunting club</string>
+    <string name="hunting_club_selection_search_by_name">Search with name or customer number</string>
+    <string name="hunting_club_selection_search_by_name_hint">Name or customer number</string>
+    <string name="hunting_club_selection_no_club_selection">No selection</string>
+    <string name="hunting_club_selection_other_club">Other</string>
+
+    <string name="hunting_club_search_enter_club_official_code">Type 7-digit hunting club customer number</string>
+    <string name="hunting_club_search_invalid_official_code">Hunting club customer number is invalid</string>
+    <string name="hunting_club_search_searching_by_official_code">Fetching hunting club information..</string>
+    <string name="hunting_club_search_search_failed">Failed to fetch hunting club information.</string>
+
     <!-- Harvest state -->
 
     <string name="harvest_permit_number_required">Permit number required</string>
@@ -301,6 +326,7 @@
 
     <string name="synchronization">Synchronization</string>
     <string name="refresh">Refresh</string>
+    <string name="refresh_all">Refresh all</string>
     <string name="manual">Manual</string>
     <string name="automatic">Automatic</string>
     <string name="licences_dialog_title">Open source licenses</string>
@@ -336,6 +362,7 @@
     <string name="map_settings_small_game_restrictions_link">Check: https://retkikartta.fi</string>
     <string name="map_settings_avi_hunting_ban">Avi hunting ban areas</string>
     <string name="map_settings_avi_hunting_ban_link">Check: https://avi.fi/tiedotteet</string>
+    <string name="map_settings_lead_shot_ban">Areas with lead shot ban</string>
     <string name="map_settings_offline_map_settings">Offline maps</string>
     <string name="offline_map_settings_background_map">Background map</string>
     <string name="offline_map_settings_map_layers">Map layers</string>
@@ -793,7 +820,7 @@
 
     <string name="group_member_selection_select_hunter">Select hunter</string>
     <string name="group_member_selection_select_observer">Select observer</string>
-    <string name="group_member_selection_search_name">Search with name</string>
+    <string name="group_member_selection_search_name">Filter the list by name</string>
     <string name="group_member_selection_enter_name">Name</string>
 
     <!-- Hunting control -->
@@ -826,6 +853,7 @@
     <string name="hunting_control_inspector_selection_search_by_name">@string/group_member_selection_search_name</string>
     <string name="hunting_control_inspector_selection_name_hint">@string/group_member_selection_enter_name</string>
     <string name="hunting_control_error_no_inspectors_for_selected_date">There are no inspectors for the selected date</string>
+    <string name="hunting_control_error_no_self_as_inspector">You can\'t remove yourself from the list of inspectors</string>
     <string name="hunting_control_event_save_failed_generic">Saving hunting control event failed</string>
     <string name="hunting_control_download_attachment_question">Download file from the server?</string>
     <string name="hunting_control_delete_attachment_question">Delete attachment %1$s?</string>
@@ -866,4 +894,11 @@
     <string name="hunting_control_event_type_waterfowl">Hunting control of waterfowl</string>
     <string name="hunting_control_event_type_dog_discipline">Hunting control of dog discipline</string>
     <string name="hunting_control_event_type_other">Other hunting control</string>
+
+    <string name="sunrise_and_sunset_title">Sunrise and sunset times</string>
+    <string name="sun_day_selection_label">@string/hunting_control_date</string>
+    <string name="sun_sunrise_label">Sunrise time</string>
+    <string name="sun_sunset_label">Sunset time</string>
+    <string name="sun_instructions">Select a location in order to see\nsunrise and sunset times.</string>
+    <string name="sun_disclaimer">The sunrise and sunset times have been calculated using the specified location and date. Sunrise is the time when the upper edge of the sun becomes visible above the horizon. Similarly, sunset is the moment when the upper edge of the sun disappears behind the horizon. The time of sunrise and sunset vary depending on location latitude and longitude as well as the time of year. The official sunrise and sunset times for Finland are defined in the University of Helsinki almanac.</string>
 </resources>

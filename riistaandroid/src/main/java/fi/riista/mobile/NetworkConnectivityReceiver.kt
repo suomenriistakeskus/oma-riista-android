@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import fi.riista.mobile.sync.AppSync
+import fi.riista.mobile.sync.AppSyncPrecondition
 
 /**
  * Receiver for changed network status.
@@ -17,7 +18,7 @@ class NetworkConnectivityReceiver(private val appSync: AppSync) : BroadcastRecei
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val netInfo = cm.activeNetworkInfo
         if (netInfo != null && netInfo.isConnected) {
-            appSync.enableSyncPrecondition(AppSync.SyncPrecondition.CONNECTED_TO_NETWORK)
+            appSync.enableSyncPrecondition(AppSyncPrecondition.CONNECTED_TO_NETWORK)
         } else {
             // Don't disable sync preconditions as this behaviour has not been fully tested in all possible
             // cases (e.g. low/occasional network connectivity deep in the forest). The reasoning here is that
@@ -26,7 +27,7 @@ class NetworkConnectivityReceiver(private val appSync: AppSync) : BroadcastRecei
             // - it seems that some of the code related to receiving network connectivity information has
             //   been deprecated (e.g. intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION) in MainActivity)
             // -> there's a small risk that connectivity intent is not received
-            //appSync.disableSyncPrecondition(AppSync.SyncPrecondition.CONNECTED_TO_NETWORK);
+            //appSync.disableSyncPrecondition(AppSyncPrecondition.CONNECTED_TO_NETWORK);
         }
     }
 }

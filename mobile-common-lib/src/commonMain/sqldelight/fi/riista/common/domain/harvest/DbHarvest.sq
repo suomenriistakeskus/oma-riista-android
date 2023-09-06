@@ -1,0 +1,131 @@
+CREATE TABLE DbHarvest (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER,
+    rev INTEGER AS Int,
+    mobile_client_ref_id INTEGER,
+
+    can_edit INTEGER AS Boolean NOT NULL,
+    modified INTEGER AS Boolean NOT NULL,
+    deleted INTEGER AS Boolean NOT NULL,
+
+    spec_version INTEGER AS Int NOT NULL,
+    game_species_code INTEGER AS Int,
+
+    specimens TEXT,
+    amount INTEGER AS Int NOT NULL,
+
+    point_of_time TEXT NOT NULL,
+    description TEXT,
+
+    harvest_report_done INTEGER AS Boolean NOT NULL,
+    harvest_report_required INTEGER AS Boolean NOT NULL,
+    harvest_report_state TEXT,
+    rejected INTEGER AS Boolean NOT NULL,
+
+    permit_number TEXT,
+    permit_type TEXT,
+
+    state_accepted_to_harvest_permit TEXT,
+    deer_hunting_type TEXT,
+    deer_hunting_other_type_description TEXT,
+    feeding_place INTEGER AS Boolean,
+    taigaBeanGoose INTEGER AS Boolean,
+    grey_seal_hunting_method TEXT,
+
+    local_images TEXT,
+    remote_images TEXT,
+    has_new_images INTEGER AS Boolean NOT NULL,
+
+    -- GeoLocation
+    location_latitude INTEGER AS Int NOT NULL,
+    location_longitude INTEGER AS Int NOT NULL,
+    location_source TEXT,
+    location_accuracy REAL,
+    location_altitude REAL,
+    location_altitudeAccuracy REAL,
+
+    actor_id INTEGER REFERENCES DbHarvestShooter(local_id),
+
+    selected_club_id INTEGER REFERENCES DbOrganization(organization_remote_id)
+);
+
+CREATE UNIQUE INDEX harvest_remote_id_unique ON DbHarvest(username, remote_id);
+
+CREATE INDEX harvest_point_of_time ON DbHarvest(username, point_of_time);
+
+selectByLocalId:
+SELECT * FROM DbHarvest WHERE local_id = ?;
+
+selectByRemoteId:
+SELECT * FROM DbHarvest WHERE username = ? AND remote_id = ?;
+
+getModifiedHarvests:
+SELECT * FROM DbHarvest WHERE username = ? AND modified = 1 AND deleted = 0;
+
+selectByMobileClientRefId:
+SELECT * FROM DbHarvest WHERE username = ? AND mobile_client_ref_id = ?;
+
+insert:
+INSERT INTO DbHarvest(username, remote_id, rev, mobile_client_ref_id, can_edit, modified, deleted, spec_version,
+    game_species_code, specimens, amount, point_of_time, description, harvest_report_done, harvest_report_required,
+    harvest_report_state, rejected, permit_number, permit_type, state_accepted_to_harvest_permit,
+    deer_hunting_type, deer_hunting_other_type_description, feeding_place, taigaBeanGoose, grey_seal_hunting_method,
+    local_images, remote_images, has_new_images, location_latitude, location_longitude, location_source,
+    location_accuracy, location_altitude, location_altitudeAccuracy, actor_id, selected_club_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateByLocalId:
+UPDATE DbHarvest SET
+    remote_id=?, rev=?, mobile_client_ref_id=?, can_edit=?, modified=?, deleted=?, spec_version=?,
+    game_species_code=?, specimens=?, amount=?, point_of_time=?, description=?, harvest_report_done=?,
+    harvest_report_required=?, harvest_report_state=?, rejected=?, permit_number=?, permit_type=?,
+    state_accepted_to_harvest_permit=?, deer_hunting_type=?, deer_hunting_other_type_description=?,
+    feeding_place=?, taigaBeanGoose=?, grey_seal_hunting_method=?,
+    local_images=?, remote_images=?, has_new_images=?, location_latitude=?, location_longitude=?, location_source=?,
+    location_accuracy=?, location_altitude=?, location_altitudeAccuracy=?, actor_id=?, selected_club_id=?
+WHERE local_id=?;
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+selectByUser:
+SELECT * FROM DbHarvest WHERE username = ? AND deleted = 0 ORDER BY point_of_time DESC;
+
+markDeleted:
+UPDATE DbHarvest SET deleted = 1 WHERE local_id = ?;
+
+hardDelete:
+DELETE FROM DbHarvest WHERE local_id = ?;
+
+hardDeleteByRemoteId:
+DELETE FROM DbHarvest WHERE username = ? AND remote_id = ?;
+
+getDeletedHarvests:
+SELECT * FROM DbHarvest WHERE username = ? AND deleted = 1;
+
+getHarvestIdsWithLocalImages:
+SELECT local_id FROM DbHarvest WHERE username = ? AND deleted = 0 AND local_images IS NOT NULL;
+
+getHarvestsWithNewImages:
+SELECT * FROM DbHarvest WHERE username = ? AND deleted = 0 AND has_new_images = 1;
+
+getHarvestsWithLocalIds:
+SELECT * FROM DbHarvest WHERE local_id IN ? ORDER BY point_of_time DESC;
+
+getHarvestDateTimes:
+SELECT point_of_time FROM DbHarvest WHERE username = ? AND deleted = 0;
+
+getLatestHarvestSpecies:
+SELECT game_species_code FROM DbHarvest WHERE username = ? AND deleted = 0 GROUP BY game_species_code ORDER BY MAX(datetime(point_of_time)) DESC LIMIT :limit;
+
+filter:
+SELECT * FROM DbHarvest WHERE
+    username = :username
+    AND deleted = 0
+    AND CASE WHEN :startDateTime IS NOT NULL THEN point_of_time >= :startDateTime ELSE 1 END
+    AND CASE WHEN :endDateTime IS NOT NULL THEN point_of_time <= :endDateTime ELSE 1 END
+    AND CASE WHEN :filterSpecies THEN game_species_code IN :species ELSE 1 END
+    AND CASE WHEN :requireImages THEN local_images IS NOT NULL OR remote_images IS NOT NULL ELSE 1 END
+    AND CASE WHEN :ownHarvests THEN actor_id IS NULL ELSE actor_id IS NOT NULL END
+    ORDER BY point_of_time DESC;

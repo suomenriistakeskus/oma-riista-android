@@ -30,6 +30,9 @@ data class DatePeriod(
             endDate = endDate.toLocalDate(endDateYear)
         )
     }
+
+    // empty companion object so that it can be extended
+    companion object
 }
 
 /**

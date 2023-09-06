@@ -7,7 +7,7 @@ internal class MockMetadataRepository : MetadataRepository {
         return savedMetadatas[specification]
     }
 
-    override fun saveMetadataJson(specification: MetadataSpecification, metadataJson: String) {
+    override suspend fun saveMetadataJson(specification: MetadataSpecification, metadataJson: String) {
         savedMetadatas[specification] = metadataJson
     }
 }

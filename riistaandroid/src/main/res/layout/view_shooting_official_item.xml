@@ -18,9 +18,11 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
+        app:layout_constraintHorizontal_bias="0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/make_responsible_btn"
         tools:text="Pentti Mujunen" />
 
     <Button
@@ -46,5 +48,26 @@
         app:layout_constraintEnd_toStartOf="@id/add_official_btn"
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier_add_remove_buttons"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:barrierDirection="left"
+        app:constraint_referenced_ids="add_official_btn,remove_official_btn"
+        />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/make_responsible_btn"
+        android:layout_width="@dimen/square_image_button_dimen"
+        android:layout_height="@dimen/square_image_button_dimen"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        app:layout_constraintEnd_toStartOf="@id/barrier_add_remove_buttons"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBaseline_toBottomOf="parent"
+        app:srcCompat="@drawable/star" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

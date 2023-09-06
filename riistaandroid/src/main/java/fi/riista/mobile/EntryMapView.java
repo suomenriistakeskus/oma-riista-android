@@ -33,6 +33,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 
+import fi.riista.common.RiistaSDK;
 import fi.riista.mobile.ui.MyInfoWindowAdapter;
 import fi.riista.mobile.utils.AppPreferences;
 import fi.riista.mobile.vectormap.VectorTileProvider;
@@ -67,6 +68,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
     private TileOverlay mMhMooseOverlay;
     private TileOverlay mMhPienriistaOverlay;
     private TileOverlay mGameTrianglesOverlay;
+    private TileOverlay mLeadShotBanOverlay;
     private TileOverlay mMooseRestrictionsOverlay;
     private TileOverlay mSmallGameRestrictionsOverlay;
     private TileOverlay mAviHuntingBanOverlay;
@@ -104,6 +106,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
                 mMhMooseOverlay,
                 mMhPienriistaOverlay,
                 mGameTrianglesOverlay,
+                mLeadShotBanOverlay,
                 mMooseRestrictionsOverlay,
                 mSmallGameRestrictionsOverlay,
                 mAviHuntingBanOverlay,
@@ -215,7 +218,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
 
     private TileOverlay createVectorOverlay(final String externalId, final boolean invert) {
         if (externalId != null && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.SEURA);
             tileProvider.setMapExternalId(externalId);
             tileProvider.setInvertColors(invert);
@@ -234,7 +237,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.VALTIONMAA);
             tileProvider.setMapExternalId("-1");
             tileProvider.setInvertColors(false);
@@ -252,7 +255,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.RHY);
             tileProvider.setMapExternalId("-1");
             tileProvider.setInvertColors(false);
@@ -270,7 +273,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.MOOSE);
             tileProvider.setMapExternalId(areaCode);
             tileProvider.setInvertColors(false);
@@ -288,7 +291,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.PIENRIISTA);
             tileProvider.setMapExternalId(areaCode);
             tileProvider.setInvertColors(false);
@@ -306,7 +309,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.GAME_TRIANGLES);
             tileProvider.setMapExternalId("-1");
             tileProvider.setInvertColors(false);
@@ -317,6 +320,24 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
     }
 
+    public void setShowLeadShotBanLayer(final boolean show) {
+        if (mLeadShotBanOverlay != null) {
+            mLeadShotBanOverlay.remove();
+            mLeadShotBanOverlay = null;
+        }
+
+        if (show && mMap != null) {
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
+            tileProvider.setAreaType(VectorTileProvider.AreaType.LEAD_SHOT_BAN);
+            tileProvider.setMapExternalId("-1");
+            tileProvider.setInvertColors(false);
+
+            mLeadShotBanOverlay = mMap.addTileOverlay(new TileOverlayOptions()
+                    .tileProvider(tileProvider)
+                    .zIndex(11f));
+        }
+    }
+
     public void setShowMooseRestrictionsLayer(final boolean show) {
         if (mMooseRestrictionsOverlay != null) {
             mMooseRestrictionsOverlay.remove();
@@ -324,7 +345,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.MOOSE_RESTRICTIONS);
             tileProvider.setMapExternalId("-1");
             tileProvider.setInvertColors(false);
@@ -342,7 +363,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.SMALL_GAME_RESTRICTIONS);
             tileProvider.setMapExternalId("-1");
             tileProvider.setInvertColors(false);
@@ -360,7 +381,7 @@ public class EntryMapView extends MapView implements OnMapReadyCallback {
         }
 
         if (show && mMap != null) {
-            final VectorTileProvider tileProvider = new VectorTileProvider(getContext());
+            final VectorTileProvider tileProvider = new VectorTileProvider(getContext(), RiistaSDK.getMapTileVersions());
             tileProvider.setAreaType(VectorTileProvider.AreaType.AVI_HUNTING_BAN);
             tileProvider.setMapExternalId("-1");
             tileProvider.setInvertColors(false);

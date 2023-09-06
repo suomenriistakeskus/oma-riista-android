@@ -9,11 +9,11 @@
         <value></value>
     </entry>
     <entry>
-        <key>harvest_season_overrides</key>
-        <value>[]</value>
-    </entry>
-    <entry>
         <key>ssn_pattern</key>
         <value>^\d{6}[A+-]\d{3}[0-9A-FHJ-NPR-Y]$</value>
+    </entry>
+    <entry>
+        <key>map_tile_versions</key>
+        <value></value>
     </entry>
 </defaultsMap>

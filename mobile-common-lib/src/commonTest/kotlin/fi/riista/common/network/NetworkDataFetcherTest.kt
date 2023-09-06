@@ -1,15 +1,18 @@
 package fi.riista.common.network
 
 import fi.riista.common.helpers.runBlockingTest
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.network.calls.NetworkResponseData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 private const val RESPONSE_VALUE = 99
 
@@ -233,11 +236,5 @@ private class MockFetcher(
     override fun handleError(statusCode: Int?, exception: Throwable?) {
         error = true
         onError?.invoke(statusCode)
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger("MockFetcher")
     }
 }

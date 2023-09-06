@@ -27,7 +27,8 @@
     <dimen name="item_spacing_normal">10dp</dimen>
     <dimen name="item_spacing_semilarge">15dp</dimen>
     <dimen name="item_spacing_large">20dp</dimen>
-    <dimen name="item_spacing_huge">32dp</dimen>
+    <dimen name="item_spacing_xlarge">32dp</dimen>
+    <dimen name="item_spacing_xxlarge">64dp</dimen>
 
     <dimen name="date_time_text_size">20sp</dimen>
     <dimen name="date_time_text_size_small">16sp</dimen>

@@ -9,7 +9,7 @@ import fi.riista.common.model.LocalDate
  * Copied from application side + converted to kotlin.
  */
 object HardCodedSeasons {
-    fun isInsideHuntingSeason(date: LocalDate, speciesCode: SpeciesCode): Boolean {
+    fun isInsideHarvestSeason(date: LocalDate, speciesCode: SpeciesCode): Boolean {
         val huntingYear = date.getHuntingYear()
 
         return speciesCode == SpeciesCodes.BEAN_GOOSE_ID && isBeanGooseSeason(date, huntingYear) ||

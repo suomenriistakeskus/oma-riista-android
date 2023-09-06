@@ -1,5 +1,6 @@
 package fi.riista.common
 
+import fi.riista.common.logging.CrashlyticsLogger
 import fi.riista.common.network.NetworkClientConfiguration
 
 data class RiistaSdkConfiguration(
@@ -8,7 +9,8 @@ data class RiistaSdkConfiguration(
     val serverBaseAddress: String,
     val platform: Platform = Platform(),
     val device: Device = Device(),
-    val networkClientConfiguration: NetworkClientConfiguration = NetworkClientConfiguration()
+    val networkClientConfiguration: NetworkClientConfiguration = NetworkClientConfiguration(),
+    val crashlyticsLogger: CrashlyticsLogger,
 ) {
     init {
         if (serverBaseAddress.last() == '/') {
@@ -19,7 +21,7 @@ data class RiistaSdkConfiguration(
     val userAgent: String = "Oma Riista/${versionInfo.appVersion}"
 
     internal constructor(applicationVersion: String, applicationBuild: String,
-                         serverBaseAddress: String)
-            : this(versionInfo = VersionInfo(applicationVersion, applicationBuild, RiistaSDK.SDK_VERSION),
-                   serverBaseAddress = serverBaseAddress)
+                         serverBaseAddress: String, crashlyticsLogger: CrashlyticsLogger)
+            : this(versionInfo = VersionInfo(applicationVersion, applicationBuild),
+                   serverBaseAddress = serverBaseAddress, crashlyticsLogger = crashlyticsLogger)
 }

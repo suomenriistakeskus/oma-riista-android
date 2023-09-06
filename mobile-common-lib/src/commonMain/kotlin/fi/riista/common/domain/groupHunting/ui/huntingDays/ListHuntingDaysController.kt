@@ -1,9 +1,14 @@
 package fi.riista.common.domain.groupHunting.ui.huntingDays
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.constants.isMoose
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservation
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
+import fi.riista.common.domain.groupHunting.model.toLocalHuntingDay
 import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LocalDate
 import fi.riista.common.model.LocalDateTime
@@ -36,10 +41,6 @@ class ListHuntingDaysController private constructor(
             stringProvider = stringProvider,
             currentTimeProvider = SystemDateTimeProvider()
     )
-
-    init {
-        ensureNeverFrozen()
-    }
 
     val eventDispatcher: ListHuntingDaysEventDispatcher =
         ListHuntingDaysEventToIntentMapper(intentHandler = this)

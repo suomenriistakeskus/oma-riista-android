@@ -1,8 +1,12 @@
 package fi.riista.common.domain.groupHunting.ui.diary
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.AcceptStatus
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestTarget
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservation
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationTarget
+import fi.riista.common.domain.groupHunting.model.HuntingGroupTarget
 import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LocalDate
 import fi.riista.common.model.maxDate
@@ -26,10 +30,6 @@ class DiaryController(
      * The restored state (e.g. if activity was destroyed on android)
      */
     private var stateToRestore: State? = null
-
-    init {
-        ensureNeverFrozen()
-    }
 
     val eventDispatcher: DiaryEventDispatcher =
             DiaryEventToIntentMapper(intentHandler = this)

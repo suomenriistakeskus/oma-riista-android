@@ -1,36 +1,96 @@
 package fi.riista.common.network
 
 import fi.riista.common.domain.dto.HunterNumberDTO
-import fi.riista.common.domain.dto.MockUserInfo
 import fi.riista.common.domain.dto.PersonWithHunterNumberDTO
-import fi.riista.common.domain.dto.UserInfoDTO
 import fi.riista.common.domain.groupHunting.MockGroupHuntingData
-import fi.riista.common.domain.groupHunting.dto.*
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingClubsAndGroupsDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingDayCreateDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingDayDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingDayForDeerDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingDayUpdateDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingDaysDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingDiaryDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingHarvestCreateDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingHarvestDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingObservationCreateDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingObservationDTO
+import fi.riista.common.domain.groupHunting.dto.GroupHuntingObservationUpdateDTO
+import fi.riista.common.domain.groupHunting.dto.HuntingGroupAreaDTO
+import fi.riista.common.domain.groupHunting.dto.HuntingGroupMembersDTO
+import fi.riista.common.domain.groupHunting.dto.HuntingGroupStatusDTO
+import fi.riista.common.domain.groupHunting.dto.RejectDiaryEntryDTO
 import fi.riista.common.domain.groupHunting.model.HuntingGroupId
+import fi.riista.common.domain.harvest.MockHarvestData
+import fi.riista.common.domain.harvest.MockHarvestPageData
+import fi.riista.common.domain.harvest.sync.dto.DeletedHarvestsDTO
+import fi.riista.common.domain.harvest.sync.dto.HarvestCreateDTO
+import fi.riista.common.domain.harvest.sync.dto.HarvestDTO
+import fi.riista.common.domain.harvest.sync.dto.HarvestPageDTO
+import fi.riista.common.domain.huntingControl.MockHuntingControlData
+import fi.riista.common.domain.huntingControl.dto.HuntingControlHunterInfoDTO
 import fi.riista.common.domain.huntingControl.sync.dto.HuntingControlEventCreateDTO
 import fi.riista.common.domain.huntingControl.sync.dto.HuntingControlEventDTO
 import fi.riista.common.domain.huntingControl.sync.dto.LoadRhysAndHuntingControlEventsDTO
+import fi.riista.common.domain.huntingControl.ui.hunterInfo.MockHunterInfoData
 import fi.riista.common.domain.huntingclub.MockHuntingClubData
-import fi.riista.common.domain.huntingclub.dto.HuntingClubMemberInvitationsDTO
-import fi.riista.common.domain.huntingclub.dto.HuntingClubMembershipsDTO
-import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
-import fi.riista.common.domain.huntingControl.MockHuntingControlData
-import fi.riista.common.io.CommonFile
-import fi.riista.common.model.LocalDateTime
+import fi.riista.common.domain.huntingclub.dto.HuntingClubNameAndCodeDTO
+import fi.riista.common.domain.huntingclub.invitations.dto.HuntingClubMemberInvitationsDTO
+import fi.riista.common.domain.huntingclub.invitations.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingclub.memberships.dto.HuntingClubMembershipsDTO
+import fi.riista.common.domain.model.HuntingYear
 import fi.riista.common.domain.model.OrganizationId
+import fi.riista.common.domain.observation.MockObservationData
+import fi.riista.common.domain.observation.MockObservationPageData
 import fi.riista.common.domain.observation.metadata.MockObservationMetadata
 import fi.riista.common.domain.observation.metadata.dto.ObservationMetadataDTO
+import fi.riista.common.domain.observation.sync.dto.DeletedObservationsDTO
+import fi.riista.common.domain.observation.sync.dto.ObservationCreateDTO
+import fi.riista.common.domain.observation.sync.dto.ObservationDTO
+import fi.riista.common.domain.observation.sync.dto.ObservationPageDTO
+import fi.riista.common.domain.permit.metsahallitusPermit.dto.CommonMetsahallitusPermitDTO
+import fi.riista.common.domain.permit.metsahallitusPermit.sync.MockMetsahallitusPermitsData
+import fi.riista.common.domain.poi.MockPoiData
+import fi.riista.common.domain.poi.dto.PoiLocationGroupsDTO
+import fi.riista.common.domain.season.dto.HarvestSeasonDTO
+import fi.riista.common.domain.season.sync.MockHarvestSeasonsData
+import fi.riista.common.domain.shootingTest.MockShootingTestData
+import fi.riista.common.domain.shootingTest.dto.OpenShootingTestEventDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestAttemptCreateDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestAttemptDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestCalendarEventDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestCalendarEventsDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestOfficialsDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestParticipantCreateDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestParticipantDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestParticipantDetailedDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestParticipantsDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestPaymentUpdateDTO
+import fi.riista.common.domain.shootingTest.dto.ShootingTestPersonDTO
+import fi.riista.common.domain.shootingTest.dto.UpdateShootingTestOfficialsDTO
+import fi.riista.common.domain.shootingTest.model.CalendarEventId
+import fi.riista.common.domain.shootingTest.model.ShootingTestAttemptId
+import fi.riista.common.domain.shootingTest.model.ShootingTestEventId
+import fi.riista.common.domain.shootingTest.model.ShootingTestParticipantId
+import fi.riista.common.domain.srva.MockSrvaEventData
+import fi.riista.common.domain.srva.MockSrvaEventPageData
+import fi.riista.common.domain.srva.metadata.MockSrvaMetadata
+import fi.riista.common.domain.srva.metadata.dto.SrvaMetadataDTO
+import fi.riista.common.domain.srva.sync.dto.DeletedSrvaEventsDTO
+import fi.riista.common.domain.srva.sync.dto.SrvaEventCreateDTO
+import fi.riista.common.domain.srva.sync.dto.SrvaEventDTO
+import fi.riista.common.domain.srva.sync.dto.SrvaEventPageDTO
+import fi.riista.common.domain.training.dto.TrainingsDTO
+import fi.riista.common.domain.training.ui.MockTrainingData
+import fi.riista.common.dto.LocalDateTimeDTO
+import fi.riista.common.io.CommonFile
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.Revision
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.network.calls.NetworkResponseData
 import fi.riista.common.network.cookies.CookieData
-import fi.riista.common.domain.poi.MockPoiData
-import fi.riista.common.domain.poi.dto.PoiLocationGroupsDTO
-import fi.riista.common.domain.srva.metadata.MockSrvaMetadata
-import fi.riista.common.domain.srva.metadata.dto.SrvaMetadataDTO
-import fi.riista.common.domain.training.dto.TrainingsDTO
-import fi.riista.common.domain.training.ui.MockTrainingData
 import fi.riista.common.util.deserializeFromJson
 import io.ktor.utils.io.core.*
+import kotlin.reflect.KCallable
 
 data class MockResponse(
     val statusCode: Int? = 200,
@@ -45,8 +105,9 @@ data class MockResponse(
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class BackendAPIMock(
-    var loginResponse: MockResponse = MockResponse.success(MockUserInfo.Pentti),
+internal open class BackendAPIMock(
+    var unregisterAccountResponse: MockResponse = MockResponse.success("\"2023-03-21T15:13:55.320\""),
+    var cancelUnregisterAccountResponse: MockResponse = MockResponse.successWithNoData(204),
     var groupHuntingClubsAndGroupsResponse: MockResponse = MockResponse.success(MockGroupHuntingData.OneClub),
     var groupHuntingGroupMembersResponse: MockResponse = MockResponse.success(MockGroupHuntingData.Members),
     var groupHuntingGroupHuntingAreaResponse: MockResponse = MockResponse.success(MockGroupHuntingData.HuntingArea),
@@ -66,6 +127,7 @@ open class BackendAPIMock(
     var huntingClubMemberInvitationsResponse: MockResponse = MockResponse.success(MockHuntingClubData.HuntingClubMemberInvitations),
     var acceptHuntingClubMemberInvitationResponse: MockResponse = MockResponse.successWithNoData(204),
     var rejectHuntingClubMemberInvitationResponse: MockResponse = MockResponse.successWithNoData(204),
+    var searchHuntingClubByOfficialCodeResponse: MockResponse = MockResponse.success(MockHuntingClubData.HuntingClubSearchResult),
     var poiLocationGroupsResponse: MockResponse = MockResponse.success(MockPoiData.PoiLocationGroups),
     var huntingControlRhysResponse: MockResponse = MockResponse.success(MockHuntingControlData.HuntingControlRhys),
     var huntingControlAttachmentThumbnailResponse: MockResponse = MockResponse.success(MockHuntingControlData.AttachmentThumbnail),
@@ -73,20 +135,70 @@ open class BackendAPIMock(
     var updateHuntingControlEventReponse: MockResponse = MockResponse.success(MockHuntingControlData.UpdatedHuntingControlEvent),
     var deleteHuntingControlEventAttachmentResponse: MockResponse = MockResponse.successWithNoData(204),
     var uploadHuntingControlEventAttachmentResponse: MockResponse = MockResponse.success(204, "${MockHuntingControlData.UploadedAttachmentRemoteId}"),
+    var fetchHuntingControlHunterInfoResponse: MockResponse = MockResponse.success(MockHunterInfoData.HunterInfo),
     var fetchTrainingsResponse: MockResponse = MockResponse.success(MockTrainingData.Trainings),
     var fetchSrvaMetadataResponse: MockResponse = MockResponse.success(MockSrvaMetadata.METADATA_SPEC_VERSION_2),
     var fetchObservationMetadataResponse: MockResponse = MockResponse.success(MockObservationMetadata.METADATA_SPEC_VERSION_4),
+    var fetchSrvaEventsResponse: MockResponse = MockResponse.success(MockSrvaEventPageData.srvaPageWithOneEvent),
+    var createSrvaEventResponse: MockResponse = MockResponse.success(MockSrvaEventData.srvaEvent),
+    var updateSrvaEventResponse: MockResponse = MockResponse.success(MockSrvaEventData.srvaEvent),
+    var deleteSrvaEventResponse: MockResponse = MockResponse.successWithNoData(204),
+    var fetchDeletedSrvaEventsResponse: MockResponse = MockResponse.success(MockSrvaEventPageData.deletedSrvaEvents),
+    var uploadSrvaEventImageResponse: MockResponse = MockResponse.successWithNoData(200),
+    var deleteSrvaEventImageResponse: MockResponse = MockResponse.successWithNoData(200),
+    var fetchObservationPageResponse: MockResponse = MockResponse.success(MockObservationPageData.observationPage),
+    var createObservationResponse: MockResponse = MockResponse.success(MockObservationData.observation),
+    var updateObservationResponse: MockResponse = MockResponse.success(MockObservationData.observation),
+    var deleteObservationResponse: MockResponse = MockResponse.successWithNoData(204),
+    var fetchDeletedObservationsResponse: MockResponse = MockResponse.success(MockObservationPageData.deletedObservations),
+    var uploadObservationImageResponse: MockResponse = MockResponse.successWithNoData(200),
+    var deleteObservationImageResponse: MockResponse = MockResponse.successWithNoData(200),
+    var fetchHarvestPageResponse: MockResponse = MockResponse.success(MockHarvestPageData.harvestPageWithOneHarvest),
+    var createHarvestResponse: MockResponse = MockResponse.success(MockHarvestData.harvest),
+    var updateHarvestResponse: MockResponse = MockResponse.success(MockHarvestData.harvest),
+    var deleteHarvestResponse: MockResponse = MockResponse.successWithNoData(204),
+    var fetchDeletedHarvestsResponse: MockResponse = MockResponse.success(MockHarvestPageData.deletedHarvests),
+    var uploadHarvestImageResponse: MockResponse = MockResponse.successWithNoData(200),
+    var deleteHarvestImageResponse: MockResponse = MockResponse.successWithNoData(200),
+    var fetchShootingTestCalendarEventsResponse: MockResponse = MockResponse.success(MockShootingTestData.events),
+    var fetchShootingTestCalendarEventResponse: MockResponse = MockResponse.success(MockShootingTestData.firstEvent),
+    var openShootingTestEventResponse: MockResponse = MockResponse.successWithNoData(200),
+    var closeShootingTestEventResponse: MockResponse = MockResponse.successWithNoData(200),
+    var reopenShootingTestEventResponse: MockResponse = MockResponse.successWithNoData(200),
+    var fetchAvailableShootingTestOfficialsForEventResponse: MockResponse = MockResponse.success(MockShootingTestData.officials),
+    var fetchSelectedShootingTestOfficialsForEventResponse: MockResponse = MockResponse.success(MockShootingTestData.officials),
+    var fetchAvailableShootingTestOfficialsForRhyResponse: MockResponse = MockResponse.success(MockShootingTestData.officials),
+    var updateShootingTestOfficialsResponse: MockResponse = MockResponse.successWithNoData(200),
+    var searchShootingTestPersonWithSsnResponse: MockResponse = MockResponse.success(MockShootingTestData.person),
+    var searchShootingTestPersonWithHunterNumberResponse: MockResponse = MockResponse.success(MockShootingTestData.person),
+    var fetchShootingTestParticipantsResponse: MockResponse = MockResponse.success(MockShootingTestData.participants),
+    var fetchShootingTestParticipantResponse: MockResponse = MockResponse.success(MockShootingTestData.participant),
+    var addShootingTestParticipantResponse: MockResponse = MockResponse.successWithNoData(204),
+    var fetchShootingTestParticipantDetailedResponse: MockResponse = MockResponse.success(MockShootingTestData.participantDetailed),
+    var fetchShootingTestAttemptResponse: MockResponse = MockResponse.success(MockShootingTestData.attempt),
+    var addShootingTestAttemptResponse: MockResponse = MockResponse.successWithNoData(204),
+    var updateShootingTestAttemptResponse: MockResponse = MockResponse.successWithNoData(204),
+    var removeShootingTestAttemptResponse: MockResponse = MockResponse.successWithNoData(204),
+    var updateShootingTestPaymentForParticipantResponse: MockResponse = MockResponse.successWithNoData(204),
+    var completeAllPaymentsForParticipantResponse: MockResponse = MockResponse.successWithNoData(204),
+    var fetchHarvestSeasonsResponse: MockResponse = MockResponse.success(MockHarvestSeasonsData.harvestSeasons),
+    var fetchMetsahallitusPermitsResponse: MockResponse = MockResponse.success(MockMetsahallitusPermitsData.permits),
 ) : BackendAPI {
     private val callCounts: MutableMap<String, Int> = mutableMapOf()
-    private val callParameters: MutableMap<String, Any> = mutableMapOf()
+    private val callParameters: MutableMap<String, Any?> = mutableMapOf()
 
     override fun getAllNetworkCookies(): List<CookieData> = listOf()
 
     override fun getNetworkCookies(requestUrl: String): List<CookieData> = listOf()
 
-    override suspend fun login(username: String, password: String): NetworkResponse<UserInfoDTO> {
-        increaseCallCount(::login.name)
-        return respond(loginResponse)
+    override suspend fun unregisterAccount(): NetworkResponse<LocalDateTimeDTO> {
+        increaseCallCount(::unregisterAccount.name)
+        return respond(unregisterAccountResponse)
+    }
+
+    override suspend fun cancelUnregisterAccount(): NetworkResponse<Unit> {
+        increaseCallCount(::cancelUnregisterAccount.name)
+        return respond(cancelUnregisterAccountResponse)
     }
 
     override suspend fun fetchGroupHuntingClubsAndHuntingGroups(): NetworkResponse<GroupHuntingClubsAndGroupsDTO> {
@@ -210,11 +322,15 @@ open class BackendAPIMock(
         return respond(rejectHuntingClubMemberInvitationResponse)
     }
 
+    override suspend fun searchHuntingClubByOfficialCode(officialCode: String): NetworkResponse<HuntingClubNameAndCodeDTO> {
+        increaseCallCount(::searchHuntingClubByOfficialCode.name)
+        callParameters[::searchHuntingClubByOfficialCode.name] = officialCode
+        return respond(searchHuntingClubByOfficialCodeResponse)
+    }
+
     override suspend fun fetchHuntingControlRhys(modifiedAfter: LocalDateTime?): NetworkResponse<LoadRhysAndHuntingControlEventsDTO> {
         increaseCallCount(::fetchHuntingControlRhys.name)
-        modifiedAfter?.let {
-            callParameters[::fetchHuntingControlRhys.name] = modifiedAfter
-        }
+        callParameters[::fetchHuntingControlRhys.name] = modifiedAfter
         return respond(huntingControlRhysResponse)
     }
 
@@ -285,13 +401,174 @@ open class BackendAPIMock(
         return respond(uploadHuntingControlEventAttachmentResponse)
     }
 
-    data class UploadHuntingControlEventAttachmentCallParameters(
-        val eventRemoteId: Long,
-        val uuid: String,
-        val fileName: String,
-        val contentType: String,
-        val file: CommonFile,
-    )
+    override suspend fun fetchHuntingControlHunterInfoByHunterNumber(
+        hunterNumber: String,
+    ): NetworkResponse<HuntingControlHunterInfoDTO> {
+        increaseCallCount(::fetchHuntingControlHunterInfoByHunterNumber.name)
+        callParameters[::fetchHuntingControlHunterInfoByHunterNumber.name] = hunterNumber
+        return respond(fetchHuntingControlHunterInfoResponse)
+    }
+
+    override suspend fun fetchHuntingControlHunterInfoBySsn(ssn: String): NetworkResponse<HuntingControlHunterInfoDTO> {
+        increaseCallCount(::fetchHuntingControlHunterInfoBySsn.name)
+        callParameters[::fetchHuntingControlHunterInfoBySsn.name] = ssn
+        return respond(fetchHuntingControlHunterInfoResponse)
+    }
+
+    override suspend fun fetchSrvaEvents(modifiedAfter: LocalDateTime?): NetworkResponse<SrvaEventPageDTO> {
+        increaseCallCount(::fetchSrvaEvents.name)
+        return respond(fetchSrvaEventsResponse)
+    }
+
+    override suspend fun createSrvaEvent(event: SrvaEventCreateDTO): NetworkResponse<SrvaEventDTO> {
+        increaseCallCount(::createSrvaEvent.name)
+        callParameters[::createSrvaEvent.name] = event
+        return respond(createSrvaEventResponse)
+    }
+
+    override suspend fun updateSrvaEvent(event: SrvaEventDTO): NetworkResponse<SrvaEventDTO> {
+        increaseCallCount(::updateSrvaEvent.name)
+        callParameters[::updateSrvaEvent.name] = event
+        return respond(updateSrvaEventResponse)
+    }
+
+    override suspend fun deleteSrvaEvent(eventRemoteId: Long): NetworkResponse<Unit> {
+        increaseCallCount(::deleteSrvaEvent.name)
+        callParameters[::deleteSrvaEvent.name] = eventRemoteId
+        return respond(deleteSrvaEventResponse)
+    }
+
+    override suspend fun fetchDeletedSrvaEvents(deletedAfter: LocalDateTime?): NetworkResponse<DeletedSrvaEventsDTO> {
+        increaseCallCount(::fetchDeletedSrvaEventsResponse.name)
+        callParameters[::fetchDeletedSrvaEvents.name] = deletedAfter
+        return respond(fetchDeletedSrvaEventsResponse)
+    }
+
+    override suspend fun uploadSrvaEventImage(
+        eventRemoteId: Long,
+        uuid: String,
+        contentType: String,
+        file: CommonFile
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::uploadSrvaEventImage.name)
+        callParameters[::uploadSrvaEventImage.name] = UploadImageCallParameters(
+            eventRemoteId = eventRemoteId,
+            uuid = uuid,
+            contentType = contentType,
+            file = file,
+        )
+        return respond(uploadSrvaEventImageResponse)
+    }
+
+    override suspend fun deleteSrvaEventImage(imageUuid: String): NetworkResponse<Unit> {
+        increaseCallCount(::deleteSrvaEventImage.name)
+        callParameters[::deleteSrvaEventImage.name] = imageUuid
+        return respond(deleteSrvaEventImageResponse)
+    }
+
+    override suspend fun fetchObservations(modifiedAfter: LocalDateTime?): NetworkResponse<ObservationPageDTO> {
+        increaseCallCount(::fetchObservations.name)
+        callParameters[::fetchObservations.name] = modifiedAfter
+        return respond(fetchObservationPageResponse)
+    }
+
+    override suspend fun createObservation(observation: ObservationCreateDTO): NetworkResponse<ObservationDTO> {
+        increaseCallCount(::createObservation.name)
+        callParameters[::createObservation.name] = observation
+        return respond(createObservationResponse)
+    }
+
+    override suspend fun updateObservation(observation: ObservationDTO): NetworkResponse<ObservationDTO> {
+        increaseCallCount(::updateObservation.name)
+        callParameters[::updateObservation.name] = observation
+        return respond(updateObservationResponse)
+    }
+
+    override suspend fun deleteObservation(observationRemoteId: Long): NetworkResponse<Unit> {
+        increaseCallCount(::deleteObservation.name)
+        callParameters[::deleteObservation.name] = observationRemoteId
+        return respond(deleteObservationResponse)
+    }
+
+    override suspend fun fetchDeletedObservations(deletedAfter: LocalDateTime?): NetworkResponse<DeletedObservationsDTO> {
+        increaseCallCount(::fetchDeletedObservations.name)
+        callParameters[::fetchDeletedObservations.name] = deletedAfter
+        return respond(fetchDeletedObservationsResponse)
+    }
+
+    override suspend fun uploadObservationImage(
+        observationRemoteId: Long,
+        uuid: String,
+        contentType: String,
+        file: CommonFile
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::uploadObservationImage.name)
+        callParameters[::uploadObservationImage.name] = UploadImageCallParameters(
+            eventRemoteId = observationRemoteId,
+            uuid = uuid,
+            contentType = contentType,
+            file = file,
+        )
+        return respond(uploadObservationImageResponse)
+    }
+
+    override suspend fun deleteObservationImage(imageUuid: String): NetworkResponse<Unit> {
+        increaseCallCount(::deleteObservationImage.name)
+        callParameters[::deleteObservationImage.name] = imageUuid
+        return respond(deleteObservationImageResponse)
+    }
+
+    override suspend fun fetchHarvests(modifiedAfter: LocalDateTime?): NetworkResponse<HarvestPageDTO> {
+        increaseCallCount(::fetchHarvests.name)
+        callParameters[::fetchHarvests.name] = modifiedAfter
+        return respond(fetchHarvestPageResponse)
+    }
+
+    override suspend fun createHarvest(harvest: HarvestCreateDTO): NetworkResponse<HarvestDTO> {
+        increaseCallCount(::createHarvest.name)
+        callParameters[::createHarvest.name] = harvest
+        return respond(createHarvestResponse)
+    }
+
+    override suspend fun updateHarvest(harvest: HarvestDTO): NetworkResponse<HarvestDTO> {
+        increaseCallCount(::updateHarvest.name)
+        callParameters[::updateHarvest.name] = harvest
+        return respond(updateHarvestResponse)
+    }
+
+    override suspend fun deleteHarvest(harvestRemoteId: Long): NetworkResponse<Unit> {
+        increaseCallCount(::deleteHarvest.name)
+        callParameters[::deleteHarvest.name] = harvestRemoteId
+        return respond(deleteHarvestResponse)
+    }
+
+    override suspend fun fetchDeletedHarvests(deletedAfter: LocalDateTime?): NetworkResponse<DeletedHarvestsDTO> {
+        increaseCallCount(::fetchDeletedHarvests.name)
+        callParameters[::fetchDeletedHarvests.name] = deletedAfter
+        return respond(fetchDeletedHarvestsResponse)
+    }
+
+    override suspend fun uploadHarvestImage(
+        harvestRemoteId: Long,
+        uuid: String,
+        contentType: String,
+        file: CommonFile
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::uploadHarvestImage.name)
+        callParameters[::uploadHarvestImage.name] = UploadImageCallParameters(
+            eventRemoteId = harvestRemoteId,
+            uuid = uuid,
+            contentType = contentType,
+            file = file,
+        )
+        return respond(uploadHarvestImageResponse)
+    }
+
+    override suspend fun deleteHarvestImage(imageUuid: String): NetworkResponse<Unit> {
+        increaseCallCount(::deleteHarvestImage.name)
+        callParameters[::deleteHarvestImage.name] = imageUuid
+        return respond(deleteHarvestImageResponse)
+    }
 
     override suspend fun fetchSrvaMetadata(): NetworkResponse<SrvaMetadataDTO> {
         increaseCallCount(::fetchSrvaMetadata.name)
@@ -301,6 +578,175 @@ open class BackendAPIMock(
     override suspend fun fetchObservationMetadata(): NetworkResponse<ObservationMetadataDTO> {
         increaseCallCount(::fetchObservationMetadata.name)
         return respond(fetchObservationMetadataResponse)
+    }
+
+    override suspend fun fetchShootingTestCalendarEvents(): NetworkResponse<ShootingTestCalendarEventsDTO> {
+        increaseCallCount(::fetchShootingTestCalendarEvents.name)
+        return respond(fetchShootingTestCalendarEventsResponse)
+    }
+
+    override suspend fun fetchShootingTestCalendarEvent(
+        calendarEventId: CalendarEventId,
+    ): NetworkResponse<ShootingTestCalendarEventDTO> {
+        increaseCallCount(::fetchShootingTestCalendarEvent.name)
+        callParameters[::fetchShootingTestCalendarEvent.name] = calendarEventId
+        return respond(fetchShootingTestCalendarEventResponse)
+    }
+
+    override suspend fun openShootingTestEvent(openShootingTestEventDTO: OpenShootingTestEventDTO): NetworkResponse<Unit> {
+        increaseCallCount(::openShootingTestEvent.name)
+        callParameters[::openShootingTestEvent.name] = openShootingTestEventDTO
+        return respond(openShootingTestEventResponse)
+    }
+
+    override suspend fun closeShootingTestEvent(shootingTestEventId: ShootingTestEventId): NetworkResponse<Unit> {
+        increaseCallCount(::closeShootingTestEvent.name)
+        callParameters[::closeShootingTestEvent.name] = shootingTestEventId
+        return respond(closeShootingTestEventResponse)
+    }
+
+    override suspend fun reopenShootingTestEvent(shootingTestEventId: ShootingTestEventId): NetworkResponse<Unit> {
+        increaseCallCount(::reopenShootingTestEvent.name)
+        callParameters[::reopenShootingTestEvent.name] = shootingTestEventId
+        return respond(reopenShootingTestEventResponse)
+    }
+
+    override suspend fun fetchAvailableShootingTestOfficialsForEvent(
+        shootingTestEventId: ShootingTestEventId,
+    ): NetworkResponse<ShootingTestOfficialsDTO> {
+        increaseCallCount(::fetchAvailableShootingTestOfficialsForEvent.name)
+        callParameters[::fetchAvailableShootingTestOfficialsForEvent.name] = shootingTestEventId
+        return respond(fetchAvailableShootingTestOfficialsForEventResponse)
+    }
+
+    override suspend fun fetchSelectedShootingTestOfficialsForEvent(
+        shootingTestEventId: ShootingTestEventId,
+    ): NetworkResponse<ShootingTestOfficialsDTO> {
+        increaseCallCount(::fetchSelectedShootingTestOfficialsForEvent.name)
+        callParameters[::fetchSelectedShootingTestOfficialsForEvent.name] = shootingTestEventId
+        return respond(fetchSelectedShootingTestOfficialsForEventResponse)
+    }
+
+    override suspend fun fetchAvailableShootingTestOfficialsForRhy(
+        rhyId: Long,
+    ): NetworkResponse<ShootingTestOfficialsDTO> {
+        increaseCallCount(::fetchAvailableShootingTestOfficialsForRhy.name)
+        callParameters[::fetchAvailableShootingTestOfficialsForRhy.name] = rhyId
+        return respond(fetchAvailableShootingTestOfficialsForRhyResponse)
+    }
+
+    override suspend fun updateShootingTestOfficials(
+        updateShootingTestOfficialsDTO: UpdateShootingTestOfficialsDTO,
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::updateShootingTestOfficials.name)
+        callParameters[::updateShootingTestOfficials.name] = updateShootingTestOfficialsDTO
+        return respond(updateShootingTestOfficialsResponse)
+    }
+
+    override suspend fun searchShootingTestPersonWithSsn(
+        shootingTestEventId: ShootingTestEventId,
+        ssn: String,
+    ): NetworkResponse<ShootingTestPersonDTO> {
+        increaseCallCount(::searchShootingTestPersonWithSsn.name)
+        callParameters[::searchShootingTestPersonWithSsn.name] = Pair(shootingTestEventId, ssn)
+        return respond(searchShootingTestPersonWithSsnResponse)
+    }
+
+    override suspend fun searchShootingTestPersonWithHunterNumber(
+        shootingTestEventId: ShootingTestEventId,
+        hunterNumber: String,
+    ): NetworkResponse<ShootingTestPersonDTO> {
+        increaseCallCount(::searchShootingTestPersonWithHunterNumber.name)
+        callParameters[::searchShootingTestPersonWithHunterNumber.name] = Pair(shootingTestEventId, hunterNumber)
+        return respond(searchShootingTestPersonWithHunterNumberResponse)
+    }
+
+    override suspend fun fetchShootingTestParticipants(
+        shootingTestEventId: ShootingTestEventId,
+    ): NetworkResponse<ShootingTestParticipantsDTO> {
+        increaseCallCount(::fetchShootingTestParticipants.name)
+        callParameters[::fetchShootingTestParticipants.name] = shootingTestEventId
+        return respond(fetchShootingTestParticipantsResponse)
+    }
+
+    override suspend fun fetchShootingTestParticipant(
+        participantId: ShootingTestParticipantId,
+    ): NetworkResponse<ShootingTestParticipantDTO> {
+        increaseCallCount(::fetchShootingTestParticipant.name)
+        callParameters[::fetchShootingTestParticipant.name] = participantId
+        return respond(fetchShootingTestParticipantResponse)
+    }
+
+    override suspend fun addShootingTestParticipant(
+        shootingTestEventId: ShootingTestEventId,
+        participant: ShootingTestParticipantCreateDTO
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::addShootingTestParticipant.name)
+        callParameters[::addShootingTestParticipant.name] = Pair(shootingTestEventId, participant)
+        return respond(addShootingTestParticipantResponse)
+    }
+
+    override suspend fun fetchShootingTestParticipantDetailed(
+        participantId: ShootingTestParticipantId,
+    ): NetworkResponse<ShootingTestParticipantDetailedDTO> {
+        increaseCallCount(::fetchShootingTestParticipantDetailed.name)
+        callParameters[::fetchShootingTestParticipantDetailed.name] = participantId
+        return respond(fetchShootingTestParticipantDetailedResponse)
+    }
+
+    override suspend fun fetchShootingTestAttempt(
+        shootingTestAttemptId: ShootingTestAttemptId,
+    ): NetworkResponse<ShootingTestAttemptDTO> {
+        increaseCallCount(::fetchShootingTestAttempt.name)
+        callParameters[::fetchShootingTestAttempt.name] = shootingTestAttemptId
+        return respond(fetchShootingTestAttemptResponse)
+    }
+
+    override suspend fun addShootingTestAttempt(attempt: ShootingTestAttemptCreateDTO): NetworkResponse<Unit> {
+        increaseCallCount(::addShootingTestAttempt.name)
+        callParameters[::addShootingTestAttempt.name] = attempt
+        return respond(addShootingTestAttemptResponse)
+    }
+
+    override suspend fun updateShootingTestAttempt(attempt: ShootingTestAttemptDTO): NetworkResponse<Unit> {
+        increaseCallCount(::updateShootingTestAttempt.name)
+        callParameters[::updateShootingTestAttempt.name] = attempt
+        return respond(updateShootingTestAttemptResponse)
+    }
+
+    override suspend fun removeShootingTestAttempt(shootingTestAttemptId: ShootingTestAttemptId): NetworkResponse<Unit> {
+        increaseCallCount(::removeShootingTestAttempt.name)
+        callParameters[::removeShootingTestAttempt.name] = shootingTestAttemptId
+        return respond(removeShootingTestAttemptResponse)
+    }
+
+    override suspend fun updateShootingTestPaymentForParticipant(
+        participantId: ShootingTestParticipantId,
+        paymentUpdateDTO: ShootingTestPaymentUpdateDTO
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::updateShootingTestPaymentForParticipant.name)
+        callParameters[::updateShootingTestPaymentForParticipant.name] = Pair(participantId, paymentUpdateDTO)
+        return respond(updateShootingTestPaymentForParticipantResponse)
+    }
+
+    override suspend fun completeAllPaymentsForParticipant(
+        participantId: ShootingTestParticipantId,
+        participantRev: Revision,
+    ): NetworkResponse<Unit> {
+        increaseCallCount(::completeAllPaymentsForParticipant.name)
+        callParameters[::completeAllPaymentsForParticipant.name] = Pair(participantId, participantRev)
+        return respond(completeAllPaymentsForParticipantResponse)
+    }
+
+    override suspend fun fetchHarvestSeasons(huntingYear: HuntingYear): NetworkResponse<List<HarvestSeasonDTO>> {
+        increaseCallCount(::fetchHarvestSeasons.name)
+        callParameters[::fetchHarvestSeasons.name] = huntingYear
+        return respond(fetchHarvestSeasonsResponse)
+    }
+
+    override suspend fun fetchMetsahallitusPermits(): NetworkResponse<List<CommonMetsahallitusPermitDTO>> {
+        increaseCallCount(::fetchMetsahallitusPermits.name)
+        return respond(fetchMetsahallitusPermitsResponse)
     }
 
     /**
@@ -314,6 +760,17 @@ open class BackendAPIMock(
         return (callCounts[methodName] ?: 0)
     }
 
+    fun <R> callCount(method: KCallable<R>): Int {
+        return callCount(methodName = method.name)
+    }
+
+    /**
+     * Returns how many times all BackendAPI functions all called combined.
+     */
+    fun totalCallCount(): Int {
+        return callCounts.values.sum()
+    }
+
     /**
      * Returns the last parameter the given method was called with.
      *
@@ -321,6 +778,10 @@ open class BackendAPIMock(
      */
     fun callParameter(methodName: String): Any? {
         return callParameters[methodName]
+    }
+
+    fun <R> callParameter(method: KCallable<R>): Any? {
+        return callParameter(methodName = method.name)
     }
 
     private fun increaseCallCount(methodName: String) {
@@ -348,4 +809,19 @@ open class BackendAPIMock(
             NetworkResponse.NetworkError(exception = null)
         }
     }
+
+    data class UploadHuntingControlEventAttachmentCallParameters(
+        val eventRemoteId: Long,
+        val uuid: String,
+        val fileName: String,
+        val contentType: String,
+        val file: CommonFile,
+    )
+
+    data class UploadImageCallParameters(
+        val eventRemoteId: Long,
+        val uuid: String,
+        val contentType: String,
+        val file: CommonFile,
+    )
 }

@@ -1,5 +1,6 @@
 package fi.riista.common.domain.observation.ui.modify
 
+import fi.riista.common.RiistaSDK
 import fi.riista.common.domain.constants.Constants
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.constants.SpeciesCodes
@@ -11,6 +12,7 @@ import fi.riista.common.domain.model.ObservationCategory
 import fi.riista.common.domain.model.ObservationType
 import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.observation.ObservationContext
 import fi.riista.common.domain.observation.metadata.model.ObservationFieldRequirement
 import fi.riista.common.domain.observation.metadata.model.ObservationMetadata
 import fi.riista.common.domain.observation.metadata.model.SpeciesObservationMetadata
@@ -24,14 +26,20 @@ import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
 import fi.riista.common.helpers.TestStringProvider
 import fi.riista.common.helpers.getField
 import fi.riista.common.helpers.getLoadedViewModel
+import fi.riista.common.helpers.initializeMocked
 import fi.riista.common.helpers.runBlockingTest
+import fi.riista.common.io.CommonFileProviderMock
 import fi.riista.common.metadata.MockMetadataProvider
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.ETRMSGeoLocation
 import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.StringWithId
 import fi.riista.common.model.TrueOrFalse
 import fi.riista.common.model.toBackendEnum
+import fi.riista.common.network.BackendAPI
+import fi.riista.common.network.BackendAPIMock
+import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.resources.RR
 import fi.riista.common.resources.StringProvider
@@ -47,6 +55,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class EditObservationControllerTest {
 
@@ -201,7 +210,7 @@ class EditObservationControllerTest {
             fieldId = CommonObservationField.DEER_HUNTING_TYPE
         ) { field ->
             assertEquals(listOf(DeerHuntingType.OTHER.ordinal.toLong()), field.selected)
-            field.settings.label.assertEquals(RR.string.group_hunting_harvest_field_deer_hunting_type)
+            field.settings.label.assertEquals(RR.string.harvest_label_deer_hunting_type)
             assertFalse(field.settings.readOnly)
         }
 
@@ -221,7 +230,7 @@ class EditObservationControllerTest {
             fieldId = CommonObservationField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION
         ) { field ->
             assertEquals("deerHuntingOtherTypeDescription", field.value)
-            field.settings.label.assertEquals(RR.string.group_hunting_harvest_field_deer_hunting_other_type_description)
+            field.settings.label.assertEquals(RR.string.harvest_label_deer_hunting_other_type_description)
             assertFalse(field.settings.readOnly)
         }
     }
@@ -528,6 +537,41 @@ class EditObservationControllerTest {
         )
     }
 
+    @Test
+    fun testPairHasTwoSpecimens() = runBlockingTest {
+        val controller = getController(
+            speciesCode = SpeciesCodes.BEAN_GOOSE_ID,
+            metadata = MockMetadataProvider.INSTANCE.observationMetadata,
+        )
+        controller.loadViewModel()
+
+        controller.eventDispatchers.stringWithIdEventDispatcher.dispatchStringWithIdChanged(
+            CommonObservationField.OBSERVATION_TYPE,
+            listOf(StringWithId("pari", ObservationType.PARI.ordinal.toLong())),
+        )
+
+        with (controller.getLoadedViewModel()) {
+            assertEquals(2, observation.totalSpecimenAmount)
+            assertEquals(2, observation.specimens?.size)
+            val specimen1 = assertNotNull(observation.specimens?.get(0))
+            val specimen2 = assertNotNull(observation.specimens?.get(1))
+            assertEquals(Gender.MALE, specimen1.gender?.value)
+            assertEquals(GameAge.ADULT, specimen1.age?.value)
+            assertEquals(Gender.FEMALE, specimen2.gender?.value)
+            assertEquals(GameAge.ADULT, specimen2.age?.value)
+
+            assertEquals(7, fields.size)
+
+            val amountField: IntField<CommonObservationField> = fields.getField(4, CommonObservationField.SPECIMEN_AMOUNT)
+            assertEquals(2, amountField.value)
+            assertTrue(amountField.settings.readOnly)
+
+            val specimensField: SpecimenField<CommonObservationField> = fields.getField(5, CommonObservationField.SPECIMENS)
+            assertEquals(2, specimensField.specimenData.specimenAmount)
+            assertTrue(specimensField.settings.readOnly)
+        }
+    }
+
     private fun String?.assertEquals(expected: RR.string) {
         assertEquals(stringProvider.getString(expected), this)
     }
@@ -589,6 +633,8 @@ class EditObservationControllerTest {
                 )
             ),
             canEdit = true,
+            modified = true,
+            deleted = false,
             totalSpecimenAmount = 1,
             mooselikeMaleAmount = 2,
             mooselikeFemaleAmount = 3,
@@ -632,9 +678,10 @@ class EditObservationControllerTest {
         observation: CommonObservation = createObservation(speciesCode = speciesCode),
         metadata: ObservationMetadata = createMetadata(speciesCode = speciesCode)
     ): EditObservationController {
+        initializeRiistaSDK()
+
         val currentUserContextProvider: CurrentUserContextProvider = CurrentUserContextProviderFactory.createMocked(
             preferences = MockPreferences(),
-            localDateTimeProvider = MockDateTimeProvider()
         )
 
         val metadataProvider = MockMetadataProvider(
@@ -643,6 +690,15 @@ class EditObservationControllerTest {
 
         val controller = EditObservationController(
             userContext = currentUserContextProvider.userContext,
+            observationContext = ObservationContext(
+                backendApiProvider = object : BackendApiProvider {
+                    override val backendAPI: BackendAPI = BackendAPIMock()
+                },
+                preferences = MockPreferences(),
+                localDateTimeProvider = MockDateTimeProvider(),
+                commonFileProvider = CommonFileProviderMock(),
+                currentUserContextProvider = CurrentUserContextProviderFactory.createMocked(),
+            ),
             metadataProvider = metadataProvider,
             stringProvider = stringProvider
         )
@@ -668,4 +724,7 @@ class EditObservationControllerTest {
         private val OBSERVATION_DATE_TIME = LocalDateTime(2022, 5, 1, 18, 0, 0)
     }
 
+    private fun initializeRiistaSDK() {
+        RiistaSDK.initializeMocked()
+    }
 }

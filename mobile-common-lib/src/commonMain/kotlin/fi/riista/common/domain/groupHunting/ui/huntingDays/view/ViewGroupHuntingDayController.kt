@@ -1,6 +1,5 @@
 package fi.riista.common.domain.groupHunting.ui.huntingDays.view
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.constants.isMoose
 import fi.riista.common.domain.groupHunting.GroupHuntingClubGroupContext
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
@@ -33,10 +32,6 @@ class ViewGroupHuntingDayController internal constructor(
         huntingDayTarget = huntingDayTarget,
         currentTimeProvider = SystemDateTimeProvider(),
     )
-
-    init {
-        ensureNeverFrozen()
-    }
 
     override fun createLoadViewModelFlow(refresh: Boolean):
             Flow<ViewModelLoadStatus<HuntingDayViewModel>> = flow {

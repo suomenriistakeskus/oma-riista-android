@@ -1,56 +1,52 @@
 package fi.riista.common.domain.huntingControl.ui.modify
 
-import co.touchlab.stately.ensureNeverFrozen
-import fi.riista.common.domain.huntingControl.model.*
-import fi.riista.common.domain.huntingControl.ui.*
+import fi.riista.common.domain.huntingControl.HuntingControlContext
+import fi.riista.common.domain.huntingControl.HuntingControlEventOperationResponse
+import fi.riista.common.domain.huntingControl.model.HuntingControlAttachment
+import fi.riista.common.domain.huntingControl.model.HuntingControlCooperationType
+import fi.riista.common.domain.huntingControl.model.HuntingControlEventData
+import fi.riista.common.domain.huntingControl.model.HuntingControlEventType
+import fi.riista.common.domain.huntingControl.model.HuntingControlGameWarden
+import fi.riista.common.domain.huntingControl.model.IdentifiesRhy
+import fi.riista.common.domain.huntingControl.model.toHuntingControlEventInspector
+import fi.riista.common.domain.huntingControl.ui.HuntingControlEventField
 import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.userInfo.UserContext
 import fi.riista.common.io.CommonFileProvider
 import fi.riista.common.io.FileSaveResult
+import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LocalDate
 import fi.riista.common.model.LocalDatePeriod
 import fi.riista.common.model.isWithinPeriod
+import fi.riista.common.model.toPeriodDate
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.toBackendEnum
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.FieldSpecification
+import fi.riista.common.ui.dataField.FieldSpecificationListBuilder
+import fi.riista.common.ui.dataField.noRequirement
+import fi.riista.common.ui.dataField.required
+import fi.riista.common.ui.dataField.voluntary
 import fi.riista.common.ui.intent.IntentHandler
+import fi.riista.common.util.contains
 import kotlinx.serialization.Serializable
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 abstract class ModifyHuntingControlEventController(
-    val stringProvider: StringProvider,
+    protected val stringProvider: StringProvider,
+    protected val huntingControlContext: HuntingControlContext,
+    protected val userContext: UserContext,
     private val commonFileProvider: CommonFileProvider,
+    private val identifiesRhy: IdentifiesRhy,
 ) : ControllerWithLoadableModel<ModifyHuntingControlEventViewModel>(),
-    IntentHandler<HuntingControlEventIntent>,
+    IntentHandler<ModifyHuntingControlEventIntent>,
     HasUnreproducibleState<ModifyHuntingControlEventController.SavedState> {
 
-    val locationEventDispatcher: HuntingControlEventLocationEventDispatcher =
-        HuntingControlEventGeoLocationEventToIntentMapper(intentHandler = this)
-    val stringWithIdEventDispatcher: HuntingControlEventStringWithIdEventDispatcher =
-        HuntingControlEventStringWithIdEventToIntentMapper(intentHandler = this)
-    val stringWithIdClickEventDispatcher: HuntingControlEventStringWithIdClickEventDispatcher =
-        HuntingControlEventStringWithIdClickEventToIntentMapper(intentHandler = this)
-    val intEventDispatcher: HuntingControlEventIntEventDispatcher =
-        HuntingControlEventIntEventToIntentMapper(intentHandler = this)
-    val stringEventDispatcher: HuntingControlEventStringEventDispatcher =
-        HuntingControlEventStringEventToIntentMapper(intentHandler = this)
-    val booleanEventDispatcher: HuntingControlEventBooleanEventDispatcher =
-        HuntingControlEventBooleanEventToIntentMapper(intentHandler = this)
-    val dateEventDispatcher: HuntingControlEventLocalDateEventDispatcher =
-        HuntingControlEventLocalDateEventToIntentMapper(intentHandler = this)
-    val timeEventDispatcher: HuntingControlEventLocalTimeEventDispatcher =
-        HuntingControlEventLocalTimeEventToIntentMapper(intentHandler = this)
-    val attachmentActionEventDispatcher: HuntingControlAttachmentActionEventDispatcher =
-        HuntingControlActionEventToIntentMapper(intentHandler = this)
-    val addAttachmentEventDispatcher: HuntingControlAttachmentEventDispatcher =
-        HuntingControlAttachmentEventToIntentMapper(intentHandler = this)
-
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
+    val eventDispatchers: ModifyHuntingControlEventEventDispatcher by lazy {
+        ModifyHuntingControlEventEventToIntentMapper(intentHandler = this)
     }
 
     private val fieldProducer = ModifyHuntingControlEventFieldProducer(stringProvider = stringProvider)
@@ -65,7 +61,30 @@ abstract class ModifyHuntingControlEventController(
      */
     var eventLocationCanBeMovedAutomatically = true
 
-    private val pendingIntents = mutableListOf<HuntingControlEventIntent>()
+    private val pendingIntents = mutableListOf<ModifyHuntingControlEventIntent>()
+
+    suspend fun saveHuntingControlEvent(updateToBackend: Boolean): HuntingControlEventOperationResponse {
+        val eventData = getLoadedViewModelOrNull()?.event ?: kotlin.run {
+            logger.w { "Failed to obtain hunting control event from viewModel in order to create it" }
+            return HuntingControlEventOperationResponse.Error
+        }
+
+        val rhyContext = huntingControlContext.findRhyContext(
+            identifiesRhy = identifiesRhy,
+        ) ?: kotlin.run {
+            logger.w { "Failed to fetch the RHY (id: ${identifiesRhy.rhyId})" }
+            return HuntingControlEventOperationResponse.Error
+        }
+
+        moveAttachmentsToAttachmentsDirectory()
+
+        val eventToBeSaved = eventData.copy(modified = true)
+        val response = rhyContext.saveHuntingControlEvent(eventToBeSaved)
+        if (response is HuntingControlEventOperationResponse.Success && updateToBackend) {
+            huntingControlContext.sendHuntingControlEventToBackend(response.event)
+        }
+        return response
+    }
 
     fun getAttachment(field: HuntingControlEventField): HuntingControlAttachment? {
         val viewModel = getLoadedViewModelOrNull() ?: return null
@@ -76,13 +95,9 @@ abstract class ModifyHuntingControlEventController(
         return null
     }
 
-    protected suspend fun moveAttachmentsToAttachmentsDirectory() {
-        val srvaEvent = getLoadedViewModelOrNull()?.event ?: kotlin.run {
-            return
-        }
-
-        srvaEvent.attachments.forEach { attachment ->
-            attachment.moveToAttachmentsDirectory()
+    private suspend fun moveAttachmentsToAttachmentsDirectory() {
+        getLoadedViewModelOrNull()?.event?.attachments?.forEach {
+            it.moveToAttachmentsDirectory()
         }
     }
 
@@ -101,7 +116,7 @@ abstract class ModifyHuntingControlEventController(
         }
     }
 
-    override fun handleIntent(intent: HuntingControlEventIntent) {
+    override fun handleIntent(intent: ModifyHuntingControlEventIntent) {
         val viewModel = getLoadedViewModelOrNull()
         if (viewModel != null) {
             updateViewModel(
@@ -115,73 +130,82 @@ abstract class ModifyHuntingControlEventController(
     }
 
     private fun handleIntent(
-        intent: HuntingControlEventIntent,
+        intent: ModifyHuntingControlEventIntent,
         viewModel: ModifyHuntingControlEventViewModel,
     ): ModifyHuntingControlEventViewModel {
 
         val event = viewModel.event
+        var selfInspectorWarning = viewModel.selfInspectorWarning
 
         val updatedEvent = when (intent) {
-            is HuntingControlEventIntent.ChangeLocation -> {
+            is ModifyHuntingControlEventIntent.ChangeLocation -> {
                 if (intent.locationChangedAfterUserInteraction) {
                     eventLocationCanBeMovedAutomatically = false
                 }
                 event.copy(location = intent.newLocation.asKnownLocation())
             }
-            is HuntingControlEventIntent.ChangeEventType -> {
+            is ModifyHuntingControlEventIntent.ChangeEventType -> {
                 event.copy(eventType = intent.newEvenType.toBackendEnum())
             }
-            is HuntingControlEventIntent.ChangeLocationDescription -> {
+            is ModifyHuntingControlEventIntent.ChangeLocationDescription -> {
                 event.copy(locationDescription = intent.newDescription)
             }
-            is HuntingControlEventIntent.ChangeNumberOfCustomers -> {
+            is ModifyHuntingControlEventIntent.ChangeNumberOfCustomers -> {
                 event.copy(customerCount = intent.numberOfCustomers)
             }
-            is HuntingControlEventIntent.ChangeDate -> {
+            is ModifyHuntingControlEventIntent.ChangeDate -> {
                 // Remove inspectors that are not available on the new date
                 val availableGameWardens = getGameWardendsForDate(
                     date = event.date,
                     allWardens = viewModel.gameWardens
                 )
                 event.copy(date = intent.newDate, inspectors = event.inspectors.filter { inspector ->
-                    availableGameWardens.firstOrNull { inspector.id == it.remoteId } != null
+                    availableGameWardens.contains { inspector.id == it.remoteId }
                 })
             }
-            is HuntingControlEventIntent.ChangeStartTime -> {
+            is ModifyHuntingControlEventIntent.ChangeStartTime -> {
                 val endTime = event.endTime
                 val startTime = endTime?.let { intent.newStartTime.coerceAtMost(it) } ?: intent.newStartTime
                 event.copy(startTime = startTime)
             }
-            is HuntingControlEventIntent.ChangeEndTime -> {
+            is ModifyHuntingControlEventIntent.ChangeEndTime -> {
                 val startTime = event.startTime
                 val endTime = startTime?.let { intent.newEndTime.coerceAtLeast(it) } ?: intent.newEndTime
                 event.copy(endTime = endTime)
             }
-            is HuntingControlEventIntent.ChangeWolfTerritory -> {
+            is ModifyHuntingControlEventIntent.ChangeWolfTerritory -> {
                 event.copy(wolfTerritory = intent.newWolfTerritory)
             }
-            is HuntingControlEventIntent.ChangeOtherPartisipants -> {
+            is ModifyHuntingControlEventIntent.ChangeOtherPartisipants -> {
                 event.copy(otherParticipants = intent.newOtherPartisipants)
             }
-            is HuntingControlEventIntent.ChangeInspectors -> {
+            is ModifyHuntingControlEventIntent.ChangeInspectors -> {
                 val inspectors = intent.newInspectors.mapNotNull { stringWithId ->
-                    viewModel.gameWardens.firstOrNull { it.remoteId == stringWithId.id }?.let { warden ->
-                        HuntingControlEventInspector(
-                            id = warden.remoteId,
-                            firstName = warden.firstName,
-                            lastName = warden.lastName,
-                        )
-                    }
+                    viewModel.gameWardens.firstOrNull { it.remoteId == stringWithId.id }?.toHuntingControlEventInspector()
                 }
-                event.copy(inspectors = inspectors)
+                val userId = userContext.userInformation?.id
+                if (userId != null && inspectors.none { it.id == userId }) {
+                    selfInspectorWarning = true
+                    event
+                } else {
+                    selfInspectorWarning = false
+                    event.copy(inspectors = inspectors)
+                }
             }
-            is HuntingControlEventIntent.RemoveInspectors -> {
+            is ModifyHuntingControlEventIntent.RemoveInspectors -> {
                 val inspectors = event.inspectors.filter { eventInspector ->
                     intent.removeInspector.id != eventInspector.id
                 }
-                event.copy(inspectors = inspectors)
+                val userId = userContext.userInformation?.id
+                if (userId != null && inspectors.none { it.id == userId }) {
+                    selfInspectorWarning = true
+                    event
+                } else {
+                    selfInspectorWarning = false
+                    event.copy(inspectors = inspectors)
+                }
             }
-            is HuntingControlEventIntent.ToggleCooperationType -> {
+            is ModifyHuntingControlEventIntent.ToggleCooperationType -> {
                 val toggled = intent.toggledCooperationType.toBackendEnum<HuntingControlCooperationType>()
                 if (event.cooperationTypes.contains(toggled)) {
                     event.copy(cooperationTypes = event.cooperationTypes.filter {
@@ -191,13 +215,13 @@ abstract class ModifyHuntingControlEventController(
                     event.copy(cooperationTypes = event.cooperationTypes + listOf(toggled))
                 }
             }
-            is HuntingControlEventIntent.ChangeNumberOfProofOrders -> {
+            is ModifyHuntingControlEventIntent.ChangeNumberOfProofOrders -> {
                 event.copy(proofOrderCount = intent.numberOfProofOrders)
             }
-            is HuntingControlEventIntent.ChangeDescription -> {
+            is ModifyHuntingControlEventIntent.ChangeDescription -> {
                 event.copy(description = intent.newDescription)
             }
-            is HuntingControlEventIntent.DeleteAttachment -> {
+            is ModifyHuntingControlEventIntent.DeleteAttachment -> {
                 val index = intent.index
                 if (index < event.attachments.size) {
                     val attachment = event.attachments[intent.index].copy(deleted = true)
@@ -206,7 +230,7 @@ abstract class ModifyHuntingControlEventController(
                     event
                 }
             }
-            is HuntingControlEventIntent.AddAttachment -> {
+            is ModifyHuntingControlEventIntent.AddAttachment -> {
                 event.copy(attachments = viewModel.event.attachments + listOf(intent.newAttachment))
             }
         }
@@ -214,12 +238,14 @@ abstract class ModifyHuntingControlEventController(
         return createViewModel(
             event = updatedEvent,
             allGameWardens = viewModel.gameWardens,
+            selfInspectorWarning = selfInspectorWarning,
         )
     }
 
     protected fun createViewModel(
         event: HuntingControlEventData,
         allGameWardens: List<HuntingControlGameWarden>,
+        selfInspectorWarning: Boolean,
     ): ModifyHuntingControlEventViewModel {
 
         val gameWardensForEventDate = getGameWardendsForDate(
@@ -233,11 +259,12 @@ abstract class ModifyHuntingControlEventController(
             gameWardens = gameWardensForEventDate,
         )
         val eventIsValid = validationErrors.isEmpty()
-        fieldsToBeDisplayed = fieldsToBeDisplayed.injectErrorLabels(validationErrors)
+        fieldsToBeDisplayed = fieldsToBeDisplayed.injectErrorLabels(validationErrors, selfInspectorWarning)
 
         return ModifyHuntingControlEventViewModel(
             event = event,
             gameWardens = allGameWardens,
+            selfInspectorWarning = selfInspectorWarning,
             fields = fieldsToBeDisplayed.mapNotNull { fieldSpecification ->
                 fieldProducer.createField(
                     fieldSpecification = fieldSpecification,
@@ -250,9 +277,10 @@ abstract class ModifyHuntingControlEventController(
     }
 
     private fun List<FieldSpecification<HuntingControlEventField>>.injectErrorLabels(
-        validationErrors: List<HuntingControlEventValidator.Error>
+        validationErrors: List<HuntingControlEventValidator.Error>,
+        selfInspectorWarning: Boolean,
     ): List<FieldSpecification<HuntingControlEventField>> {
-        if (validationErrors.isEmpty()) {
+        if (validationErrors.isEmpty() && !selfInspectorWarning) {
             return this
         }
 
@@ -266,6 +294,13 @@ abstract class ModifyHuntingControlEventController(
                         result.add(HuntingControlEventField.Type.ERROR_NO_INSPECTORS_FOR_DATE.noRequirement())
                     }
                 }
+                HuntingControlEventField.Type.INSPECTOR_NAMES -> {
+                    result.add(fieldSpecification)
+
+                    if (selfInspectorWarning) {
+                        result.add(HuntingControlEventField.Type.ERROR_NO_SELF_AS_INSPECTOR.noRequirement())
+                    }
+                }
                 HuntingControlEventField.Type.LOCATION,
                 HuntingControlEventField.Type.DATE,
                 HuntingControlEventField.Type.START_AND_END_TIME,
@@ -274,13 +309,13 @@ abstract class ModifyHuntingControlEventController(
                 HuntingControlEventField.Type.DURATION,
                 HuntingControlEventField.Type.EVENT_TYPE,
                 HuntingControlEventField.Type.NUMBER_OF_INSPECTORS,
-                HuntingControlEventField.Type.INSPECTOR_NAMES,
                 HuntingControlEventField.Type.COOPERATION,
                 HuntingControlEventField.Type.OTHER_PARTICIPANTS,
                 HuntingControlEventField.Type.WOLF_TERRITORY,
                 HuntingControlEventField.Type.LOCATION_DESCRIPTION,
                 HuntingControlEventField.Type.EVENT_DESCRIPTION,
                 HuntingControlEventField.Type.ERROR_NO_INSPECTORS_FOR_DATE,
+                HuntingControlEventField.Type.ERROR_NO_SELF_AS_INSPECTOR,
                 HuntingControlEventField.Type.NUMBER_OF_CUSTOMERS,
                 HuntingControlEventField.Type.NUMBER_OF_PROOF_ORDERS,
                 HuntingControlEventField.Type.HEADLINE_ATTACHMENTS,
@@ -342,7 +377,7 @@ abstract class ModifyHuntingControlEventController(
             return listOf()
         }
         return allWardens.filter { warden ->
-            val period = LocalDatePeriod(warden.startDate, warden.endDate)
+            val period = LocalDatePeriod(warden.startDate.toPeriodDate(), warden.endDate.toPeriodDate())
             date.isWithinPeriod(period)
         }
     }
@@ -376,6 +411,10 @@ abstract class ModifyHuntingControlEventController(
         val eventData: HuntingControlEventData,
         val eventLocationCanBeMovedAutomatically: Boolean,
     )
+
+    companion object {
+        private val logger by getLogger(ModifyHuntingControlEventController::class)
+    }
 }
 
 private fun HuntingControlEventField.Type.noRequirement(): FieldSpecification<HuntingControlEventField> {

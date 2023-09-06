@@ -3,9 +3,18 @@ package fi.riista.common.ui.dataField
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.groupHunting.model.AcceptStatus
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
-import fi.riista.common.domain.model.*
+import fi.riista.common.domain.model.CommonLocation
+import fi.riista.common.domain.model.EntityImage
+import fi.riista.common.domain.model.GameAge
+import fi.riista.common.domain.model.Gender
+import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.specimens.ui.SpecimenFieldDataContainer
-import fi.riista.common.model.*
+import fi.riista.common.model.HoursAndMinutes
+import fi.riista.common.model.LocalDate
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.LocalTime
+import fi.riista.common.model.StringId
+import fi.riista.common.model.StringWithId
 import fi.riista.common.resources.RR
 import io.matthewnelson.component.base64.decodeBase64ToArray
 import kotlinx.serialization.Serializable
@@ -146,14 +155,39 @@ data class LabelField<DataId : DataFieldId>(
         CAPTION,
         ERROR,
         INFO,
+        LINK,
+        INDICATOR,
+    }
+
+    /**
+     * Can be shown next to a caption text.
+     */
+    enum class Icon {
+        VERIFIED,
+    }
+
+    enum class TextAlignment {
+        LEFT,
+        CENTER,
+        JUSTIFIED,
     }
 
     interface LabelFieldSettings : Settings {
         val allCaps: Boolean
+        val captionIcon: Icon?
+        val textAlignment: TextAlignment // applicable for info
+
+        val indicatorColor: IndicatorColor
+        val highlightBackground: Boolean
     }
 
     internal data class DefaultLabelFieldSettings(
         override var allCaps: Boolean = false,
+        override var captionIcon: Icon? = null,
+        override var textAlignment: TextAlignment = TextAlignment.LEFT,
+
+        override var indicatorColor: IndicatorColor = IndicatorColor.INVISIBLE,
+        override var highlightBackground: Boolean = false,
         override var paddingTop: Padding = Padding.MEDIUM,
         override var paddingBottom: Padding = Padding.MEDIUM,
     ) : LabelFieldSettings
@@ -168,6 +202,7 @@ data class LabelField<DataId : DataFieldId>(
             type = type,
             settings = DefaultLabelFieldSettings().configuredBy(configureSettings)
     )
+
 }
 
 data class AttachmentField<DataId : DataFieldId>(
@@ -278,16 +313,19 @@ data class BooleanField<DataId : DataFieldId>(
 
     enum class Appearance {
         YES_NO_BUTTONS,
-        CHECKBOX
+        CHECKBOX,
+        SWITCH,
     }
 
     interface BooleanFieldSettings : EditableSettings {
         val label: String?
+        val text: String? // Currently only supported when appearance == SWITCH
         val appearance: Appearance
     }
 
     internal data class DefaultBooleanFieldSettings(
         override var label: String? = null,
+        override var text: String? = null,
         override var appearance: Appearance = Appearance.YES_NO_BUTTONS,
         override var readOnly: Boolean = true,
         override var paddingTop: Padding = Padding.MEDIUM,

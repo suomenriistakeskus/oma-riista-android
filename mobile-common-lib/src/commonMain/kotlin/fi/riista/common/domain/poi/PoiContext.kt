@@ -1,6 +1,5 @@
 package fi.riista.common.domain.poi
 
-import co.touchlab.stately.collections.IsoMutableMap
 import fi.riista.common.network.BackendApiProvider
 
 /**
@@ -9,7 +8,7 @@ import fi.riista.common.network.BackendApiProvider
 class PoiContext internal constructor(
     private val backendApiProvider: BackendApiProvider,
 ) {
-    private val poiLocationGroupContexts = IsoMutableMap<String, PoiLocationGroupContext>()
+    private val poiLocationGroupContexts = mutableMapOf<String, PoiLocationGroupContext>()
 
     fun getPoiLocationGroupContext(externalId: String): PoiLocationGroupContext {
         return poiLocationGroupContexts.getOrPut(externalId) {

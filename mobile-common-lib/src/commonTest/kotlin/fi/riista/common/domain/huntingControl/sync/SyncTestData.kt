@@ -1,7 +1,10 @@
 package fi.riista.common.domain.huntingControl.sync
 
 import fi.riista.common.domain.constants.Constants
+import fi.riista.common.domain.huntingControl.model.HuntingControlCooperationType
 import fi.riista.common.domain.huntingControl.model.HuntingControlEventInspector
+import fi.riista.common.domain.huntingControl.model.HuntingControlEventStatus
+import fi.riista.common.domain.huntingControl.model.HuntingControlEventType
 import fi.riista.common.domain.huntingControl.sync.model.GameWarden
 import fi.riista.common.domain.huntingControl.sync.model.LoadHuntingControlEvent
 import fi.riista.common.domain.huntingControl.sync.model.LoadRhyHuntingControlEvents
@@ -38,6 +41,15 @@ object SyncTestData {
                         monthNumber = 12,
                         dayOfMonth = 31,
                     )
+                ),
+                GameWarden(
+                    inspector = HuntingControlEventInspector(
+                        id = 888,
+                        firstName = "Other",
+                        lastName = "Warden"
+                    ),
+                    beginDate = null,
+                    endDate = null,
                 )
             ),
             events = listOf(
@@ -46,8 +58,8 @@ object SyncTestData {
                     id = 123L,
                     rev = 1,
                     mobileClientRefId = null,
-                    eventType = fi.riista.common.domain.huntingControl.model.HuntingControlEventType.MOOSELIKE_HUNTING_CONTROL.toBackendEnum(),
-                    status = fi.riista.common.domain.huntingControl.model.HuntingControlEventStatus.PROPOSED.toBackendEnum(),
+                    eventType = HuntingControlEventType.MOOSELIKE_HUNTING_CONTROL.toBackendEnum(),
+                    status = HuntingControlEventStatus.PROPOSED.toBackendEnum(),
                     inspectors = listOf(
                         HuntingControlEventInspector(
                             id = 999,
@@ -56,14 +68,14 @@ object SyncTestData {
                         )
                     ),
                     cooperationTypes = listOf(
-                        fi.riista.common.domain.huntingControl.model.HuntingControlCooperationType.METSAHALLITUS.toBackendEnum(),
+                        HuntingControlCooperationType.METSAHALLITUS.toBackendEnum(),
                     ),
                     wolfTerritory = true,
                     otherParticipants = "Pena",
                     geoLocation = ETRMSGeoLocation(
                         latitude = 6000,
                         longitude = 8000,
-                        source = fi.riista.common.model.GeoLocationSource.MANUAL.toBackendEnum(),
+                        source = GeoLocationSource.MANUAL.toBackendEnum(),
                         accuracy = 12.9,
                         altitude = 9.4,
                         altitudeAccuracy = 15.23,

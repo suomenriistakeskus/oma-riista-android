@@ -4,8 +4,10 @@ import fi.riista.common.network.NetworkClient
 import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.util.serializeToJson
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 internal class RequestPasswordReset(
     private val passwordResetDTO: RequestPasswordResetDTO,
@@ -21,7 +23,7 @@ internal class RequestPasswordReset(
             request = {
                 post(urlString = "${client.serverBaseAddress}/api/mobile/v2/password/reset") {
                     contentType(ContentType.Application.Json)
-                    body = payload
+                    setBody(body = payload)
                 }
             },
             configureResponseHandler = {

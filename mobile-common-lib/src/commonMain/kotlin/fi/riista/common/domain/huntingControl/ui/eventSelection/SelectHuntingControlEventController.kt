@@ -1,17 +1,13 @@
 package fi.riista.common.domain.huntingControl.ui.eventSelection
 
-import co.touchlab.stately.concurrency.AtomicLong
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.RiistaSDK
 import fi.riista.common.domain.huntingControl.HuntingControlContext
-import fi.riista.common.domain.huntingControl.HuntingControlRhyContext
 import fi.riista.common.domain.huntingControl.model.HuntingControlRhyTarget
 import fi.riista.common.domain.model.Organization
 import fi.riista.common.domain.model.OrganizationId
-import fi.riista.common.logging.getLogger
 import fi.riista.common.model.StringWithId
 import fi.riista.common.model.localizedWithFallbacks
-import fi.riista.common.network.SyncDataPiece
+import fi.riista.common.network.sync.SyncDataPiece
 import fi.riista.common.resources.LanguageProvider
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.localized
@@ -34,32 +30,8 @@ class SelectHuntingControlEventController(
     val eventDispatcher: SelectHuntingControlEventDispatcher =
         SelectHuntingControlEventEventToIntentMapper(intentHandler = this)
 
-    private class SelectionState(private val huntingControlContext: HuntingControlContext) {
-        var selectedRhy: Organization? = null
-        val rhyContext: HuntingControlRhyContext?
-            get() {
-                val rhy = selectedRhy
-                return if (rhy != null) {
-                    huntingControlContext.findRhyContext(HuntingControlRhyTarget(rhy.id))
-                } else {
-                    null
-                }
-            }
-    }
-
-    private var selectionState: SelectionState? = null
+    private var selectedRhy: Organization? = null
     private var stateToRestore: SelectedFilterValues? = null
-
-    /**
-     * The id of the RHY for which data fetch was performed last time?
-     *
-     * Allows limiting fetching data again.
-     */
-    private val lastDataFetchRhyId = AtomicLong(-1L)
-
-    init {
-        ensureNeverFrozen()
-    }
 
     override fun createLoadViewModelFlow(
         refresh: Boolean,
@@ -69,20 +41,19 @@ class SelectHuntingControlEventController(
         // if already in loaded state
         updateStateToRestore()
 
-        if (!huntingControlContext.huntingControlAvailable || refresh) {
+        if (!huntingControlContext.huntingControlAvailable.value || refresh) {
             emit(ViewModelLoadStatus.Loading)
             if (refresh) {
-                RiistaSDK.synchronizeDataPieces(listOf(SyncDataPiece.HUNTING_CONTROL))
+                RiistaSDK.synchronize(SyncDataPiece.HUNTING_CONTROL)
             }
-            huntingControlContext.fetchRhys(refresh = refresh)
         }
 
-        if (!huntingControlContext.huntingControlAvailable) {
+        if (!huntingControlContext.huntingControlAvailable.value) {
             emit(ViewModelLoadStatus.LoadFailed)
             return@flow
         }
 
-        val rhys = huntingControlContext.huntingControlRhys
+        val rhys = huntingControlContext.fetchRhys()
         if (rhys == null) {
             emit(ViewModelLoadStatus.LoadFailed)
             return@flow
@@ -100,8 +71,7 @@ class SelectHuntingControlEventController(
         // NOT use same values again when restoring
         clearStateToRestore()
 
-        selectionState = SelectionState(huntingControlContext)
-        selectionState?.selectedRhy = selectedRhy
+        this@SelectHuntingControlEventController.selectedRhy = selectedRhy
 
         emit(
             ViewModelLoadStatus.Loaded(
@@ -120,60 +90,34 @@ class SelectHuntingControlEventController(
         if (viewModel != null) {
             when (intent) {
                 is SelectHuntingControlEventIntent.SelectRhy -> {
-                    val selectedRhy = huntingControlContext.findRhy(intent.rhyId)
-                    selectionState?.selectedRhy = selectedRhy
-                    updateViewModel(
-                        ViewModelLoadStatus.Loaded(
-                            viewModel = viewModel.copy(
-                                selectedRhy = selectedRhy?.toStringWithId(),
-                                events = findEventsForRhy(selectedRhy),
+                    updateViewModelSuspended {
+                        selectedRhy = huntingControlContext.findRhy(intent.rhyId)
+                        updateViewModel(
+                            ViewModelLoadStatus.Loaded(
+                                viewModel = viewModel.copy(
+                                    selectedRhy = selectedRhy?.toStringWithId(),
+                                    events = findEventsForRhy(selectedRhy),
+                                )
                             )
-                        ))
+                        )
+                    }
                 }
             }
         }
     }
 
-    suspend fun fetchRhyDataIfNeeded(refresh: Boolean = false) {
-        val rhyContext = selectionState?.rhyContext
-            ?: kotlin.run {
-                logger.v { "Refusing to fetch data, no RHY context available!" }
-                return
-            }
-
-        val rhyId = rhyContext.rhyId
-        if (rhyId == lastDataFetchRhyId.get() && !refresh) {
-            logger.v { "Data has been already fetched for RHY $rhyId." }
-            return
-        }
-
-        lastDataFetchRhyId.set(rhyId)
-
-        rhyContext.fetchAllData(refresh)
-
-        val viewModel = getLoadedViewModelOrNull()
-        if (viewModel != null) {
-            updateViewModel(
-                ViewModelLoadStatus.Loaded(
-                    viewModel = viewModel.copy(
-                        selectedRhy = selectionState?.selectedRhy?.toStringWithId(),
-                        events = findEventsForRhy(selectionState?.selectedRhy),
-                    )
-                )
-            )
-        }
-    }
-
-    private fun findEventsForRhy(rhy: Organization?): List<SelectHuntingControlEvent>? {
+    private suspend fun findEventsForRhy(rhy: Organization?): List<SelectHuntingControlEvent>? {
         return if (rhy != null) {
-            huntingControlContext.findRhyContext(HuntingControlRhyTarget(rhy.id))?.huntingControlEvents?.map { event ->
-                SelectHuntingControlEvent(
-                    id = event.localId,
-                    date = event.date,
-                    title = event.eventType.localized(stringProvider),
-                    modified = event.modified,
-                )
-            }?.sortedByDescending { event -> event.date }
+            huntingControlContext.findRhyContext(HuntingControlRhyTarget(rhy.id))
+                ?.fetchHuntingControlEvents()
+                ?.map { event ->
+                    SelectHuntingControlEvent(
+                        id = event.localId,
+                        date = event.date,
+                        title = event.eventType.localized(stringProvider),
+                        modified = event.modified,
+                    )
+                }
         } else {
             null
         }
@@ -199,9 +143,9 @@ class SelectHuntingControlEventController(
     }
 
     override fun getUnreproducibleState(): SelectedFilterValues? {
-        return selectionState?.let { state ->
+        return selectedRhy?.let { rhy ->
             SelectedFilterValues(
-                rhyId = state.selectedRhy?.id
+                rhyId = rhy.id
             )
         }
     }
@@ -223,9 +167,5 @@ class SelectHuntingControlEventController(
             ?.let { name ->
                 StringWithId(name, id)
             }
-    }
-
-    companion object {
-        private val logger by getLogger(SelectHuntingControlEventController::class)
     }
 }

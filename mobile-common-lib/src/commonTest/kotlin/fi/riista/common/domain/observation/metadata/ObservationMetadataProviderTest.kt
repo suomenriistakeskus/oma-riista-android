@@ -2,7 +2,6 @@ package fi.riista.common.domain.observation.metadata
 
 import fi.riista.common.domain.constants.Constants
 import fi.riista.common.domain.dto.MockUserInfo
-import fi.riista.common.domain.dto.UserInfoDTO
 import fi.riista.common.domain.observation.metadata.dto.ObservationMetadataDTO
 import fi.riista.common.domain.observation.metadata.dto.toObservationMetadata
 import fi.riista.common.domain.observation.metadata.model.ObservationMetadata
@@ -16,11 +15,13 @@ import fi.riista.common.metadata.MockMetadataRepository
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.model.changeTime
 import fi.riista.common.network.MockDataFetcher
+import fi.riista.common.network.sync.SynchronizationConfig
 import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.LocalDateTimeProvider
 import fi.riista.common.util.MockDateTimeProvider
 import fi.riista.common.util.deserializeFromJson
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -59,7 +60,7 @@ class ObservationMetadataProviderTest {
     @Test
     fun testMetadataCanBeFetched() = runBlockingTest {
         val provider = getProvider()
-        provider.updateMetadata()
+        provider.startSynchronization(config = SynchronizationConfig(forceContentReload = true))
 
         assertEquals(mockMetadata, provider.metadata)
     }
@@ -70,7 +71,7 @@ class ObservationMetadataProviderTest {
         val provider = getProvider(metadataRepository = repository)
 
         assertEquals(0, repository.savedMetadatas.count())
-        provider.updateMetadata()
+        provider.startSynchronization(config = SynchronizationConfig(forceContentReload = true))
         assertEquals(1, repository.savedMetadatas.count())
     }
 
@@ -80,11 +81,11 @@ class ObservationMetadataProviderTest {
         val provider = getProvider(metadataRepository = repository)
 
         assertEquals(0, repository.savedMetadatas.count())
-        provider.updateMetadata()
+        provider.startSynchronization(config = SynchronizationConfig(forceContentReload = true))
         assertEquals(1, repository.savedMetadatas.count())
         repository.savedMetadatas.clear()
 
-        provider.updateMetadata()
+        provider.startSynchronization(config = SynchronizationConfig(forceContentReload = true))
         // should not be saved due to memory cache
         assertEquals(0, repository.savedMetadatas.count())
     }
@@ -102,7 +103,7 @@ class ObservationMetadataProviderTest {
         )
 
         assertEquals(0, fetcher.fetchCount)
-        provider.synchronize()
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
         assertEquals(0, fetcher.fetchCount)
     }
 
@@ -114,7 +115,6 @@ class ObservationMetadataProviderTest {
         )
         val currentUserContextProvider = CurrentUserContextProviderFactory.createMocked(
             preferences = MockPreferences(),
-            localDateTimeProvider = dateTimeProvider,
         )
         val provider = getProvider(
             metadataFetcher = fetcher,
@@ -123,20 +123,46 @@ class ObservationMetadataProviderTest {
         )
 
         assertEquals(0, fetcher.fetchCount)
-        provider.synchronize()
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
         assertEquals(1, fetcher.fetchCount)
 
-        provider.synchronize()
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
         assertEquals(1, fetcher.fetchCount, "second update")
 
         dateTimeProvider.now = dateTimeProvider.now.changeTime(hour = 20, minute = 0)
-        provider.synchronize()
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
         assertEquals(1, fetcher.fetchCount, "update after time change 1")
 
         // throttling threshold is currently 12 hours
         dateTimeProvider.now = dateTimeProvider.now.changeTime(hour = 20, minute = 1)
-        provider.synchronize()
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
         assertEquals(2, fetcher.fetchCount, "update after time change 2")
+    }
+
+    @Test
+    fun `test synchronization can be forced`() = runBlockingTest {
+        val fetcher = MockObservationMetadataFetcher(mockMetadata)
+        val dateTimeProvider = MockDateTimeProvider(
+            now = LocalDateTime(2022, 1, 1, 8, 0, 0)
+        )
+        val currentUserContextProvider = CurrentUserContextProviderFactory.createMocked(
+            preferences = MockPreferences(),
+        )
+        val provider = getProvider(
+            metadataFetcher = fetcher,
+            localDateTimeProvider = dateTimeProvider,
+            currentUserContextProvider = currentUserContextProvider
+        )
+
+        assertEquals(0, fetcher.fetchCount)
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
+        assertEquals(1, fetcher.fetchCount)
+
+        provider.startSynchronization(config = SynchronizationConfig.DEFAULT)
+        assertEquals(1, fetcher.fetchCount, "second update")
+
+        provider.startSynchronization(config = SynchronizationConfig(forceContentReload = true))
+        assertEquals(2, fetcher.fetchCount, "second update, force")
     }
 
     private val mockMetadata = MockObservationMetadata.METADATA_SPEC_VERSION_4
@@ -151,12 +177,13 @@ class ObservationMetadataProviderTest {
         localDateTimeProvider: LocalDateTimeProvider = MockDateTimeProvider(),
         currentUserContextProvider: CurrentUserContextProvider = CurrentUserContextProviderFactory.createMocked(
             preferences = preferences,
-            localDateTimeProvider = localDateTimeProvider
         ),
         login: Boolean = true
     ): ObservationMetadataProvider {
         if (login) {
-            currentUserContextProvider.userLoggedIn(MockUserInfo.Pentti.deserializeFromJson()!!)
+            runBlocking {
+                currentUserContextProvider.userLoggedIn(MockUserInfo.Pentti.deserializeFromJson()!!)
+            }
         }
 
         return ObservationMetadataProvider(

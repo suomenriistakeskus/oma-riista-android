@@ -13,11 +13,11 @@ data class HuntingGroupPermit(
     val validityPeriods: List<LocalDatePeriod>
 ) {
     val earliestDate: LocalDate? by lazy {
-        validityPeriods.minOfOrNull { it.beginDate }
+        validityPeriods.minOfOrNull { it.toLocalDates().beginDate }
     }
 
     val lastDate: LocalDate? by lazy {
-        validityPeriods.maxOfOrNull { it.endDate }
+        validityPeriods.maxOfOrNull { it.toLocalDates().endDate }
     }
 }
 
@@ -38,8 +38,10 @@ fun LocalDate.coerceInPermitValidityPeriods(permit: HuntingGroupPermit): LocalDa
         return this
     }
 
-    val selectedPeriod = permit.validityPeriods.sortedBy { it.endDate }.findLast { this > it.endDate }
-                ?: permit.validityPeriods.sortedBy { it.beginDate }.find { this < it.beginDate }
+    val selectedPeriod = permit.validityPeriods.sortedBy { it.toLocalDates().endDate }
+        .findLast { this > it.toLocalDates().endDate }
+                ?: permit.validityPeriods.sortedBy { it.toLocalDates().beginDate }
+                    .find { this < it.toLocalDates().beginDate }
 
     return if (selectedPeriod != null) {
         coerceIn(selectedPeriod)

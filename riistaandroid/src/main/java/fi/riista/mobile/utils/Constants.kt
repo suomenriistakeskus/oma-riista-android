@@ -2,7 +2,6 @@ package fi.riista.mobile.utils
 
 import android.location.Location
 
-const val ROOM_DATABASE_NAME = "riista_room.db"
 const val TIMEZONE_ID_FINLAND = "Europe/Helsinki"
 
 const val ISO_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS"

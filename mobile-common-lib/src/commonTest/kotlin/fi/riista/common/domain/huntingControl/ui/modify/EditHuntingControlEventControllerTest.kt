@@ -3,14 +3,13 @@
 package fi.riista.common.domain.huntingControl.ui.modify
 
 import fi.riista.common.RiistaSDK
-import fi.riista.common.RiistaSdkConfiguration
 import fi.riista.common.database.DatabaseDriverFactory
 import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.constants.Constants
 import fi.riista.common.domain.dto.MockUserInfo
-import fi.riista.common.helpers.*
 import fi.riista.common.domain.huntingControl.HuntingControlContext
 import fi.riista.common.domain.huntingControl.HuntingControlRepository
+import fi.riista.common.domain.huntingControl.MockHuntingControlData
 import fi.riista.common.domain.huntingControl.model.HuntingControlCooperationType
 import fi.riista.common.domain.huntingControl.model.HuntingControlEventInspector
 import fi.riista.common.domain.huntingControl.model.HuntingControlEventTarget
@@ -19,26 +18,23 @@ import fi.riista.common.domain.huntingControl.sync.HuntingControlRhyToDatabaseUp
 import fi.riista.common.domain.huntingControl.sync.dto.LoadRhysAndHuntingControlEventsDTO
 import fi.riista.common.domain.huntingControl.sync.dto.toLoadRhyHuntingControlEvents
 import fi.riista.common.domain.huntingControl.ui.HuntingControlEventField
-import fi.riista.common.domain.huntingControl.MockHuntingControlData
+import fi.riista.common.domain.model.*
+import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
+import fi.riista.common.helpers.*
 import fi.riista.common.io.CommonFileProvider
 import fi.riista.common.io.CommonFileProviderMock
 import fi.riista.common.logging.getLogger
-import fi.riista.common.domain.model.*
+import fi.riista.common.model.*
 import fi.riista.common.network.BackendAPI
 import fi.riista.common.network.BackendAPIMock
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.toLocalizedStringWithId
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.ChipField
-import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
-import fi.riista.common.model.*
 import fi.riista.common.util.JsonHelper
-import fi.riista.common.util.MockDateTimeProvider
 import kotlin.test.*
 
 class EditHuntingControlEventControllerTest {
-
-    private val serverAddress = "https://oma.riista.fi"
 
     @Test
     fun testDataInitiallyNotLoaded() {
@@ -51,6 +47,7 @@ class EditHuntingControlEventControllerTest {
     fun testDataCanBeLoaded() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -59,7 +56,7 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(rhysAndEvents)
         val dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
 
@@ -78,6 +75,7 @@ class EditHuntingControlEventControllerTest {
     fun testSpecVersionIsUpdatedWhenEditingEvent() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -86,7 +84,7 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         val x = listOf(rhysAndEvents[0].copy(events = listOf(rhysAndEvents[0].events[0].copy(specVersion = 0))))
         updater.update(x)
         var dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
@@ -98,7 +96,7 @@ class EditHuntingControlEventControllerTest {
 
         assertEquals(0, dbEvents[0].specVersion)
         controller.loadViewModel()
-        controller.saveHuntingControlEvent()
+        controller.saveHuntingControlEvent(updateToBackend = false)
         dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
         assertEquals(Constants.HUNTING_CONTROL_EVENT_SPEC_VERSION, dbEvents[0].specVersion)
     }
@@ -107,6 +105,7 @@ class EditHuntingControlEventControllerTest {
     fun testModifiedIsTrueAfterEditingEvent() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -115,7 +114,7 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         val x = listOf(rhysAndEvents[0].copy(events = listOf(rhysAndEvents[0].events[0].copy(specVersion = 0))))
         updater.update(x)
         var dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
@@ -127,8 +126,10 @@ class EditHuntingControlEventControllerTest {
 
         assertFalse(dbEvents[0].modified)
         controller.loadViewModel()
-        controller.intEventDispatcher.dispatchIntChanged(HuntingControlEventField.Type.NUMBER_OF_INSPECTORS.toField(), 10)
-        controller.saveHuntingControlEvent()
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(
+            HuntingControlEventField.Type.NUMBER_OF_CUSTOMERS.toField(), 10
+        )
+        controller.saveHuntingControlEvent(updateToBackend = false)
         dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
         assertTrue(dbEvents[0].modified)
     }
@@ -137,6 +138,7 @@ class EditHuntingControlEventControllerTest {
     fun testProducedFieldsMatchData() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -145,13 +147,13 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(rhysAndEvents)
         val dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
 
         val controller = getController(
             huntingControlContext = getHuntingControlContext(dbDriverFactory),
-            huntingControlEventTarget = getHuntingControlEventTarget(eventId = dbEvents[0].localId),
+            huntingControlEventTarget = getHuntingControlEventTarget(eventId = dbEvents[1].localId),
         )
 
         controller.loadViewModel()
@@ -244,16 +246,16 @@ class EditHuntingControlEventControllerTest {
         }
         fields.getStringListField(expectedIndex++, HuntingControlEventField.Type.INSPECTORS.toField()).let {
             val inspectors = listOf(
-                StringWithId(string = "Pentti Mujunen", id = 4),
+                StringWithId(string = "Pentti Mujunen", id = 123),
                 StringWithId(string = "Asko Partanen", id = 3),
             )
             assertEquals(inspectors, it.values)
-            assertEquals(listOf(4L, 3L).toSet(), it.selected?.toSet())
+            assertEquals(listOf(123L, 3L).toSet(), it.selected?.toSet())
             assertFalse(it.settings.readOnly)
         }
         fields.getChipField(expectedIndex++, HuntingControlEventField.Type.INSPECTOR_NAMES.toField()).let {
             val inspectors = listOf(
-                StringWithId(string = "Pentti Mujunen", id = 4),
+                StringWithId(string = "Pentti Mujunen", id = 123),
                 StringWithId(string = "Asko Partanen", id = 3),
             )
             assertEquals(inspectors, it.chips)
@@ -320,6 +322,7 @@ class EditHuntingControlEventControllerTest {
     fun testErrorIsShownWhenNoInspectorsAvailable() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -328,7 +331,7 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(
             listOf(rhysAndEvents[0].copy(events = listOf(rhysAndEvents[0].events[0].copy(date = LocalDate(2021, 12, 12)))))
         )
@@ -351,6 +354,7 @@ class EditHuntingControlEventControllerTest {
     fun testAttachmentCanBeDeleted() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -359,7 +363,7 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(
             listOf(
                 rhysAndEvents[0].copy(
@@ -385,7 +389,9 @@ class EditHuntingControlEventControllerTest {
         controller.loadViewModel()
         var viewModel = controller.getLoadedViewModel()
         assertFalse(viewModel.event.attachments[1].deleted)
-        controller.attachmentActionEventDispatcher.dispatchEvent(HuntingControlEventField.Type.ATTACHMENT.toField(index = 1))
+        controller.eventDispatchers.attachmentActionEventDispatcher.dispatchEvent(
+            HuntingControlEventField.Type.ATTACHMENT.toField(index = 1)
+        )
         viewModel = controller.getLoadedViewModel()
         assertTrue(viewModel.event.attachments[1].deleted)
     }
@@ -394,6 +400,7 @@ class EditHuntingControlEventControllerTest {
     fun removeInspector() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -402,7 +409,8 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
+        val newInspectorId = 789L
         updater.update(
             listOf(
                 rhysAndEvents[0].copy(
@@ -410,7 +418,7 @@ class EditHuntingControlEventControllerTest {
                         rhysAndEvents[0].events[0].copy(
                             inspectors = rhysAndEvents[0].events[0].inspectors + listOf(
                                 HuntingControlEventInspector(
-                                    id = 789L,
+                                    id = newInspectorId,
                                     firstName = "Teppo",
                                     lastName = "Tulkku",
                                 )
@@ -435,21 +443,22 @@ class EditHuntingControlEventControllerTest {
         val inspector2Id = viewModel.event.inspectors[1].id
         val inspector3Id = viewModel.event.inspectors[2].id
 
-        controller.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
-            fieldId = HuntingControlEventField.Type.INSPECTOR_NAMES.toField(0),
-            value = StringWithId(id = inspector2Id, string = "")
+        // Remove inspector and check that it is removed from the event
+        controller.eventDispatchers.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
+            fieldId = HuntingControlEventField.Type.INSPECTOR_NAMES.toField(1),
+            value = StringWithId(id = newInspectorId, string = "")
         )
-
+        val remainingInspectorIds = setOf(inspector1Id, inspector2Id, inspector3Id).filter { it != newInspectorId }
         viewModel = controller.getLoadedViewModel()
         assertEquals(2, viewModel.event.inspectors.size)
-        assertEquals(inspector1Id, viewModel.event.inspectors[0].id)
-        assertEquals(inspector3Id, viewModel.event.inspectors[1].id)
+        assertEquals(remainingInspectorIds.toSet(), viewModel.event.inspectors.map { it.id }.toSet())
     }
 
     @Test
-    fun toggleCooperationType() = runBlockingTest {
+    fun unableToRemoveSelfFromInspectors() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -458,7 +467,45 @@ class EditHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
+        updater.update(rhysAndEvents)
+
+        val dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
+
+        val controller = getController(
+            huntingControlContext = getHuntingControlContext(dbDriverFactory),
+            huntingControlEventTarget = getHuntingControlEventTarget(eventId = dbEvents[1].localId),
+        )
+        controller.loadViewModel()
+        var viewModel = controller.getLoadedViewModel()
+
+        assertEquals(2, viewModel.event.inspectors.size)
+        // Remove self and check that it is not removed from the event
+        val selfId = RiistaSDK.currentUserContext.userInformation?.id
+        assertNotNull(selfId)
+        controller.eventDispatchers.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
+            fieldId = HuntingControlEventField.Type.INSPECTOR_NAMES.toField(1),
+            value = StringWithId(id = selfId, string = "")
+        )
+        viewModel = controller.getLoadedViewModel()
+        assertEquals(2, viewModel.event.inspectors.size)
+        assertTrue(viewModel.event.inspectors.any { it.id == selfId })
+    }
+
+    @Test
+    fun toggleCooperationType() = runBlockingTest {
+        // Insert Data to DB
+        val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
+        val dbDriverFactory = createDatabaseDriverFactory()
+        val database = RiistaDatabase(driver = dbDriverFactory.createDriver())
+        val repository = HuntingControlRepository(database)
+
+        val rhysAndEventsDTO = JsonHelper.deserializeFromJsonUnsafe<LoadRhysAndHuntingControlEventsDTO>(
+            MockHuntingControlData.HuntingControlRhys
+        )
+        val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(
             listOf(
                 rhysAndEvents[0].copy(
@@ -489,7 +536,7 @@ class EditHuntingControlEventControllerTest {
         val coop2 = viewModel.event.cooperationTypes[1].toLocalizedStringWithId(getStringProvider())
         val coop3 = viewModel.event.cooperationTypes[2].toLocalizedStringWithId(getStringProvider())
 
-        controller.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
+        controller.eventDispatchers.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
             fieldId = HuntingControlEventField.Type.COOPERATION.toField(0),
             value = coop2,
         )
@@ -500,7 +547,7 @@ class EditHuntingControlEventControllerTest {
         assertEquals(coop3, viewModel.event.cooperationTypes[1].toLocalizedStringWithId(getStringProvider()))
 
         val coop4 = HuntingControlCooperationType.METSAHALLITUS.toLocalizedStringWithId(getStringProvider())
-        controller.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
+        controller.eventDispatchers.stringWithIdClickEventDispatcher.dispatchStringWithIdClicked(
             fieldId = HuntingControlEventField.Type.COOPERATION.toField(0),
             value = coop4,
         )
@@ -522,28 +569,21 @@ class EditHuntingControlEventControllerTest {
         huntingControlContext = huntingControlContext,
         huntingControlEventTarget = huntingControlEventTarget,
         stringProvider = stringProvider,
-        commonFileProvider = commonFileProvider
+        commonFileProvider = commonFileProvider,
+        userContext = RiistaSDK.currentUserContext,
     )
 
     private fun getHuntingControlContext(
         databaseDriverFactory: DatabaseDriverFactory,
         backendApi: BackendAPI = BackendAPIMock(),
     ): HuntingControlContext {
-        val userContextProvider = CurrentUserContextProviderFactory.createMocked()
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
-
-        val configuration = RiistaSdkConfiguration("1", "2", serverAddress)
         RiistaSDK.initializeMocked(
-            sdkConfiguration = configuration,
             databaseDriverFactory = databaseDriverFactory,
             mockBackendAPI = backendApi,
-            mockCurrentUserContextProvider = userContextProvider,
-            mockLocalDateTimeProvider = MockDateTimeProvider(),
-            mockMainScopeProvider = MockMainScopeProvider(),
-            mockFileProvider = CommonFileProviderMock(),
+            mockCurrentUserContextProvider = currentUserContextProvider,
         )
 
-        return userContextProvider.userContext.huntingControlContext
+        return RiistaSDK.huntingControlContext
     }
 
     private fun getHuntingControlEventTarget(
@@ -556,5 +596,6 @@ class EditHuntingControlEventControllerTest {
     }
 
     private fun getStringProvider(): StringProvider = TestStringProvider.INSTANCE
+    private val currentUserContextProvider = CurrentUserContextProviderFactory.createMocked()
     private val logger by getLogger(EditHuntingControlEventControllerTest::class)
 }

@@ -1,15 +1,33 @@
 package fi.riista.common.domain.groupHunting.ui.groupHarvest.modify
 
 import fi.riista.common.domain.constants.Constants
-import fi.riista.common.domain.constants.isDeer
+import fi.riista.common.domain.content.SpeciesResolver
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
 import fi.riista.common.domain.groupHunting.GroupHuntingDayForDeerResponse
 import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
 import fi.riista.common.domain.groupHunting.HuntingClubGroupDataPiece
-import fi.riista.common.domain.groupHunting.model.*
-import fi.riista.common.domain.model.HarvestSpecimen
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
+import fi.riista.common.domain.groupHunting.model.IdentifiesHuntingGroup
+import fi.riista.common.domain.groupHunting.model.coerceInPermitValidityPeriods
+import fi.riista.common.domain.groupHunting.model.createTargetForHuntingDay
+import fi.riista.common.domain.harvest.model.CommonHarvestData
+import fi.riista.common.domain.harvest.ui.modify.ModifyHarvestIntent
+import fi.riista.common.domain.model.CommonSpecimenData
+import fi.riista.common.domain.model.EntityImages
+import fi.riista.common.domain.model.SearchableOrganization
+import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.model.isDeer
 import fi.riista.common.logging.getLogger
-import fi.riista.common.model.*
+import fi.riista.common.model.BackendEnum
+import fi.riista.common.model.ETRMSGeoLocation
+import fi.riista.common.model.GeoLocationSource
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.isInsideFinland
+import fi.riista.common.model.toBackendEnum
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.util.LocalDateTimeProvider
@@ -25,15 +43,17 @@ import kotlinx.coroutines.flow.flow
 class CreateGroupHarvestController internal constructor(
     groupHuntingContext: GroupHuntingContext,
     private val huntingGroupTarget: IdentifiesHuntingGroup,
-    private val localDateTimeProvider: LocalDateTimeProvider,
+    localDateTimeProvider: LocalDateTimeProvider,
+    speciesResolver: SpeciesResolver,
     stringProvider: StringProvider,
-) : ModifyGroupHarvestController(groupHuntingContext, stringProvider) {
+) : ModifyGroupHarvestController(groupHuntingContext, localDateTimeProvider, speciesResolver, stringProvider) {
 
     constructor(
         groupHuntingContext: GroupHuntingContext,
         huntingGroupTarget: IdentifiesHuntingGroup,
+        speciesResolver: SpeciesResolver,
         stringProvider: StringProvider
-    ): this(groupHuntingContext, huntingGroupTarget, SystemDateTimeProvider(), stringProvider)
+    ): this(groupHuntingContext, huntingGroupTarget, SystemDateTimeProvider(), speciesResolver, stringProvider)
 
     override fun createLoadViewModelFlow(refresh: Boolean):
             Flow<ViewModelLoadStatus<ModifyGroupHarvestViewModel>> = flow {
@@ -73,9 +93,13 @@ class CreateGroupHarvestController internal constructor(
             }
 
             val areaCenterCoordinate = huntingGroupArea.bounds.centerCoordinate.toETRSCoordinate()
-            val harvestData = restoredHarvestData ?: GroupHuntingHarvestData(
-                    gameSpeciesCode = groupContext.huntingGroup.speciesCode,
-                    geoLocation = ETRMSGeoLocation(
+            val harvestData = restoredHarvestData ?: CommonHarvestData(
+                    localId = null,
+                    localUrl = null,
+                    id = null,
+                    rev = null,
+                    species = Species.Known(groupContext.huntingGroup.speciesCode),
+                    location = ETRMSGeoLocation(
                             // conversion to int should be safe assuming that hunting area is in Finland
                             // -> ETRS coordinates should be within int-range
                             latitude = areaCenterCoordinate.x.toInt(),
@@ -84,24 +108,35 @@ class CreateGroupHarvestController internal constructor(
                             accuracy = null,
                             altitude = null,
                             altitudeAccuracy = null,
-                    ),
+                    ).asKnownLocation(),
                     pointOfTime = harvestPointOfTime,
-                    imageIds = listOf(),
+                    description = null,
+                    images = EntityImages.noImages(),
                     specimens = listOf(
-                            HarvestSpecimen().ensureDefaultValuesAreSet()
+                        CommonSpecimenData().ensureDefaultValuesAreSet()
                     ),
+                    amount = null, // don't set initial value for _group harvests_
+                    huntingDayId = null,
                     actorInfo = GroupHuntingPerson.Unknown,
                     authorInfo = null, // will be set on the backend
+                    selectedClub = SearchableOrganization.Unknown,
                     canEdit = true,
+                    modified = true,
+                    deleted = false,
                     harvestSpecVersion = Constants.HARVEST_SPEC_VERSION,
                     harvestReportRequired = false,
                     harvestReportState = BackendEnum.create(null),
+                    permitNumber = null,
+                    permitType = null,
                     stateAcceptedToHarvestPermit = BackendEnum.create(null),
                     deerHuntingType = BackendEnum.create(null),
                     deerHuntingOtherTypeDescription = null,
                     mobileClientRefId = generateMobileClientRefId(),
                     harvestReportDone = false,
                     rejected = false,
+                    feedingPlace = null,
+                    taigaBeanGoose = null,
+                    greySealHuntingMethod = BackendEnum.create(null),
             )
 
             val viewModel = createViewModel(
@@ -134,7 +169,7 @@ class CreateGroupHarvestController internal constructor(
         }
 
         // If deer, get huntingDayId from backend
-        val harvestDataWithHuntingDay = if (harvestData.gameSpeciesCode.isDeer()) {
+        val harvestDataWithHuntingDay = if (harvestData.species.isDeer()) {
             when (val huntingDayResponse = groupContext.fetchHuntingDayForDeer(huntingGroupTarget, harvestData.pointOfTime.date)) {
                 is GroupHuntingDayForDeerResponse.Failed -> {
                     logger.w { "Unable to fetch hunting day for deer" }
@@ -195,7 +230,8 @@ class CreateGroupHarvestController internal constructor(
             return true
         }
 
-        handleIntent(ModifyGroupHarvestIntent.ChangeLocation(
+        handleIntent(
+            ModifyHarvestIntent.ChangeLocation(
                 newLocation = location,
                 locationChangedAfterUserInteraction = false
         ))

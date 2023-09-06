@@ -56,6 +56,9 @@ data class LocalTime(
                 )
             }
         }
+
+        val minLocalTime = LocalTime(0, 0, 0)
+        val maxLocalTime = LocalTime(23, 59, 59)
     }
 }
 

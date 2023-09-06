@@ -5,6 +5,8 @@ import fi.riista.common.domain.model.CommonLocation
 import fi.riista.common.domain.model.CommonSpecimenData
 import fi.riista.common.domain.model.EntityImages
 import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.srva.SrvaContext
+import fi.riista.common.domain.srva.SrvaEventOperationResponse
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.model.CommonSrvaEventData
 import fi.riista.common.domain.srva.model.SrvaEventState
@@ -24,19 +26,22 @@ import kotlinx.coroutines.flow.flow
 /**
  * A controller for creating [CommonSrvaEvent] data.
  */
-class CreateSrvaEventController(
+class CreateSrvaEventController internal constructor(
     metadataProvider: MetadataProvider,
+    srvaContext: SrvaContext,
+    localDateTimeProvider: LocalDateTimeProvider,
     stringProvider: StringProvider,
-    private val dateTimeProvider: LocalDateTimeProvider
-) : ModifySrvaEventController(metadataProvider, stringProvider) {
+) : ModifySrvaEventController(metadataProvider, srvaContext, localDateTimeProvider, stringProvider) {
 
     constructor(
         metadataProvider: MetadataProvider,
+        srvaContext: SrvaContext,
         stringProvider: StringProvider,
-    ) : this(
+    ): this(
         metadataProvider = metadataProvider,
+        srvaContext = srvaContext,
+        localDateTimeProvider = SystemDateTimeProvider(),
         stringProvider = stringProvider,
-        dateTimeProvider = SystemDateTimeProvider()
     )
 
     /**
@@ -112,8 +117,10 @@ class CreateSrvaEventController(
             state = SrvaEventState.UNFINISHED.toBackendEnum(),
             rhyId = null,
             canEdit = true,
+            modified = true,
+            deleted = false,
             location = CommonLocation.Unknown,
-            pointOfTime = dateTimeProvider.now(),
+            pointOfTime = localDateTimeProvider.now(),
             author = null,
             approver = null,
             species = Species.Unknown,

@@ -1,0 +1,40 @@
+CREATE TABLE DbMetsahallitusPermit (
+    username TEXT NOT NULL,
+    permit_identifier TEXT NOT NULL,
+    permit_type_fi TEXT,
+    permit_type_sv TEXT,
+    permit_type_en TEXT,
+    permit_name_fi TEXT,
+    permit_name_sv TEXT,
+    permit_name_en TEXT,
+    area_number TEXT NOT NULL,
+    area_name_fi TEXT,
+    area_name_sv TEXT,
+    area_name_en TEXT,
+    begin_date TEXT,
+    end_date TEXT,
+    harvest_feedback_url_fi TEXT,
+    harvest_feedback_url_sv TEXT,
+    harvest_feedback_url_en TEXT,
+
+    CONSTRAINT pk_constraint_DbMetsahallitusPermit PRIMARY KEY (username, permit_identifier)
+);
+
+hasPermits:
+SELECT EXISTS(SELECT 1 FROM DbMetsahallitusPermit WHERE username = ?);
+
+listPermits:
+SELECT * FROM DbMetsahallitusPermit WHERE username = ? ORDER BY begin_date DESC, end_date DESC, permit_type_fi ASC;
+
+selectPermit:
+SELECT * FROM DbMetsahallitusPermit WHERE username = ? AND permit_identifier = ?;
+
+insertPermit:
+INSERT INTO DbMetsahallitusPermit(
+    username, permit_identifier, permit_type_fi, permit_type_sv, permit_type_en,
+    permit_name_fi, permit_name_sv, permit_name_en, area_number, area_name_fi, area_name_sv, area_name_en,
+    begin_date, end_date, harvest_feedback_url_fi, harvest_feedback_url_sv, harvest_feedback_url_en)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteUserPermits:
+DELETE FROM DbMetsahallitusPermit WHERE username = ?;

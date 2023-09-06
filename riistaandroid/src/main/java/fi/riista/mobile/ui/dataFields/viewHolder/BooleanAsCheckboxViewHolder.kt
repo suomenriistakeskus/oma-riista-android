@@ -3,11 +3,9 @@ package fi.riista.mobile.ui.dataFields.viewHolder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.AppCompatCheckBox
 import fi.riista.common.ui.dataField.BooleanEventDispatcher
 import fi.riista.common.ui.dataField.BooleanField
 import fi.riista.common.ui.dataField.DataFieldId
-import fi.riista.common.util.letWith
 import fi.riista.mobile.R
 import fi.riista.mobile.ui.ClickableCheckbox
 import fi.riista.mobile.ui.dataFields.DataFieldViewHolder

@@ -80,21 +80,26 @@ internal class ViewSrvaEventFieldProducer(
                 DateAndTimeField(fieldSpecification.fieldId, srvaEvent.pointOfTime) {
                     readOnly = true
                 }
-            SrvaEventField.Type.SPECIMEN_AMOUNT ->
-                srvaEvent.specimens.count()
-                    .createValueField(
-                        fieldSpecification = fieldSpecification,
-                        label = RR.string.srva_event_label_specimen_amount
-                    )
-            SrvaEventField.Type.SPECIMEN ->
+            SrvaEventField.Type.SPECIMEN_AMOUNT -> {
+                val specimenAmount = srvaEvent.specimenAmount ?: srvaEvent.specimens.size
+                specimenAmount.createValueField(
+                    fieldSpecification = fieldSpecification,
+                    label = RR.string.srva_event_label_specimen_amount
+                )
+            }
+            SrvaEventField.Type.SPECIMEN -> {
+                val specimenAmount = srvaEvent.specimenAmount ?: srvaEvent.specimens.size
+
                 SpecimenField(
                     id = fieldSpecification.fieldId,
                     specimenData = SpecimenFieldDataContainer.createForSrva(
                         species = srvaEvent.species,
+                        specimenAmount = specimenAmount,
                         specimens = srvaEvent.specimens,
                         fieldSpecifications = specimenFieldSpecifications,
                     )
                 )
+            }
             SrvaEventField.Type.EVENT_CATEGORY ->
                 srvaEvent.eventCategory.localized(stringProvider)
                     .createValueField(

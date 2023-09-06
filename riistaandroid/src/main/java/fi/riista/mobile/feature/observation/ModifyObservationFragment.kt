@@ -431,9 +431,11 @@ abstract class ModifyObservationFragment<
     }
 
     override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
-        CommonObservationField.fromInt(fieldId)?.let { fieldId ->
+        CommonObservationField.fromInt(fieldId)?.let { field ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
-                    fieldId, LocalDateTime.fromJodaDateTime(dateTime))
+                fieldId = field,
+                value = LocalDateTime.fromJodaDateTime(dateTime)
+            )
         }
     }
 

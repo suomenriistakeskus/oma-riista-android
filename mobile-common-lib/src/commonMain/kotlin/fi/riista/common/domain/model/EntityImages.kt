@@ -66,7 +66,48 @@ data class EntityImages(
         )
     }
 
+    fun withLocalImageUploaded(serverId: String): EntityImages {
+        val newLocalImages = localImages.map { localImage ->
+            when (localImage.serverId) {
+                serverId ->
+                    // Change status to uploaded
+                    localImage.copy(status = EntityImage.Status.UPLOADED)
+                else ->
+                    localImage
+            }
+        }
+
+        val newRemoteImageIds = if (!remoteImageIds.contains(serverId)) {
+            remoteImageIds + serverId
+        } else {
+            remoteImageIds
+        }
+
+        return copy(
+            localImages = newLocalImages,
+            remoteImageIds = newRemoteImageIds,
+        )
+    }
+
+    fun withLocalImagesRemoved(removedServerIds: List<String>): EntityImages {
+        return copy(
+            localImages = localImages.filter { localImage -> removedServerIds.contains(localImage.serverId).not() },
+            remoteImageIds = remoteImageIds,
+        )
+    }
+
+    fun withDeletedImagesRemoved(): EntityImages {
+        return copy(
+            localImages = localImages.filter { it.status != EntityImage.Status.LOCAL_TO_BE_REMOVED },
+            remoteImageIds = remoteImageIds,
+        )
+    }
+
     companion object {
         internal fun noImages() = EntityImages(listOf(), listOf())
     }
+}
+
+fun EntityImages.isEmpty(): Boolean {
+    return localImages.isEmpty() && remoteImageIds.isEmpty()
 }

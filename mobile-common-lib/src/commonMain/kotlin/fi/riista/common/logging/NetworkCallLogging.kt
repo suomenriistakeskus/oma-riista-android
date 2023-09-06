@@ -1,26 +1,27 @@
 package fi.riista.common.logging
 
-import io.ktor.client.*
-import io.ktor.client.features.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.util.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpClientPlugin
+import io.ktor.client.request.HttpRequestPipeline
+import io.ktor.client.statement.HttpReceivePipeline
+import io.ktor.client.statement.request
+import io.ktor.util.AttributeKey
 
 class NetworkCallLogging {
 
-    companion object Feature : HttpClientFeature<NetworkCallLogging, NetworkCallLogging> {
+    // TODO: refactor to ktor 2.0 format
+    companion object Feature : HttpClientPlugin<NetworkCallLogging, NetworkCallLogging> {
         override val key: AttributeKey<NetworkCallLogging> = AttributeKey("NetworkCallLogging")
 
         override fun prepare(block: NetworkCallLogging.() -> Unit): NetworkCallLogging =
             NetworkCallLogging().apply(block)
 
-        override fun install(feature: NetworkCallLogging, scope: HttpClient) {
+        override fun install(plugin: NetworkCallLogging, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
                 logger.log(logLevel) { "${context.method.value} ${context.url.buildString()} -->" }
                 proceed()
             }
-            scope.receivePipeline.intercept(HttpReceivePipeline.After) {
-                val response = context.response
+            scope.receivePipeline.intercept(HttpReceivePipeline.After) {response ->
                 logger.log(logLevel) { "<-- ${response.status} ${response.request.url}" }
                 proceed()
             }

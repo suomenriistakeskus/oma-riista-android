@@ -1,9 +1,12 @@
 package fi.riista.common.domain.model
 
 import fi.riista.common.dto.toLocalDateTime
+import fi.riista.common.model.LocalDate
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.model.changeTime
+import fi.riista.common.model.extensions.toJulianDay
 import fi.riista.common.model.minutesUntil
+import fi.riista.common.model.toJulianDay
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -88,6 +91,26 @@ class LocalDateTimeTest {
         assertEquals(datetime(hour = 11), datetime().changeTime(hour = 11))
         assertEquals(datetime(minute = 11), datetime().changeTime(minute = 11))
         assertEquals(datetime(second = 11), datetime().changeTime(second = 11))
+    }
+
+    @Test
+    fun `julian days`() {
+        assertEquals(
+            expected = 2458849.5,
+            actual = LocalDateTime(2020, 1, 1, 0, 0, 0).toJulianDay()
+        )
+        assertEquals(
+            expected = 2458849.75,
+            actual = LocalDateTime(2020, 1, 1, 6, 0, 0).toJulianDay()
+        )
+        assertEquals(
+            expected = 2458850.0,
+            actual = LocalDateTime(2020, 1, 1, 12, 0, 0).toJulianDay()
+        )
+        assertEquals(
+            expected = 2458850.25,
+            actual = LocalDateTime(2020, 1, 1, 18, 0, 0).toJulianDay()
+        )
     }
 
 

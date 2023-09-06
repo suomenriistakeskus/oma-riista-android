@@ -356,9 +356,11 @@ abstract class ModifyGroupHarvestFragment<
     }
 
     override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
-        CommonHarvestField.fromInt(fieldId)?.let { fieldId ->
+        CommonHarvestField.fromInt(fieldId)?.let { field ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
-                    fieldId, LocalDateTime.fromJodaDateTime(dateTime))
+                fieldId = field,
+                value = LocalDateTime.fromJodaDateTime(dateTime)
+            )
         }
     }
 

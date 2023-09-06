@@ -58,6 +58,7 @@
     <string name="more_show_magazine">Läs senaste numret av Jägaren</string>
     <string name="more_view_hunting_seasons">Jakttider</string>
     <string name="more_gallery">Galleri</string>
+    <string name="more_about">Information</string>
     <string name="logout">Logga ut</string>
 
     <string name="menu_add_item">Lägg till</string>
@@ -132,6 +133,7 @@
     <!-- Settings page -->
     <string name="language">Språk</string>
     <string name="language_prompt">Välj språk</string>
+    <string name="map_settings">Kartinställningar</string>
 
     <string name="Finnish">Suomi</string>
     <string name="Swedish">Svenska</string>
@@ -173,7 +175,8 @@
     <string name="my_details_title_registry">Jägarregistret</string>
     <string name="my_details_hunter_id">Jägarnummer</string>
     <string name="my_details_title_hunting_license">Jaktkort</string>
-    <string name="my_details_insurance_policy_text">I detta kort nämnda jägare har en jägarförsäkring, som är giltig i alla nordiska länder, Schweiz och EU-länder.</string>
+    <string name="my_details_insurance_policy_text">I detta kort nämnda jägare har en jägarförsäkring, som är giltig i alla nordiska länder, EU-länderna, Schweiz och Storbritannien på jaktresor som varar högst 60 dygn.</string>
+    <string name="my_details_insurance_instructions_link_title">Försäkringsinstruktioner</string>
     <string name="my_details_payment">Jaktvårdsavgift</string>
     <string name="my_details_exam_date">Datum för avläggande av examen</string>
     <string name="my_details_membership">JVF medlemsskap</string>
@@ -217,11 +220,11 @@
     <string name="occupation_type_petoyhdyshenkilo">Rovdjurskontaktperson</string>
 
     <string name="unregister_account_title">Radera användarkontot</string>
-    <string name="unregister_account_message">Jag vill radera mina frivilliga viltuppgifter, användarkonto samt mina personuppgifter från Oma\u00A0riista\u00A0-tjänsten.\n\nJag förstår, att mina uppgifter inte kan returneras efter raderingen.</string>
-    <string name="unregister_account_question">Är du säker på att du vill radera din användarkonto?</string>
+    <string name="unregister_account_message">Jag vill radera mina frivilliga viltuppgifter, användarkonto samt mina personuppgifter från Oma\u00A0riista\u00A0-tjänsten. Jag förstår, att mina uppgifter inte kan returneras efter raderingen.\n\nOm du raderar Oma riista -kontot, raderas inte dina uppgifter från Jägarregistret. Du måste kontakta Jägarregistret skriftiligen om du vill att dina uppgifter ska raderas även därifrån. Genom att radera uppgifterna från jägarregistret förfaller jägarexamen och det går inte längre att utöva\u00A0jakt.</string>
+    <string name="unregister_account_question">Att byta användarsignum/e-postadress i Oma riista -tjänsten förutsätter inte att man raderar användarkontot, det lyckas genom att du registrera dig till tjänsten på nytt.  Då kommer också all information som du tidigare angett i tjänsten att förbli som förut.\n\nÄr du säker på att du vill radera din användarkonto?</string>
     <string name="unregister_account_request_sent_title_short">Begäran har skickats</string>
     <string name="unregister_account_request_sent_title">Begäran om radering av användarkontot har skickats</string>
-    <string name="unregister_account_request_sent_message_at_timeime">Ett automatiskt e-postmeddelande har skickats till Oma riista -tjänstens underhåll %1$s angående begäran om radering av användarkontot och en kopia av meddelandet har även vidarebefordrats till den e-postadress som angetts i dina egna uppgifter. Vanligen raderas användarkontot av underhållet inom två\u00A0veckor.\n\nVar vänlig och ta kontakt med kundtjänsten oma@riista.fi, ifall du i misstag har begärt om radering av användarkontot.</string>
+    <string name="unregister_account_request_sent_message_at_timeime">Ett automatiskt e-postmeddelande har skickats till Oma riista -tjänstens underhåll %1$s angående begäran om radering av användarkontot och en kopia av meddelandet har även vidarebefordrats till den e-postadress som angetts i dina egna uppgifter. Vanligen raderas användarkontot av underhållet inom två\u00A0veckor.\n\nVar vänlig och ta kontakt med kundtjänsten oma@riista.fi, ifall du i misstag har begärt om radering av användarkontot.\n\nOm du raderar Oma riista -kontot, raderas inte dina uppgifter från Jägarregistret. Du måste kontakta Jägarregistret skriftiligen om du vill att dina uppgifter ska raderas även därifrån. Genom att radera uppgifterna från jägarregistret förfaller jägarexamen och det går inte längre att utöva\u00A0jakt.</string>
     <string name="unregister_account_continue_using">Fortsätt använda tjänsten</string>
 
     <!-- New diary entry page -->
@@ -269,6 +272,28 @@
     <string name="harvest_feeding_place_title">Skjuten på utfodringsplats?</string>
     <string name="harvest_taiga_bean_goose_title">Är det en taigasädgås?</string>
 
+    <string name="harvest_settings">Inställningar för anteckning av byte</string>
+    <string name="harvest_settings_add_harvest_for_other_hunter">Antecknar byte åt någon annan</string>
+    <string name="harvest_settings_add_harvest_for_other_hunter_explanation">\u25CF Antecknar byten åt andra jägare</string>
+    <string name="harvest_settings_enable_club_selection">Antecknar byte åt annan förening</string>
+    <string name="harvest_settings_enable_club_selection_explanation">\u25CF Välj en förening för vilken byten rapporteras</string>
+    <string name="harvest_label_own_harvest">Eget byte</string>
+    <string name="harvest_showing_harvests_added_for_others">Visar antecknade poster för andra</string>
+
+    <string name="harvest_label_hunting_club">Förening</string>
+    <string name="harvest_label_hunting_club_official_code">Föreningens kundnummer</string>
+
+    <string name="hunting_club_selection_select_club">Välj förening</string>
+    <string name="hunting_club_selection_search_by_name">Sök med namn eller kundnummer</string>
+    <string name="hunting_club_selection_search_by_name_hint">Namn eller kundnummer</string>
+    <string name="hunting_club_selection_no_club_selection">Inget val</string>
+    <string name="hunting_club_selection_other_club">Annat</string>
+
+    <string name="hunting_club_search_enter_club_official_code">Ge föreningens 7-siffriga kundnummer</string>
+    <string name="hunting_club_search_invalid_official_code">Föreningens kundnummer är felaktigt</string>
+    <string name="hunting_club_search_searching_by_official_code">Föreningens uppgifter hämtas..</string>
+    <string name="hunting_club_search_search_failed">Hittades ingen förening med kundnumret.</string>
+
     <!-- Harvest state -->
 
     <string name="harvest_permit_number_required">Tillståndsnummer krävs</string>
@@ -301,6 +326,7 @@
 
     <string name="synchronization">Synkronisering</string>
     <string name="refresh">Uppdatera</string>
+    <string name="refresh_all">Uppdatera alla</string>
     <string name="manual">Manuell</string>
     <string name="automatic">Automatisk</string>
     <string name="licences_dialog_title">Licenser för öppen källkod</string>
@@ -337,6 +363,7 @@
     <string name="map_settings_small_game_restrictions_link">Se på: https://retkikartta.fi</string>
     <string name="map_settings_avi_hunting_ban">Rfv jaktförbudsområden</string>
     <string name="map_settings_avi_hunting_ban_link">Se på: https://avi.fi/sv/pressmeddelanden</string>
+    <string name="map_settings_lead_shot_ban">Områden med blyhagelförbud</string>
     <string name="offline_map_settings_background_map">Bakgrundskarta</string>
     <string name="offline_map_settings_map_layers">Kartlager</string>
     <string name="offline_map_settings_cache_label">Cacheanvändning:</string>
@@ -793,7 +820,7 @@
 
     <string name="group_member_selection_select_hunter">Välj en skytt</string>
     <string name="group_member_selection_select_observer">Välj en observationer</string>
-    <string name="group_member_selection_search_name">Sök efter namn</string>
+    <string name="group_member_selection_search_name">Filtrera listan efter namn</string>
     <string name="group_member_selection_enter_name">Namn</string>
 
     <!-- Hunting control -->
@@ -826,6 +853,7 @@
     <string name="hunting_control_inspector_selection_search_by_name">@string/group_member_selection_search_name</string>
     <string name="hunting_control_inspector_selection_name_hint">@string/group_member_selection_enter_name</string>
     <string name="hunting_control_error_no_inspectors_for_selected_date">Det finns inga övervakare för den valda dagen</string>
+    <string name="hunting_control_error_no_self_as_inspector">Du kan inte ta bort dig själv från listan över övervakare</string>
     <string name="hunting_control_event_save_failed_generic">Det gick inte att spara övervakningshändelsen</string>
     <string name="hunting_control_download_attachment_question">Ska bilagan laddas ner från servern?</string>
     <string name="hunting_control_delete_attachment_question">Ska bilagan %1$s tas bort?</string>
@@ -866,4 +894,11 @@
     <string name="hunting_control_event_type_waterfowl">Övervakning av jakt på sjöfåglar</string>
     <string name="hunting_control_event_type_dog_discipline">Övervakning av hunddisciplin</string>
     <string name="hunting_control_event_type_other">Övrig övervakning</string>
+
+    <string name="sunrise_and_sunset_title">Soltider</string>
+    <string name="sun_day_selection_label">@string/hunting_control_date</string>
+    <string name="sun_sunrise_label">Soluppgång</string>
+    <string name="sun_sunset_label">Solnedgång</string>
+    <string name="sun_instructions">Välj en plats för att se tider för\nsoluppgång och solnedgång.</string>
+    <string name="sun_disclaimer">Solens upp- och nedgångstid har beräknats med hjälp läget av kartans platspekare. Soluppgången är det klockslaget, då solens övre kant blir synlig ovanför horisonten. På motsvarande sätt är solnedgången den stunden, då solens övre kant försvinner bakom horisonten. Solens upp- och nedgångstid varierar mellan orterna beroende på deras plats i longitud och latitud samt på årstiden. De officiella solens upp- och nedgångstider för Finland definieras i Helsingfors universitets almanacka.</string>
 </resources>

@@ -10,5 +10,5 @@ data class JhtTraining(
     val trainingType: BackendEnum<TrainingType>,
     val occupationType: BackendEnum<JhtTrainingOccupationType>,
     val date: LocalDate,
-    val location: String,
+    val location: String?,
 )

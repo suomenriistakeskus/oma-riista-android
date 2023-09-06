@@ -6,8 +6,6 @@ import fi.riista.common.domain.groupHunting.dto.HuntingGroupAreaDTO
 import fi.riista.common.domain.groupHunting.dto.toHuntingGroupArea
 import fi.riista.common.domain.groupHunting.model.HuntingGroupArea
 import fi.riista.common.domain.groupHunting.model.HuntingGroupId
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
 import fi.riista.common.network.calls.NetworkResponse
@@ -43,11 +41,5 @@ internal class HuntingGroupAreaFromNetworkProvider(
 
     override fun handleError401() {
         _area.set(null)
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(HuntingGroupAreaProvider::class)
     }
 }

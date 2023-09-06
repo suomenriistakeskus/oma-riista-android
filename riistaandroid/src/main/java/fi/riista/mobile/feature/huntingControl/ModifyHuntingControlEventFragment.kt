@@ -189,7 +189,7 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
                 null
             }
 
-            getController().addAttachmentEventDispatcher.addAttachment(
+            getController().eventDispatchers.attachmentEventDispatcher.addAttachment(
                 HuntingControlAttachment(
                     fileName = fileName,
                     isImage = thumbnailBitmap != null,
@@ -293,22 +293,26 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
             registerViewHolderFactory(ReadOnlySingleLineTextViewHolder.Factory())
             registerViewHolderFactory(
                 EditableTextViewHolder.Factory(
-                    eventDispatcher = getController().stringEventDispatcher
+                    eventDispatcher = getController().eventDispatchers.stringEventDispatcher
                 )
             )
             registerViewHolderFactory(
                 ChoiceViewHolder.Factory(
-                    eventDispatcher = getController().stringWithIdEventDispatcher,
+                    eventDispatcher = getController().eventDispatchers.stringWithIdEventDispatcher,
                     choiceViewLauncher = this@ModifyHuntingControlEventFragment,
                 )
             )
-            registerViewHolderFactory(IntFieldViewHolder.Factory(getController().intEventDispatcher))
+            registerViewHolderFactory(IntFieldViewHolder.Factory(getController().eventDispatchers.intEventDispatcher))
             registerViewHolderFactory(DateViewHolder.Factory(this@ModifyHuntingControlEventFragment))
             registerViewHolderFactory(TimespanViewHolder.Factory(this@ModifyHuntingControlEventFragment))
-            registerViewHolderFactory(EditableBooleanAsRadioToggleViewHolder.Factory(getController().booleanEventDispatcher))
+            registerViewHolderFactory(
+                EditableBooleanAsRadioToggleViewHolder.Factory(getController().eventDispatchers.booleanEventDispatcher)
+            )
             registerViewHolderFactory(AttachmentViewHolder.Factory(::attachmentClicked, ::deleteAttachmentClicked))
             registerViewHolderFactory(ButtonViewHolder.Factory(::addAttachmentClicked))
-            registerViewHolderFactory(ChipsViewHolder.Factory(getController().stringWithIdClickEventDispatcher))
+            registerViewHolderFactory(
+                ChipsViewHolder.Factory(getController().eventDispatchers.stringWithIdClickEventDispatcher)
+            )
         }
     }
 
@@ -383,14 +387,14 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
         HuntingControlEventField.fromInt(fieldId)?.let { eventField ->
             when (eventField.type) {
                 HuntingControlEventField.Type.DATE -> {
-                    getController().dateEventDispatcher.dispatchLocalDateChanged(
+                    getController().eventDispatchers.localDateEventDispatcher.dispatchLocalDateChanged(
                         fieldId = eventField,
                         value = LocalDate.fromJodaLocalDate(dateTime.toLocalDate())
                     )
                 }
                 HuntingControlEventField.Type.START_TIME,
                 HuntingControlEventField.Type.END_TIME -> {
-                    getController().timeEventDispatcher.dispatchLocalTimeChanged(
+                    getController().eventDispatchers.localTimeEventDispatcher.dispatchLocalTimeChanged(
                         fieldId = eventField,
                         value = LocalTime.fromJodaLocalTime(dateTime.toLocalTime())
                     )
@@ -407,7 +411,10 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
         val selectedValue = SelectStringWithIdActivity.getStringWithIdResulListFromIntent(data)
 
         if (fieldId != null && selectedValue != null) {
-            getController().stringWithIdEventDispatcher.dispatchStringWithIdChanged(fieldId, selectedValue)
+            getController().eventDispatchers.stringWithIdEventDispatcher.dispatchStringWithIdChanged(
+                fieldId = fieldId,
+                value = selectedValue,
+            )
         }
     }
 
@@ -420,7 +427,10 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
                 source.toBackendEnum(),
                 // todo: consider passing accuracy and other values as well
                 null, null, null)
-            getController().locationEventDispatcher.dispatchLocationChanged(HuntingControlEventField.Type.LOCATION.toField(), geoLocation)
+            getController().eventDispatchers.locationEventDispatcher.dispatchLocationChanged(
+                fieldId = HuntingControlEventField.Type.LOCATION.toField(),
+                value = geoLocation,
+            )
         }
     }
 
@@ -474,7 +484,7 @@ abstract class ModifyHuntingControlEventFragment<Controller : ModifyHuntingContr
         intValue?.let {
             val fieldId = HuntingControlEventField.fromInt(intValue)
             fieldId?.let {
-                getController().attachmentActionEventDispatcher.dispatchEvent(fieldId)
+                getController().eventDispatchers.attachmentActionEventDispatcher.dispatchEvent(fieldId)
             }
         }
     }

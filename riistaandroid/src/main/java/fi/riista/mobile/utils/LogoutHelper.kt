@@ -6,6 +6,7 @@ import fi.riista.mobile.database.HarvestDatabase
 import fi.riista.mobile.database.PermitManager
 import fi.riista.mobile.feature.unregister.UnregisterUserAccountActivityLauncher
 import fi.riista.mobile.sync.AppSync
+import fi.riista.mobile.sync.AppSyncPrecondition
 
 class LogoutHelper constructor(
     private val appSync: AppSync,
@@ -13,11 +14,11 @@ class LogoutHelper constructor(
     private val credentialsStore: CredentialsStore,
     private val permitManager: PermitManager,
 ) {
-    fun logout(context: Context) {
+    suspend fun logout(context: Context) {
         RiistaSDK.logout()
 
-        // also stops automatic sync
-        appSync.disableSyncPrecondition(AppSync.SyncPrecondition.CREDENTIALS_VERIFIED)
+        // also stops periodic metadata sync
+        appSync.disableSyncPrecondition(AppSyncPrecondition.CREDENTIALS_VERIFIED)
 
         harvestDatabase.clearUpdateTimes()
         credentialsStore.clear()

@@ -57,7 +57,7 @@ import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
 import fi.riista.mobile.feature.specimens.SpecimensActivity
 import fi.riista.mobile.models.Species
-import fi.riista.mobile.riistaSdkHelpers.AppPermitProvider
+import fi.riista.mobile.riistaSdkHelpers.AppHarvestPermitProvider
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
 import fi.riista.mobile.riistaSdkHelpers.fromJodaDateTime
 import fi.riista.mobile.riistaSdkHelpers.registerLabelFieldViewHolderFactories
@@ -106,7 +106,7 @@ abstract class ModifyHarvestFragment<
     lateinit var speciesResolver: SpeciesResolver
 
     @Inject
-    lateinit var permitProvider: AppPermitProvider
+    lateinit var harvestPermitProvider: AppHarvestPermitProvider
 
     @Inject
     lateinit var syncConfig: SyncConfig
@@ -287,6 +287,7 @@ abstract class ModifyHarvestFragment<
                 when (dataField.settings.appearance) {
                     BooleanField.Appearance.YES_NO_BUTTONS -> DataFieldViewHolderType.EDITABLE_BOOLEAN_AS_RADIO_TOGGLE
                     BooleanField.Appearance.CHECKBOX -> DataFieldViewHolderType.BOOLEAN_AS_CHECKBOX
+                    BooleanField.Appearance.SWITCH -> throw IllegalArgumentException("Unexpected appearance: SWITCH")
                 }
             }
             is DoubleField -> DataFieldViewHolderType.EDITABLE_DOUBLE
@@ -407,6 +408,8 @@ abstract class ModifyHarvestFragment<
 
     private fun loadHarvestIfNotLoaded() {
         if (controller.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            // If harvest settings are changed while this fragment is paused, we need to update view model
+            controller.updateViewModel()
             return
         }
 
@@ -434,7 +437,7 @@ abstract class ModifyHarvestFragment<
     private fun handleSelectedPermit(data: Intent) {
         val permit = data.getStringExtra(HarvestPermitActivity.RESULT_PERMIT_NUMBER)
             ?.let { permitNumber ->
-                permitProvider.getPermit(permitNumber)
+                harvestPermitProvider.getPermit(permitNumber)
             }
             ?: kotlin.run {
                 logger.d { "Failed to find a permit for permit number. Not selecting permit!" }
@@ -488,9 +491,11 @@ abstract class ModifyHarvestFragment<
     }
 
     override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
-        CommonHarvestField.fromInt(fieldId)?.let { fieldId ->
+        CommonHarvestField.fromInt(fieldId)?.let { field ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
-                    fieldId, LocalDateTime.fromJodaDateTime(dateTime))
+                fieldId = field,
+                value = LocalDateTime.fromJodaDateTime(dateTime)
+            )
         }
     }
 

@@ -82,6 +82,9 @@ class HuntingDayItemViewHolder(view: View, listener: Listener): RecyclerView.Vie
                     editDayImageView.visibility = View.GONE
                     createDayImageView.visibility = View.VISIBLE
                 }
+                null -> {
+                    // nothing to do
+                }
             }
 
             dayActionContainer.visibility = (action != null).toVisibility()

@@ -48,6 +48,9 @@ internal data class CommonSrvaEventData(
     val hoursSpent: Int?,
     val description: String?,
     val images: EntityImages,
+
+    val modified: Boolean,
+    val deleted: Boolean,
 ) {
     val selectedMethods: List<BackendEnum<SrvaMethodType>>
         get() = methods.selectedMethods
@@ -73,12 +76,15 @@ internal fun CommonSrvaEventData.toSrvaEvent(): CommonSrvaEvent? {
         state = state,
         rhyId = rhyId,
         canEdit = canEdit,
+        modified = modified,
+        deleted = deleted,
         location = knownLocation,
         pointOfTime = pointOfTime,
         author = author,
         approver = approver,
         species = species,
         otherSpeciesDescription = otherSpeciesDescription,
+        totalSpecimenAmount = specimenAmount ?: specimens.size,
         specimens = specimens.map { it.toSrvaSpecimen() },
         eventCategory = eventCategory,
         deportationOrderNumber = deportationOrderNumber,

@@ -1,10 +1,27 @@
 package fi.riista.common.domain.groupHunting.ui.groupObservation.modify
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.constants.isMoose
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationData
+import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
+import fi.riista.common.domain.groupHunting.model.HuntingGroupArea
+import fi.riista.common.domain.groupHunting.model.HuntingGroupMember
+import fi.riista.common.domain.groupHunting.model.asGroupMember
+import fi.riista.common.domain.groupHunting.model.asGuest
+import fi.riista.common.domain.groupHunting.model.isMember
 import fi.riista.common.domain.groupHunting.ui.GroupObservationField
-import fi.riista.common.domain.groupHunting.ui.groupObservation.*
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationGeoLocationEventToIntentMapper
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationHuntingDayEventDispatcher
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationHuntingDayEventToIntentMapper
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationIntEventDispatcher
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationIntEventToIntentMapper
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationIntent
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationLocationEventDispatcher
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationStringWithIdEventDispatcher
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationStringWithIdEventToIntentMapper
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationTimeEventDispatcher
+import fi.riista.common.domain.groupHunting.ui.groupObservation.GroupObservationTimeEventToIntentMapper
 import fi.riista.common.domain.model.HunterNumber
 import fi.riista.common.domain.model.PersonWithHunterNumber
 import fi.riista.common.logging.getLogger
@@ -16,7 +33,13 @@ import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.FieldRequirement
+import fi.riista.common.ui.dataField.FieldSpecification
+import fi.riista.common.ui.dataField.FieldSpecificationListBuilder
+import fi.riista.common.ui.dataField.noRequirement
+import fi.riista.common.ui.dataField.required
+import fi.riista.common.ui.dataField.voluntary
+import fi.riista.common.ui.dataField.withRequirement
 import fi.riista.common.ui.intent.IntentHandler
 import kotlinx.serialization.Serializable
 
@@ -31,11 +54,6 @@ abstract class ModifyGroupObservationController(
     val locationEventDispatcher: GroupObservationLocationEventDispatcher = GroupObservationGeoLocationEventToIntentMapper(intentHandler = this)
     val intEventDispatcher: GroupObservationIntEventDispatcher = GroupObservationIntEventToIntentMapper(intentHandler = this)
     val stringWithIdEventDispatcher: GroupObservationStringWithIdEventDispatcher = GroupObservationStringWithIdEventToIntentMapper(intentHandler = this)
-
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
 
     private val fieldProducer = ModifyGroupHuntingObservationFieldProducer(stringProvider = stringProvider)
 

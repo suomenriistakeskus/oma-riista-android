@@ -16,7 +16,7 @@ class LocalImageRemover @Inject constructor(
     @Named(APPLICATION_WORK_CONTEXT_NAME) private val syncWorkContext: WorkContext,
 ) {
 
-    fun removeDeletedImagesLocallyAsync() {
+    suspend fun removeDeletedImagesLocallyAsync() {
         val srvaImageIds = RiistaSDK.srvaContext.getLocalSrvaImageIds()
         val observationImageIds = RiistaSDK.observationContext.getLocalObservationImageIds()
         val harvestImages = RiistaSDK.harvestContext.getLocalHarvestImageIds()

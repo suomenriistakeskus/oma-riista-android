@@ -1,12 +1,9 @@
 package fi.riista.common.domain.groupHunting
 
-import co.touchlab.stately.collections.IsoMutableList
 import fi.riista.common.domain.groupHunting.dto.HuntingGroupMembersDTO
 import fi.riista.common.domain.groupHunting.dto.toMember
 import fi.riista.common.domain.groupHunting.model.HuntingGroupId
 import fi.riista.common.domain.groupHunting.model.HuntingGroupMember
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
 import fi.riista.common.network.calls.NetworkResponse
@@ -34,7 +31,7 @@ internal class HuntingGroupMembersFromNetworkProvider(
     NetworkDataFetcher<HuntingGroupMembersDTO>(),
     BackendApiProvider by backendApiProvider {
 
-    private var _members = IsoMutableList<HuntingGroupMember>()
+    private var _members = mutableListOf<HuntingGroupMember>()
     override val members: List<HuntingGroupMember>?
         get() {
             // _members may be empty because of two reasons:
@@ -68,11 +65,5 @@ internal class HuntingGroupMembersFromNetworkProvider(
 
     override fun handleError401() {
         _members.clear()
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(HuntingGroupMembersFromNetworkProvider::class)
     }
 }

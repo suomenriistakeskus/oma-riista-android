@@ -71,10 +71,15 @@ internal class ObservationSpecimenFieldProducer(
         val speciesMetadata = metadata.getSpeciesMetadata(observation)
         val contextualFields = speciesMetadata?.getContextualFields(observation)
 
+        val specimenAmount = observation.totalSpecimenAmount
+            ?: observation.specimens?.size
+            ?: 1
+
         return SpecimenField(
             id = fieldSpecification.fieldId,
             specimenData = SpecimenFieldDataContainer(
                 species = observation.species,
+                specimenAmount = specimenAmount,
                 specimens = observation.specimensOrEmptyList,
                 fieldSpecifications = specimenFieldSpecifications,
                 allowedAges = contextualFields?.allowedAges ?: listOf(),

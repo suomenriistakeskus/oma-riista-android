@@ -223,7 +223,7 @@ fun <T> T.showDatePickerFragment(
     datePickerFragment: DateTimePickerFragment,
 ) where T : Fragment {
     requireNotNull(tag) {
-        "Fragment needs to have a tag in order to launch a DurationPickerFragment"
+        "Fragment needs to have a tag in order to launch a DateTimePickerFragment"
     }
     datePickerFragment.show(requireActivity().supportFragmentManager, datePickerFragment.tag)
 }

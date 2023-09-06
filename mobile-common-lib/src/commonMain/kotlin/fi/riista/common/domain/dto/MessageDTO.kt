@@ -4,6 +4,7 @@ import fi.riista.common.dto.LocalizedStringDTO
 import fi.riista.common.dto.toLocalizedString
 import fi.riista.common.messages.Message
 import fi.riista.common.messages.MessageId
+import fi.riista.common.messages.MessageLink
 import kotlinx.serialization.Serializable
 
 
@@ -24,15 +25,38 @@ internal class MessageDTO(
 
     // to be used as dialog message. Can contain line breaks, html probably doesn't work
     val message: LocalizedStringDTO? = null,
+
+    // Should the app be closed or further usage prevented when message is dismissed?
+    val preventFurtherAppUsage: Boolean? = null,
+
+    // Possible link information
+    val link: MessageLinkDTO? = null,
+)
+
+@Serializable
+internal data class MessageLinkDTO(
+    val name: LocalizedStringDTO,
+    val url: LocalizedStringDTO
 )
 
 private const val DEFAULT_MESSAGE_DISPLAY_COUNT = 1
 
 internal fun MessageDTO.toMessage() : Message {
-    return Message(id,
-                   maxDisplayCount ?: DEFAULT_MESSAGE_DISPLAY_COUNT,
-                   targetApplicationVersions?.toTargetApplicationVersions(),
-                   title?.toLocalizedString(),
-                   message?.toLocalizedString())
+    return Message(
+        id = id,
+        maxDisplayCount = maxDisplayCount ?: DEFAULT_MESSAGE_DISPLAY_COUNT,
+        targetApplicationVersions = targetApplicationVersions?.toTargetApplicationVersions(),
+        title = title?.toLocalizedString(),
+        message = message?.toLocalizedString(),
+        preventFurtherAppUsage = preventFurtherAppUsage ?: false,
+        link = link?.toMessageLink()
+    )
 }
+
+internal fun MessageLinkDTO.toMessageLink() =
+    MessageLink(
+        name = name.toLocalizedString(),
+        url = url.toLocalizedString(),
+    )
+
 

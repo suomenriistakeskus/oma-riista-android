@@ -92,10 +92,10 @@ class ShootingTestMainActivity : AppCompatActivity() {
             refreshMenuItem?.let { menuItem ->
                 if (aCount != null && aCount > 0  && menuItem.isEnabled) {
                     menuItem.isEnabled = false
-                    menuItem.actionView.startAnimation(rotation)
+                    menuItem.actionView?.startAnimation(rotation)
                 } else {
                     menuItem.isEnabled = true
-                    menuItem.actionView.clearAnimation()
+                    menuItem.actionView?.clearAnimation()
                 }
             }
         }

@@ -1,0 +1,27 @@
+ALTER TABLE DbOccupation RENAME TO DbOccupation_old;
+
+CREATE TABLE DbOccupation (
+    occupation_remote_id INTEGER NOT NULL,
+
+    username TEXT NOT NULL,
+    occupation_type TEXT NOT NULL,
+    occupation_name_fi TEXT,
+    occupation_name_sv TEXT,
+    occupation_name_en TEXT,
+
+    occupation_begin_date TEXT,
+    occupation_end_date TEXT,
+
+    organization_id INTEGER NOT NULL,
+
+    CONSTRAINT pk_constraint_DbOccupation PRIMARY KEY (occupation_remote_id, username),
+
+    CONSTRAINT fk_constraint_DbOccupationOrganization
+        FOREIGN KEY (organization_id)
+        REFERENCES DbOrganization (organization_remote_id)
+        ON DELETE CASCADE
+);
+
+INSERT INTO DbOccupation SELECT * FROM DbOccupation_old;
+
+DROP TABLE DbOccupation_old;

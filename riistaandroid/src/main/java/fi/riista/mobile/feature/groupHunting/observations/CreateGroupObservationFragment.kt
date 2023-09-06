@@ -114,6 +114,9 @@ class CreateGroupObservationFragment
             when (it) {
                 true -> interactionManager.locationClient.addListener(this)
                 false -> interactionManager.locationClient.removeListener(this)
+                null -> {
+                    // nothing to do
+                }
             }
         }.disposeBy(disposeBag)
 

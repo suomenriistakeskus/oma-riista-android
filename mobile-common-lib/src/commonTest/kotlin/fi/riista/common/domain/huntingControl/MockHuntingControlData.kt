@@ -28,7 +28,7 @@ object MockHuntingControlData {
             "endDate" : "2026-07-31"
           }, {
             "inspector" : {
-              "id" : 4,
+              "id" : 123,
               "firstName" : "Pentti",
               "lastName" : "Mujunen"
             },
@@ -43,7 +43,7 @@ object MockHuntingControlData {
             "eventType" : "DOG_DISCIPLINE_CONTROL",
             "status" : "PROPOSED",
             "inspectors" : [ {
-              "id" : 4,
+              "id" : 123,
               "firstName" : "Pentti",
               "lastName" : "Mujunen"
             }, {

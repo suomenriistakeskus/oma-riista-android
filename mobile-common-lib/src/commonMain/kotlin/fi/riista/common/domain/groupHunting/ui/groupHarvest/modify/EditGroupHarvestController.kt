@@ -1,12 +1,25 @@
 package fi.riista.common.domain.groupHunting.ui.groupHarvest.modify
 
 import fi.riista.common.domain.constants.Constants
-import fi.riista.common.domain.constants.isDeer
-import fi.riista.common.domain.groupHunting.*
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.content.SpeciesResolver
+import fi.riista.common.domain.groupHunting.GroupHuntingClubGroupContext
+import fi.riista.common.domain.groupHunting.GroupHuntingContext
+import fi.riista.common.domain.groupHunting.GroupHuntingDayForDeerResponse
+import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
+import fi.riista.common.domain.groupHunting.HuntingClubGroupDataPiece
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.IdentifiesGroupHuntingHarvest
+import fi.riista.common.domain.groupHunting.model.createTargetForHuntingDay
+import fi.riista.common.domain.groupHunting.model.toCommonHarvestData
+import fi.riista.common.domain.groupHunting.model.toGroupHuntingHarvest
+import fi.riista.common.domain.model.isDeer
 import fi.riista.common.logging.getLogger
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ViewModelLoadStatus
+import fi.riista.common.util.LocalDateTimeProvider
+import fi.riista.common.util.SystemDateTimeProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
@@ -17,8 +30,17 @@ import kotlinx.coroutines.flow.flow
 class EditGroupHarvestController(
     groupHuntingContext: GroupHuntingContext,
     private val harvestTarget: IdentifiesGroupHuntingHarvest,
+    localDateTimeProvider: LocalDateTimeProvider,
+    speciesResolver: SpeciesResolver,
     stringProvider: StringProvider,
-) : ModifyGroupHarvestController(groupHuntingContext, stringProvider) {
+) : ModifyGroupHarvestController(groupHuntingContext, localDateTimeProvider, speciesResolver, stringProvider) {
+
+    constructor(
+        groupHuntingContext: GroupHuntingContext,
+        harvestTarget: IdentifiesGroupHuntingHarvest,
+        speciesResolver: SpeciesResolver,
+        stringProvider: StringProvider,
+    ): this(groupHuntingContext, harvestTarget, SystemDateTimeProvider(), speciesResolver, stringProvider)
 
     suspend fun acceptHarvest(): GroupHuntingHarvestOperationResponse {
         return performHarvestOperation { groupContext, harvest ->
@@ -49,7 +71,7 @@ class EditGroupHarvestController(
         }
 
         // If deer, get huntingDayId from backend
-        val harvestDataWithHuntingDay = if (harvestData.gameSpeciesCode.isDeer()) {
+        val harvestDataWithHuntingDay = if (harvestData.species.isDeer()) {
             when (val huntingDayResponse = groupContext.fetchHuntingDayForDeer(harvestTarget, harvestData.pointOfTime.date)) {
                 is GroupHuntingDayForDeerResponse.Failed -> {
                     logger.w { "Unable to fetch hunting day for deer" }
@@ -113,7 +135,7 @@ class EditGroupHarvestController(
             // use restored harvest values if harvest id it matches the id of the found harvest
             val harvestData = restoredHarvestData?.takeIf { it.id == fetchedHarvest.id }
                     ?: fetchedHarvest
-                        .toGroupHuntingHarvestData(groupMembers = groupMembers)
+                        .toCommonHarvestData(groupMembers = groupMembers)
                         .selectInitialHuntingDayForHarvest(huntingDays)
                         .ensureDefaultValuesAreSet()
 

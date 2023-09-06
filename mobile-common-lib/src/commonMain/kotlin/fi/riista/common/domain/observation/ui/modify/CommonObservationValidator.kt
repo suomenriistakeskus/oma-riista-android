@@ -1,10 +1,14 @@
 package fi.riista.common.domain.observation.ui.modify
 
 import fi.riista.common.domain.model.CommonLocation
+import fi.riista.common.domain.model.CommonSpecimenData
+import fi.riista.common.domain.model.ObservationType
 import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.observation.metadata.model.ObservationFieldRequirement
 import fi.riista.common.domain.observation.metadata.model.ObservationMetadata
 import fi.riista.common.domain.observation.model.CommonObservationData
 import fi.riista.common.domain.observation.model.ObservationConstants
+import fi.riista.common.domain.observation.model.ObservationSpecimenField
 import fi.riista.common.domain.observation.ui.CommonObservationField
 import fi.riista.common.logging.getLogger
 import fi.riista.common.ui.dataField.FieldSpecification
@@ -14,6 +18,7 @@ internal object CommonObservationValidator {
         MISSING_LOCATION,
         MISSING_SPECIES,
         INVALID_SPECIMEN_AMOUNT,
+        SPECIMEN_AMOUNT_AT_LEAST_TWO,
         MISSING_DATE_AND_TIME,
         MISSING_OBSERVATION_TYPE,
         MISSING_OBSERVATION_CATEGORY,
@@ -22,6 +27,7 @@ internal object CommonObservationValidator {
         MISSING_DEER_HUNTING_TYPE,
         MISSING_DEER_HUNTING_OTHER_TYPE_DESCRIPTION,
         MISSING_SPECIMENS,
+        INVALID_SPECIMENS,
         MISSING_MOOSE_LIKE_MALE_AMOUNT,
         MISSING_MOOSE_LIKE_FEMALE_AMOUNT,
         MISSING_MOOSE_LIKE_FEMALE_1CALF_AMOUNT,
@@ -112,18 +118,38 @@ internal object CommonObservationValidator {
                 CommonObservationField.SPECIMEN_AMOUNT ->
                     fieldSpecification.ifRequired {
                         val specimenAmount = observation.totalSpecimenAmount ?: 0
-                        Error.INVALID_SPECIMEN_AMOUNT.takeIf {
-                            specimenAmount == 0 || observation.specimensOrEmptyList.isEmpty()
-                                    || specimenAmount > ObservationConstants.MAX_SPECIMEN_AMOUNT
+                        listOfNotNull(
+                            Error.SPECIMEN_AMOUNT_AT_LEAST_TWO.takeIf {
+                                observation.observationType.value == ObservationType.POIKUE && specimenAmount < 2
+                            },
+                            Error.INVALID_SPECIMEN_AMOUNT.takeIf {
+                                specimenAmount == 0 || specimenAmount > ObservationConstants.MAX_SPECIMEN_AMOUNT
+                            }
+                        ).firstOrNull()
+                    }
+                CommonObservationField.SPECIMENS -> {
+                    val specimens = observation.specimensOrEmptyList
+                    val specimenFieldRequired = observationMetadata.getSpecimenFields(observation).any {
+                        it.value == ObservationFieldRequirement.YES
+                    }
+                    if (specimenFieldRequired && specimens.isEmpty()) {
+                        return@mapNotNull Error.MISSING_SPECIMENS
+                    }
+
+                    Error.INVALID_SPECIMENS.takeIf {
+                        // validate only first N specimens where N is determined by the amount set by user
+                        // - it is possible that there are more than N specimens in the list and rest may
+                        //   contain invalid data (they are allowed to)
+                        val specimenAmount = observation.totalSpecimenAmount ?: 0
+                        specimens.take(specimenAmount).any { specimenData ->
+                            anyMissingSpecimenFields(
+                                observation = observation,
+                                specimen = specimenData,
+                                observationMetadata = observationMetadata
+                            )
                         }
                     }
-                CommonObservationField.SPECIMENS ->
-                    fieldSpecification.ifRequired {
-                        Error.MISSING_SPECIMENS.takeIf {
-                            // TODO: Validating specimens (i.e. they need to have valid values)
-                            observation.specimensOrEmptyList.isEmpty()
-                        }
-                    }
+                }
                 CommonObservationField.MOOSE_LIKE_MALE_AMOUNT ->
                     fieldSpecification.ifRequired {
                         Error.MISSING_MOOSE_LIKE_MALE_AMOUNT.takeIf {
@@ -223,6 +249,7 @@ internal object CommonObservationValidator {
                             observation.description == null
                         }
                     }
+                CommonObservationField.ERROR_SPECIMEN_AMOUNT_AT_LEAST_TWO -> null
             }
         }.also { errors ->
             if (errors.isEmpty()) {
@@ -233,11 +260,30 @@ internal object CommonObservationValidator {
         }
     }
 
-    private fun <R> FieldSpecification<CommonObservationField>.ifRequired(block: () -> R?): R? {
-        return if (requirementStatus.isRequired()) {
-            block()
-        } else {
-            null
+    private fun anyMissingSpecimenFields(
+        observation: CommonObservationData,
+        specimen: CommonSpecimenData,
+        observationMetadata: ObservationMetadata,
+    ): Boolean {
+        val specimenFields = observationMetadata.getSpecimenFields(observation)
+
+        return specimenFields.any { (field, fieldRequirement) ->
+            if (fieldRequirement == ObservationFieldRequirement.YES) {
+                specimen.isFieldMissing(field)
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun CommonSpecimenData.isFieldMissing(field: ObservationSpecimenField): Boolean {
+        return when (field) {
+            ObservationSpecimenField.GENDER -> gender == null // unknown gender is allowed
+            ObservationSpecimenField.AGE -> age == null // unknown age is allowed
+            ObservationSpecimenField.STATE_OF_HEALTH -> stateOfHealth == null
+            ObservationSpecimenField.MARKING -> marking == null
+            ObservationSpecimenField.WIDTH_OF_PAW -> widthOfPaw == null // 0.0 currently allowed
+            ObservationSpecimenField.LENGTH_OF_PAW -> lengthOfPaw == null // 0.0 currently allowed
         }
     }
 }

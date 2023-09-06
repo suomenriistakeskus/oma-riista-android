@@ -23,8 +23,7 @@ sealed class HuntingControlEventOperationResponse {
 }
 
 interface HuntingControlEventUpdater {
-    suspend fun createHuntingControlEvent(event: HuntingControlEventData): HuntingControlEventOperationResponse
-    suspend fun updateHuntingControlEvent(event: HuntingControlEventData): HuntingControlEventOperationResponse
+    suspend fun saveHuntingControlEvent(event: HuntingControlEventData): HuntingControlEventOperationResponse
 }
 
 internal class HuntingControlEventDatabaseUpdater(
@@ -33,10 +32,20 @@ internal class HuntingControlEventDatabaseUpdater(
 ) : HuntingControlEventUpdater {
     private val repository = HuntingControlRepository(database)
 
-    override suspend fun createHuntingControlEvent(event: HuntingControlEventData): HuntingControlEventOperationResponse {
+    override suspend fun saveHuntingControlEvent(event: HuntingControlEventData): HuntingControlEventOperationResponse {
         if (username.isBlank()) {
             return HuntingControlEventOperationResponse.Error
         }
+        return if (event.localId == null) {
+            createHuntingControlEvent(event)
+        } else {
+            updateHuntingControlEvent(event)
+        }
+    }
+
+    private suspend fun createHuntingControlEvent(
+        event: HuntingControlEventData,
+    ): HuntingControlEventOperationResponse {
         return try {
             val insertedEvent = repository.createHuntingControlEvent(
                 username = username,
@@ -49,10 +58,9 @@ internal class HuntingControlEventDatabaseUpdater(
         }
     }
 
-    override suspend fun updateHuntingControlEvent(event: HuntingControlEventData): HuntingControlEventOperationResponse {
-        if (username.isBlank()) {
-            return HuntingControlEventOperationResponse.Error
-        }
+    private suspend fun updateHuntingControlEvent(
+        event: HuntingControlEventData,
+    ): HuntingControlEventOperationResponse {
         return try {
             val savedEvent = repository.updateHuntingControlEvent(
                 event = event,

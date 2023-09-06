@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/item_own_harvest"
+        android:icon="@drawable/ic_person_white"
+        android:title="@string/harvest_label_own_harvest"
+        android:visible="false"
+        app:showAsAction="always" />
+
+</menu>

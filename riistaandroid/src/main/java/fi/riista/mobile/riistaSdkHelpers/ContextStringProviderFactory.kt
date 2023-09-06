@@ -157,6 +157,41 @@ private class AppStringIdMapper : StringIdMapper {
                 R.string.additional_info_instructions
             RR.string.harvest_label_additional_information_instructions_white_tailed_deer ->
                 R.string.additional_info_instructions_white_tailed_deer
+            RR.string.harvest_label_own_harvest -> R.string.harvest_label_own_harvest
+
+            RR.string.harvest_label_hunting_club ->
+                R.string.harvest_label_hunting_club
+            RR.string.harvest_label_hunting_club_official_code ->
+                R.string.harvest_label_hunting_club_official_code
+
+            RR.string.hunting_club_selection_select_club ->
+                R.string.hunting_club_selection_select_club
+            RR.string.hunting_club_selection_search_by_name ->
+                R.string.hunting_club_selection_search_by_name
+            RR.string.hunting_club_selection_search_by_name_hint ->
+                R.string.hunting_club_selection_search_by_name_hint
+            RR.string.hunting_club_selection_no_club_selection ->
+                R.string.hunting_club_selection_no_club_selection
+            RR.string.hunting_club_selection_other_club ->
+                R.string.hunting_club_selection_other_club
+
+            RR.string.hunting_club_search_enter_club_official_code ->
+                R.string.hunting_club_search_enter_club_official_code
+            RR.string.hunting_club_search_invalid_official_code ->
+                R.string.hunting_club_search_invalid_official_code
+            RR.string.hunting_club_search_searching_by_official_code ->
+                R.string.hunting_club_search_searching_by_official_code
+            RR.string.hunting_club_search_search_failed ->
+                R.string.hunting_club_search_search_failed
+
+            RR.string.harvest_settings_add_harvest_for_other_hunter ->
+                R.string.harvest_settings_add_harvest_for_other_hunter
+            RR.string.harvest_settings_add_harvest_for_other_hunter_explanation ->
+                R.string.harvest_settings_add_harvest_for_other_hunter_explanation
+            RR.string.harvest_settings_enable_club_selection ->
+                R.string.harvest_settings_enable_club_selection
+            RR.string.harvest_settings_enable_club_selection_explanation ->
+                R.string.harvest_settings_enable_club_selection_explanation
 
             // actor selection
             RR.string.group_hunting_hunter_id -> R.string.group_hunting_hunter_id
@@ -378,6 +413,7 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.hunting_control_inspector_selection_search_by_name -> R.string.hunting_control_inspector_selection_search_by_name
             RR.string.hunting_control_inspector_selection_name_hint -> R.string.hunting_control_inspector_selection_name_hint
             RR.string.hunting_control_error_no_inspectors_for_selected_date -> R.string.hunting_control_error_no_inspectors_for_selected_date
+            RR.string.hunting_control_error_no_self_as_inspector -> R.string.hunting_control_error_no_self_as_inspector
             RR.string.hunting_control_add_attachment -> R.string.hunting_control_add_attachment
 
             RR.string.hunting_control_cooperation_type_poliisi -> R.string.hunting_control_cooperation_type_poliisi
@@ -410,10 +446,20 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.hunting_control_network_error -> R.string.hunting_control_network_error
             RR.string.hunting_control_retry -> R.string.hunting_control_retry
 
+            RR.string.shooting_test_state_waiting_to_start -> R.string.shooting_test_state_waiting
+            RR.string.shooting_test_state_ongoing,
+            RR.string.shooting_test_state_ongoing_ready_to_close -> R.string.shooting_test_state_ongoing
+            RR.string.shooting_test_state_closed -> R.string.shooting_test_state_closed
+
             RR.string.shooting_test_type_moose -> R.string.shooting_test_type_moose
             RR.string.shooting_test_type_bear -> R.string.shooting_test_type_bear
             RR.string.shooting_test_type_roe_deer -> R.string.shooting_test_type_roe_deer
             RR.string.shooting_test_type_bow -> R.string.shooting_test_type_bow
+
+            RR.string.shooting_test_result_qualified -> R.string.shooting_test_result_qualified
+            RR.string.shooting_test_result_unqualified -> R.string.shooting_test_result_unqualified
+            RR.string.shooting_test_result_timed_out -> R.string.shooting_test_result_timed_out
+            RR.string.shooting_test_result_rebated -> R.string.shooting_test_result_rebated
 
             RR.string.srva_event_label_other_species_description -> R.string.srva_other_species_description
             RR.string.srva_event_label_approver -> R.string.srva_approver
@@ -491,6 +537,12 @@ private class AppStringIdMapper : StringIdMapper {
             RR.string.age_between_one_and_two_years -> R.string.age_year_or_two
             RR.string.age_eraus -> R.string.age_eraus
             RR.string.age_unknown -> R.string.age_unknown
+
+            RR.string.sun_day_selection_label -> R.string.sun_day_selection_label
+            RR.string.sun_sunrise_label -> R.string.sun_sunrise_label
+            RR.string.sun_sunset_label -> R.string.sun_sunset_label
+            RR.string.sun_instructions -> R.string.sun_instructions
+            RR.string.sun_disclaimer -> R.string.sun_disclaimer
         }
     }
 

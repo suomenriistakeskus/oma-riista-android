@@ -17,6 +17,7 @@ import fi.riista.common.domain.OperationResultWithData
 import fi.riista.mobile.R
 import fi.riista.mobile.models.shootingTest.ShootingTestParticipant
 import fi.riista.mobile.riistaSdkHelpers.toShootingTestParticipant
+import fi.riista.mobile.utils.isResumed
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -80,7 +81,7 @@ class ShootingTestEditPaymentActivity : BaseActivity() {
                         testFinishedCheckBox.isChecked,
                     )
 
-                    if (isFinishing) {
+                    if (!lifecycle.isResumed()) {
                         return@launch
                     }
 
@@ -110,7 +111,7 @@ class ShootingTestEditPaymentActivity : BaseActivity() {
             MainScope().launch {
                 val response = shootingTestContext.fetchShootingTestParticipant(participantId)
 
-                if (isFinishing) {
+                if (!lifecycle.isResumed()) {
                     return@launch
                 }
 

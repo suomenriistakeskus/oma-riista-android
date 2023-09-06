@@ -343,6 +343,10 @@ class SelectHuntingGroupControllerTest {
                             else -> throw RuntimeException("Unexpected speciesCode $speciesCode")
                         }
                     }
+
+                    override fun getMultipleSpecimensAllowedOnHarvests(speciesCode: SpeciesCode): Boolean {
+                        return false
+                    }
                 }
         )
     }

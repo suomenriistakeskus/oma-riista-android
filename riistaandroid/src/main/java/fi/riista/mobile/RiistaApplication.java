@@ -138,13 +138,14 @@ public class RiistaApplication extends WorkApplication implements HasAndroidInje
                 final RemoteSettingsDTO updatedSettings = RemoteSettingsUpdater.updateRiistaSdkSettings(remoteSettings);
                 RiistaSDK.remoteSettings().updateWithRemoteSettings(updatedSettings);
             }
-            RiistaSDK.getHarvestSeasons().getOverridesProvider()
-                    .parseOverridesFromJson(RemoteConfig.getHarvestSeasonOverrides());
+
             RiistaSDK.groupHuntingIntroMessageHandler()
                     .parseMessageFromJson(RemoteConfig.getGroupHuntingIntroMessage());
 
             RiistaSDK.getAppStartupMessageHandler()
                     .parseAppStartupMessageFromJson(RemoteConfig.getAppStartupMessage());
+
+            RiistaSDK.getMapTileVersions().parseMapTileVersions(RemoteConfig.getMapTileVersions());
 
             RiistaSDK.getCommonFileProvider().removeTemporaryFiles();
         });

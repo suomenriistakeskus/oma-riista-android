@@ -1,5 +1,5 @@
-1. Run gradle task 'generateCommonMainRiistaDatabaseSchema'. This will create a .db
-   file containing the current schema.
-2. Create a migration file under sqldelight/migrations directory. Also update
+1. Create a new migration file under sqldelight/migrations directory. Also update
    related .sq files to match new DB structure.
-3. Check that migration works by running gradle task 'verifyCommonMainRiistaDatabaseMigration'
+2. Check that migration works by running gradle task 'verifyCommonMainRiistaDatabaseMigration'
+3. Run gradle task 'generateCommonMainRiistaDatabaseSchema'. This will create a .db
+   file containing the current schema. Add that file to the version control.

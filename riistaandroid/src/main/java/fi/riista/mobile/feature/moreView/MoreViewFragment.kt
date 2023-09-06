@@ -102,9 +102,11 @@ class MoreViewFragment : PageFragment() {
         MoreItem(
             MoreItemType.HUNTING_CONTROL, R.drawable.ic_hunting_control, getString(R.string.more_hunting_control)
         ).takeIf { huntingControlAvailable },
+        MoreItem(MoreItemType.SUNRISE_AND_SUNSET, R.drawable.ic_sunset, getString(R.string.sunrise_and_sunset_title)),
         MoreItem(MoreItemType.EVENT_SEARCH, R.drawable.ic_search, getString(R.string.more_event_search), true),
         MoreItem(MoreItemType.MAGAZINE, R.drawable.ic_metsastaja_logo, getString(R.string.more_show_magazine), true),
         MoreItem(MoreItemType.SEASONS, R.drawable.ic_calendar, getString(R.string.more_view_hunting_seasons), true),
+        MoreItem(MoreItemType.ABOUT, R.drawable.ic_info, getString(R.string.more_about)),
         MoreItem(MoreItemType.LOGOUT, R.drawable.ic_logout, getString(R.string.logout)),
     )
 }

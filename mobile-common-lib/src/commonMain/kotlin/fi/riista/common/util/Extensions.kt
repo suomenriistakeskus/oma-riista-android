@@ -1,5 +1,8 @@
 package fi.riista.common.util
 
+import com.squareup.sqldelight.Query
+import com.squareup.sqldelight.db.use
+
 
 internal fun <T> MutableList<T>.removeFirst(predicate: (T) -> Boolean) {
     firstOrNull(predicate)?.let {
@@ -19,15 +22,41 @@ internal fun <T> Collection<T>.firstAndOnly(): T? {
     }
 }
 
+/**
+ * Checks whether `this` contains an element matching the given [predicate]. Returns `true` if does and `false` if not.
+ */
+inline fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
+    return firstOrNull(predicate) != null
+}
+
 internal fun <T> Collection<T>.hasSameElements(other: Collection<T>): Boolean {
     return toSet() == other.toSet()
+}
+
+/**
+ * Checks whether this [Iterable] contains any of the items in the [others] [Iterable].
+ *
+ * Explicitly use [Iterable] as [others] type instead of vararg parameter. This ensures that
+ * types match. With varargs it would have been possible to check e.g.
+ *
+ *   listOf(1, 2).containsAny("foo")
+ *
+ * as it assumes T == Comparable<*> and there wouldn't be a compiler error. Prevent possible
+ * mistakes like that by always requiring an [Iterable].
+ */
+fun <T> Iterable<T>.containsAny(others: Iterable<T>): Boolean {
+    val found = others.firstOrNull { other ->
+        contains(other)
+    }
+
+    return found != null
 }
 
 /**
  * According to
  * https://discuss.kotlinlang.org/t/best-way-to-replace-an-element-of-an-immutable-list/8646/12
  */
-internal inline fun <T> List<T>.replace(index: Int, item: T): List<T> {
+internal fun <T> List<T>.replace(index: Int, item: T): List<T> {
     return if (index >= 0 && index < count()) {
         toMutableList().apply {
             this[index] = item
@@ -99,4 +128,17 @@ fun Any?.toStringOrToFallback(fallback: String): String {
     } else {
         fallback
     }
+}
+
+fun String.prefixed(prefix: String): String {
+    return "$prefix$this"
+}
+
+
+internal fun <RowType : Any> Query<RowType>.executeAsSet(): Set<RowType> {
+    val result = mutableSetOf<RowType>()
+    execute().use {
+        while (it.next()) result.add(mapper(it))
+    }
+    return result
 }

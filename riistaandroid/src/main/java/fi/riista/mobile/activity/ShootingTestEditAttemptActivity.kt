@@ -17,6 +17,7 @@ import fi.riista.common.domain.shootingTest.model.ShootingTestResult
 import fi.riista.mobile.R
 import fi.riista.mobile.models.shootingTest.ShootingTestAttemptDetailed
 import fi.riista.mobile.riistaSdkHelpers.toShootingTestAttemptDetailed
+import fi.riista.mobile.utils.isResumed
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -146,7 +147,7 @@ class ShootingTestEditAttemptActivity : BaseActivity() {
             MainScope().launch {
                 val response = shootingTestContext.fetchShootingTestAttempt(attemptId)
 
-                if (isFinishing) {
+                if (!lifecycle.isResumed()) {
                     return@launch
                 }
 
@@ -420,7 +421,7 @@ class ShootingTestEditAttemptActivity : BaseActivity() {
                 note = testAttempt.note,
             )
 
-            if (isFinishing) {
+            if (!lifecycle.isResumed()) {
                 return@launch
             }
 
@@ -457,7 +458,7 @@ class ShootingTestEditAttemptActivity : BaseActivity() {
                 note = testAttempt.note,
             )
 
-            if (isFinishing) {
+            if (!lifecycle.isResumed()) {
                 return@launch
             }
 

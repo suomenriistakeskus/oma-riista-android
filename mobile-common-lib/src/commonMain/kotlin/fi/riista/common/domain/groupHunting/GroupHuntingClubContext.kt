@@ -1,6 +1,5 @@
 package fi.riista.common.domain.groupHunting
 
-import co.touchlab.stately.collections.IsoMutableMap
 import fi.riista.common.domain.groupHunting.model.HuntingGroup
 import fi.riista.common.domain.groupHunting.model.HuntingGroupId
 import fi.riista.common.domain.groupHunting.model.IdentifiesHuntingGroup
@@ -17,7 +16,7 @@ class GroupHuntingClubContext internal constructor(
     val club: Organization,
     internal val huntingGroups: List<HuntingGroup>,
 ) {
-    private val huntingGroupContexts = IsoMutableMap<HuntingGroupId, GroupHuntingClubGroupContext>()
+    private val huntingGroupContexts = mutableMapOf<HuntingGroupId, GroupHuntingClubGroupContext>()
 
     fun getHuntingGroupContext(huntingGroup: HuntingGroup): GroupHuntingClubGroupContext {
         return huntingGroupContexts.getOrPut(huntingGroup.id) {

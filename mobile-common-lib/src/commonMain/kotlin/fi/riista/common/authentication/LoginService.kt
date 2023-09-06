@@ -20,8 +20,8 @@ class LoginService internal constructor(
             loginCredentialsHolder.value = value
         }
 
-    suspend fun login(username: String, password: String): NetworkResponse<UserInfoDTO> {
-        return networkClient.performRequest(Login(username, password)).also { response ->
+    suspend fun login(username: String, password: String, timeoutSeconds: Int): NetworkResponse<UserInfoDTO> {
+        return networkClient.performRequest(Login(username, password, timeoutSeconds)).also { response ->
             response.onSuccess { _, userInfo ->
                 setLoginCredentials(username, password)
                 currentUserContextProvider.userLoggedIn(userInfo = userInfo.typed)
@@ -47,7 +47,7 @@ class LoginService internal constructor(
             return false
         }
 
-        return login(username, password).let { response ->
+        return login(username, password, timeoutSeconds = DEFAULT_LOGIN_TIMEOUT_SECONDS).let { response ->
             response.onSuccess { _, userInfo ->
                 currentUserContextProvider.userLoggedIn(userInfo = userInfo.typed)
                 return@let true
@@ -66,7 +66,7 @@ class LoginService internal constructor(
         loginCredentials = LoginCredentials(username, password)
     }
 
-    fun logout() {
+    suspend fun logout() {
         loginCredentials = null
         currentUserContextProvider.userLoggedOut()
     }
@@ -76,5 +76,8 @@ class LoginService internal constructor(
 
     companion object {
         private val logger by getLogger(LoginService::class)
+
+        // default timeout value in seconds for the login/relogin attempt
+        const val DEFAULT_LOGIN_TIMEOUT_SECONDS = 60
     }
 }

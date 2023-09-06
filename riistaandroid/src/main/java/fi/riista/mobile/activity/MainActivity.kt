@@ -19,13 +19,16 @@ import android.view.WindowManager
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.android.AndroidInjection
 import fi.riista.common.RiistaSDK
 import fi.riista.common.domain.userInfo.LoginStatus
+import fi.riista.common.network.sync.SynchronizationLevel
 import fi.riista.common.reactive.AppObservable
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
+import fi.riista.mobile.ExternalUrls
 import fi.riista.mobile.ExternalUrls.Companion.getEventSearchUrl
 import fi.riista.mobile.ExternalUrls.Companion.getHuntingSeasonsUrl
 import fi.riista.mobile.NetworkConnectivityReceiver
@@ -36,8 +39,10 @@ import fi.riista.mobile.database.SpeciesInformation
 import fi.riista.mobile.feature.groupHunting.GroupHuntingActivity
 import fi.riista.mobile.feature.huntingControl.HuntingControlActivity
 import fi.riista.mobile.feature.login.LoginActivity
+import fi.riista.mobile.feature.moreView.AboutViewFragment
 import fi.riista.mobile.feature.moreView.MoreItemType
 import fi.riista.mobile.feature.moreView.MoreViewFragment
+import fi.riista.mobile.feature.sunriseAndSunset.ViewSunriseAndSunsetTimesActivity
 import fi.riista.mobile.feature.unregister.UnregisterUserAccountActivityLauncher
 import fi.riista.mobile.observation.ObservationDatabase
 import fi.riista.mobile.observation.ObservationDatabaseMigrationToRiistaSDK
@@ -55,19 +60,23 @@ import fi.riista.mobile.srva.SrvaDatabaseMigrationToRiistaSDK
 import fi.riista.mobile.sync.AnnouncementSync
 import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.sync.AppSync.AppSyncListener
+import fi.riista.mobile.sync.AppSyncPrecondition
+import fi.riista.mobile.sync.SynchronizationEvent
 import fi.riista.mobile.ui.AlertDialogFragment
-import fi.riista.mobile.ui.DelegatingAlertDialogListener
 import fi.riista.mobile.ui.AlertDialogId
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.BackgroundOperationStatus
 import fi.riista.mobile.utils.CredentialsStore
 import fi.riista.mobile.utils.LogoutHelper
+import fi.riista.mobile.utils.UserInfoMigrationToRiistaSDK
 import fi.riista.mobile.utils.UserInfoStore
 import fi.riista.mobile.utils.Utils
 import fi.riista.mobile.utils.openInBrowser
 import fi.riista.mobile.utils.toVisibility
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -75,7 +84,8 @@ class MainActivity
   : BaseActivity(),
     AppSyncListener,
     FullScreenExpand,
-    MoreViewFragment.InteractionManager
+    MoreViewFragment.InteractionManager,
+    HomeViewFragment.Manager
 {
     @Inject
     lateinit var harvestDatabase: HarvestDatabase
@@ -115,6 +125,7 @@ class MainActivity
     private lateinit var bottomNavigationView: BottomNavigationView
     private lateinit var progressBar: ProgressBar
     private var syncOnResume = true
+    private var restartingActivity = false
     override var groupHuntingAvailable = AppObservable(false)
     override var huntingControlAvailable = AppObservable(false)
     private val disposeBag = DisposeBag()
@@ -174,11 +185,9 @@ class MainActivity
     }
 
     private fun registerHuntingControlStatus() {
-        RiistaSDK.huntingControlContext
-            .huntingControlRhyProvider.loadStatus.bindAndNotify {
-                huntingControlAvailable.set(RiistaSDK.huntingControlContext.huntingControlAvailable)
-            }
-            .disposeBy(disposeBag)
+        RiistaSDK.huntingControlContext.huntingControlAvailable.bindAndNotify {
+            huntingControlAvailable.set(it)
+        }.disposeBy(disposeBag)
     }
 
     private fun indicateBackgroundOperationStatus() {
@@ -191,7 +200,7 @@ class MainActivity
 
     private fun checkHuntingControlAvailability(refresh: Boolean = false) {
         CoroutineScope(Dispatchers.Main).launch {
-            RiistaSDK.huntingControlContext.checkAvailability(refresh)
+            RiistaSDK.huntingControlContext.checkAvailability()
         }
     }
 
@@ -207,11 +216,13 @@ class MainActivity
 
         // Run migrations from app databases to Riista SDK database
         backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.DATABASE_MIGRATION)
-        SrvaDatabaseMigrationToRiistaSDK.copyEvents {
-            ObservationDatabaseMigrationToRiistaSDK.copyObservations(observationDatabase) {
-                HarvestDatabaseMigrationToRiistaSDK.copyHarvests(harvestDatabase) {
-                    backgroundOperationStatus.finishOperation(BackgroundOperationStatus.Operation.DATABASE_MIGRATION)
-                    appSync.enableSyncPrecondition(AppSync.SyncPrecondition.DATABASE_MIGRATION_FINISHED)
+        UserInfoMigrationToRiistaSDK.copyUserInformation(userInfoStore) {
+            SrvaDatabaseMigrationToRiistaSDK.copyEvents {
+                ObservationDatabaseMigrationToRiistaSDK.copyObservations(observationDatabase) {
+                    HarvestDatabaseMigrationToRiistaSDK.copyHarvests(harvestDatabase) {
+                        backgroundOperationStatus.finishOperation(BackgroundOperationStatus.Operation.DATABASE_MIGRATION)
+                        appSync.enableSyncPrecondition(AppSyncPrecondition.DATABASE_MIGRATION_FINISHED)
+                    }
                 }
             }
         }
@@ -244,6 +255,10 @@ class MainActivity
         }
     }
 
+    override fun navigateToGameLog() {
+        replacePageFragment(GameLogFragment())
+    }
+
     private fun createMoreViewFragment(): Fragment {
         checkGroupHuntingAvailability()
         checkHuntingControlAvailability()
@@ -260,16 +275,24 @@ class MainActivity
     override fun moreItemClicked(type: MoreItemType) {
         when (type) {
             MoreItemType.MY_DETAILS -> replacePageFragment(MyDetailsFragment.newInstance())
-            MoreItemType.GALLERY -> replacePageFragment(GalleryFragment.newInstance())
+            MoreItemType.GALLERY -> replacePageFragment(GalleryFragment())
             MoreItemType.CONTACT_DETAILS -> replacePageFragment(ContactDetailsFragment.newInstance())
             MoreItemType.SHOOTING_TESTS -> replacePageFragment(ShootingTestCalendarEventListFragment())
             MoreItemType.SETTINGS -> replacePageFragment(SettingsFragment.newInstance())
             MoreItemType.HUNTING_DIRECTOR -> startActivity(Intent(this, GroupHuntingActivity::class.java))
             MoreItemType.HUNTING_CONTROL -> startActivity(Intent(this, HuntingControlActivity::class.java))
+            MoreItemType.SUNRISE_AND_SUNSET -> startActivity(Intent(this, ViewSunriseAndSunsetTimesActivity::class.java))
             MoreItemType.EVENT_SEARCH -> Uri.parse(getEventSearchUrl(languageCode)).openInBrowser(this)
             MoreItemType.MAGAZINE -> startActivity(MagazineActivity.getLaunchIntent(this))
             MoreItemType.SEASONS -> Uri.parse(getHuntingSeasonsUrl(languageCode)).openInBrowser(this)
+            MoreItemType.ABOUT -> replacePageFragment(AboutViewFragment())
             MoreItemType.LOGOUT -> confirmLogout()
+
+            // About menu
+            MoreItemType.PRIVACY_STATEMENT -> displayPrivacyStatement()
+            MoreItemType.TERMS_OF_SERVICE -> displayTermsOfService()
+            MoreItemType.ACCESSIBILITY -> displayAccessibility()
+            MoreItemType.LICENSES -> displayLicensesDialog()
         }
     }
 
@@ -290,11 +313,15 @@ class MainActivity
     }
 
     private fun logout() {
-        logoutHelper.logout(context = this)
+        val activity = this
 
-        val intent = Intent(this, LoginActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
+        MainScope().launch {
+            logoutHelper.logout(context = activity)
+
+            val intent = Intent(activity, LoginActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+            activity.startActivity(intent)
+        }
     }
 
     private fun createGPSPrompt() {
@@ -348,10 +375,21 @@ class MainActivity
 
         // Handle resuming sync when returning to app.
         if (syncOnResume) {
-            appSync.enableSyncPrecondition(AppSync.SyncPrecondition.HOME_SCREEN_REACHED)
+            appSync.enableSyncPrecondition(AppSyncPrecondition.HOME_SCREEN_REACHED)
         }
 
         UnregisterUserAccountActivityLauncher.launchIfAccountUnregistrationRequested(parentActivity = this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        // clear the syncOnResume flag as otherwise sync would always run when returning from map settings,
+        // view/create/edit entry activities etc. Instead rely on those performing the sync explicitly when needed
+        //
+        // syncOnResume will be automatically reseted to its initial value if activity is destroyed/created
+        // thus ensuring correct operation if app is put into background (where it's destroyed) and restored
+        syncOnResume = false
     }
 
     override fun onStop() {
@@ -362,7 +400,9 @@ class MainActivity
     override fun onDestroy() {
         super.onDestroy()
 
-        appSync.disableSyncPrecondition(AppSync.SyncPrecondition.HOME_SCREEN_REACHED)
+        if (!restartingActivity) {
+            appSync.disableSyncPrecondition(AppSyncPrecondition.HOME_SCREEN_REACHED)
+        }
 
         if (connectivityReceiver != null) {
             unregisterReceiver(connectivityReceiver)
@@ -410,22 +450,63 @@ class MainActivity
         window.attributes = attrs
     }
 
-    override fun onSyncStarted() {
-        backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
+    override fun onSynchronizationEvent(synchronizationEvent: SynchronizationEvent) {
+        when (synchronizationEvent) {
+            is SynchronizationEvent.Started -> {
+                if (synchronizationEvent.synchronizationLevel == SynchronizationLevel.USER_CONTENT) {
+                    backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
+                }
+            }
+            is SynchronizationEvent.Completed -> {
+                if (synchronizationEvent.synchronizationLevel == SynchronizationLevel.USER_CONTENT) {
+                    backgroundOperationStatus.finishOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
+                }
+            }
+        }
     }
 
-    override fun onSyncCompleted() {
-        backgroundOperationStatus.finishOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
+    override fun onSynchronizationScheduled(isImmediateUserContentSync: Boolean) {
+        if (isImmediateUserContentSync) {
+            backgroundOperationStatus.startOperation(BackgroundOperationStatus.Operation.SYNCHRONIZATION)
+        }
     }
 
     /**
      * Use to recreate activity to apply updated language setting.
      */
     fun restartActivity() {
+        // raise the flag in order to prevent clearing HOME_SCREEN_REACHED flag
+        restartingActivity = true
         val intent = intent
         harvestDatabase.close()
         finish()
         startActivity(intent)
+    }
+
+    private fun displayLicensesDialog() {
+        OssLicensesMenuActivity.setActivityTitle(getString(R.string.licences_dialog_title))
+        startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+    }
+
+    private fun displayPrivacyStatement() {
+        val languageCode = AppPreferences.getLanguageCodeSetting(this)
+
+        val privacyStatementUrl = ExternalUrls.getPrivacyStatementUrl(languageCode)
+        Uri.parse(privacyStatementUrl).openInBrowser(this)
+    }
+
+    private fun displayAccessibility() {
+        val languageCode = AppPreferences.getLanguageCodeSetting(this)
+
+        val accessibilityUrl = ExternalUrls.getAccessibilityUrl(languageCode)
+        Uri.parse(accessibilityUrl).openInBrowser(this)
+    }
+
+    private fun displayTermsOfService() {
+        val languageCode = AppPreferences.getLanguageCodeSetting(this)
+
+        val termsOfServiceUrl = ExternalUrls.getTermsOfServiceUrl(languageCode)
+        Uri.parse(termsOfServiceUrl).openInBrowser(this)
     }
 
     companion object {

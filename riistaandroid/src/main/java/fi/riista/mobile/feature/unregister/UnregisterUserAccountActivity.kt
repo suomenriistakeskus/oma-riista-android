@@ -59,7 +59,7 @@ class UnregisterUserAccountActivity : BaseActivity(),
         MainScope().launch {
             busyIndicator.show()
 
-            val success = RiistaSDK.accountService.cancelUnregisterAccount()
+            val success = RiistaSDK.cancelUnregisterAccount()
 
             yield()
 
@@ -85,7 +85,7 @@ class UnregisterUserAccountActivity : BaseActivity(),
         MainScope().launch {
             busyIndicator.show()
 
-            val unregistrationRequestDatetime = RiistaSDK.accountService.unregisterAccount()
+            val unregistrationRequestDatetime = RiistaSDK.unregisterAccount()
 
             yield()
 
@@ -114,20 +114,23 @@ class UnregisterUserAccountActivity : BaseActivity(),
     }
 
     private fun logoutAndNotifyAboutAccountUnregistration(unregistrationRequestDatetime: LocalDateTime) {
-        logoutHelper.logout(context = this)
+        val activity = this
+        MainScope().launch {
+            logoutHelper.logout(context = activity)
 
-        // launch this same activity with different parameters instead of displaying the fragment
-        // -> this allows us the clear all other activities so that user is unable to navigate back
-        val launchIntent = getLaunchIntent(
-            context = this,
-            unregistrationRequestDatetime = unregistrationRequestDatetime,
-            enableNotifyButtons = false
-        )
+            // launch this same activity with different parameters instead of displaying the fragment
+            // -> this allows us the clear all other activities so that user is unable to navigate back
+            val launchIntent = getLaunchIntent(
+                context = activity,
+                unregistrationRequestDatetime = unregistrationRequestDatetime,
+                enableNotifyButtons = false
+            )
 
-        // remove previous activities + ensure new activity is the only one in task
-        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // remove previous activities + ensure new activity is the only one in task
+            launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
-        startActivity(launchIntent)
+            activity.startActivity(launchIntent)
+        }
     }
 
     companion object {

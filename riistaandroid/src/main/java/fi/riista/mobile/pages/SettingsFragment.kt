@@ -7,6 +7,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -19,15 +22,21 @@ import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import com.google.android.material.button.MaterialButton
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
+import fi.riista.common.reactive.DisposeBag
+import fi.riista.common.reactive.disposeBy
 import fi.riista.mobile.AppConfig
 import fi.riista.mobile.ExternalUrls
 import fi.riista.mobile.R
 import fi.riista.mobile.activity.MainActivity
+import fi.riista.mobile.activity.MapSettingsActivity
+import fi.riista.mobile.feature.harvest.HarvestSettingsActivity
 import fi.riista.mobile.feature.unregister.UnregisterUserAccountActivity
 import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.sync.SyncConfig
+import fi.riista.mobile.sync.SyncMode
 import fi.riista.mobile.utils.AppPreferences.*
 import fi.riista.mobile.utils.BuildInfo
+import fi.riista.mobile.utils.Constants
 import fi.riista.mobile.utils.LocaleUtil
 import fi.riista.mobile.utils.openInBrowser
 import fi.riista.mobile.utils.toVisibility
@@ -42,6 +51,11 @@ class SettingsFragment : PageFragment() {
     @Inject
     internal lateinit var syncConfig: SyncConfig
 
+
+    private var refreshItem: MenuItem? = null
+    private var refreshAllItem: MenuItem? = null
+    private val disposeBag = DisposeBag()
+
     // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     override fun onAttach(context: Context) {
         AndroidSupportInjection.inject(this)
@@ -52,17 +66,16 @@ class SettingsFragment : PageFragment() {
         val view = inflater.inflate(R.layout.fragment_settings, container, false)
         setupActionBar(R.layout.actionbar_settings, false)
 
-        val privacyStatementButton = view.findViewById<MaterialButton>(R.id.settings_privacy_statement_btn)
-        privacyStatementButton.setOnClickListener { displayPrivacyStatement() }
-
-        val termsOfServiceButton = view.findViewById<MaterialButton>(R.id.settings_terms_of_service_btn)
-        termsOfServiceButton.setOnClickListener { displayTermsOfService() }
-
-        val accessibilityButton = view.findViewById<MaterialButton>(R.id.settings_accessibility_btn)
-        accessibilityButton.setOnClickListener { displayAccessibility() }
-
-        val licenseButton = view.findViewById<MaterialButton>(R.id.settings_licences_btn)
-        licenseButton.setOnClickListener { displayLicensesDialog() }
+        val harvestSettingsButton = view.findViewById<MaterialButton>(R.id.settings_harvest_settings_btn)
+        harvestSettingsButton.setOnClickListener {
+            val intent = Intent(activity, HarvestSettingsActivity::class.java)
+            startActivity(intent)
+        }
+        val mapSettingsButton = view.findViewById<MaterialButton>(R.id.settings_map_settings_btn)
+        mapSettingsButton.setOnClickListener {
+            val intent = Intent(context, MapSettingsActivity::class.java)
+            startActivity(intent)
+        }
 
         val unregisterButton = view.findViewById<MaterialButton>(R.id.settings_unregister_account_btn)
         unregisterButton.setOnClickListener { displayUnregisterUserAccount() }
@@ -72,7 +85,71 @@ class SettingsFragment : PageFragment() {
         setupVersionInfo(view)
         setupServerAddress(view)
 
+        setHasOptionsMenu(true)
+
         return view
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_refresh, menu)
+        inflater.inflate(R.menu.menu_refresh_all, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+
+        // Show/hide refresh button according to sync settings.
+        refreshItem = menu.findItem(R.id.item_refresh)
+        refreshAllItem = menu.findItem(R.id.item_refresh_all)
+        updateManualSyncButtonIndicator(manualSyncPossible = appSync.manualSynchronizationPossible.value)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.item_refresh -> {
+                appSync.scheduleImmediateSync(forceUserContentSync = true, forceContentReload = false)
+                true
+            }
+            R.id.item_refresh_all -> {
+                appSync.scheduleImmediateSync(forceUserContentSync = true, forceContentReload = true)
+                true
+            }
+            else -> false
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        appSync.manualSynchronizationPossible.bindAndNotify { manualSyncPossible ->
+            refreshItem?.let { item ->
+                item.isEnabled = manualSyncPossible
+                item.icon?.alpha = when (manualSyncPossible) {
+                    true -> 255
+                    false -> Constants.DISABLED_ALPHA
+                }
+            }
+            refreshAllItem?.let { item ->
+                item.isEnabled = manualSyncPossible
+            }
+        }.disposeBy(disposeBag)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        disposeBag.disposeAll()
+    }
+
+    private fun updateManualSyncButtonIndicator(manualSyncPossible: Boolean) {
+        refreshItem?.let { item ->
+            item.isVisible = syncConfig.syncMode == SyncMode.SYNC_MANUAL
+            item.isEnabled = manualSyncPossible
+            item.icon?.alpha = when (manualSyncPossible) {
+                true -> 255
+                false -> Constants.DISABLED_ALPHA
+            }
+        }
+        refreshAllItem?.let { item ->
+            item.isVisible = syncConfig.syncMode == SyncMode.SYNC_MANUAL
+            item.isEnabled = manualSyncPossible
+        }
     }
 
     private fun setupSyncMode(view: View) {
@@ -84,10 +161,12 @@ class SettingsFragment : PageFragment() {
 
         manualBtn.setOnClickListener {
             appSync.disableAutomaticSync()
+            activity?.invalidateOptionsMenu()
         }
 
         automaticBtn.setOnClickListener {
             appSync.enableAutomaticSync()
+            activity?.invalidateOptionsMenu()
         }
     }
 
@@ -181,34 +260,8 @@ class SettingsFragment : PageFragment() {
         versionText.text = versionName
     }
 
-    private fun displayLicensesDialog() {
-        OssLicensesMenuActivity.setActivityTitle(getString(R.string.licences_dialog_title))
-        startActivity(Intent(requireContext(), OssLicensesMenuActivity::class.java))
-    }
-
     private fun displayUnregisterUserAccount() {
         startActivity(UnregisterUserAccountActivity.getLaunchIntent(requireActivity()))
-    }
-
-    private fun displayPrivacyStatement() {
-        val languageCode = getLanguageCodeSetting(context)
-
-        val privacyStatementUrl = ExternalUrls.getPrivacyStatementUrl(languageCode)
-        Uri.parse(privacyStatementUrl).openInBrowser(requireContext())
-    }
-
-    private fun displayAccessibility() {
-        val languageCode = getLanguageCodeSetting(context)
-
-        val accessibilityUrl = ExternalUrls.getAccessibilityUrl(languageCode)
-        Uri.parse(accessibilityUrl).openInBrowser(requireContext())
-    }
-
-    private fun displayTermsOfService() {
-        val languageCode = getLanguageCodeSetting(context)
-
-        val termsOfServiceUrl = ExternalUrls.getTermsOfServiceUrl(languageCode)
-        Uri.parse(termsOfServiceUrl).openInBrowser(requireContext())
     }
 
     companion object {

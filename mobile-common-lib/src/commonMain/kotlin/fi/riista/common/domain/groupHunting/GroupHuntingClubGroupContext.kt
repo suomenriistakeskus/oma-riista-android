@@ -2,6 +2,7 @@ package fi.riista.common.domain.groupHunting
 
 import fi.riista.common.domain.groupHunting.model.*
 import fi.riista.common.domain.groupHunting.validation.isValid
+import fi.riista.common.domain.harvest.model.CommonHarvestData
 import fi.riista.common.model.LocalDate
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.util.LocalDateTimeProvider
@@ -47,7 +48,7 @@ class GroupHuntingClubGroupContext internal constructor(
     val diaryProvider: GroupHuntingDiaryProvider = GroupHuntingDiaryNetworkProvider(
             backendApiProvider, huntingGroup.id)
 
-    val harvestUpdater: GroupHuntingHarvestUpdater = GroupHuntingHarvestNetworkUpdater(
+    internal val harvestUpdater: GroupHuntingHarvestUpdater = GroupHuntingHarvestNetworkUpdater(
         backendApiProvider, huntingGroup.id
     )
 
@@ -113,7 +114,7 @@ class GroupHuntingClubGroupContext internal constructor(
         return huntingDayUpdater.fetchHuntingDayForDeer(identifiesHuntingGroup, date)
     }
 
-    suspend fun createHarvest(harvest: GroupHuntingHarvestData): GroupHuntingHarvestOperationResponse {
+    internal suspend fun createHarvest(harvest: CommonHarvestData): GroupHuntingHarvestOperationResponse {
         val createResponse = harvestUpdater.createHarvest(harvest)
 
         if (createResponse is GroupHuntingHarvestOperationResponse.Success) {

@@ -8,6 +8,6 @@ data class HuntingControlGameWarden(
     val remoteId: HuntingControlGameWardenId,
     val firstName: String,
     val lastName: String,
-    val startDate: LocalDate,
-    val endDate: LocalDate
+    val startDate: LocalDate?,
+    val endDate: LocalDate?
 )

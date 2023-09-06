@@ -2,6 +2,7 @@ package fi.riista.common.domain.groupHunting.model
 
 import fi.riista.common.model.LocalDate
 import fi.riista.common.model.LocalDatePeriod
+import fi.riista.common.model.toLocalDates
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -27,8 +28,8 @@ class HuntingGroupPermitTest {
         for (day in 1..30) {
             val date = LocalDate(2021, 5, day)
             val expectedDate = when {
-                day < 10 -> period.beginDate
-                day > 15 -> period.endDate
+                day < 10 -> period.toLocalDates().beginDate
+                day > 15 -> period.toLocalDates().endDate
                 else -> date
             }
             assertEquals(expectedDate, date.coerceInPermitValidityPeriods(permit))
@@ -51,9 +52,9 @@ class HuntingGroupPermitTest {
         for (day in 1..30) {
             val date = LocalDate(2021, 5, day)
             val expectedDate = when {
-                day < 10 -> period1.beginDate
-                day in 16..19 -> period1.endDate
-                day > 25 -> period2.endDate
+                day < 10 -> period1.toLocalDates().beginDate
+                day in 16..19 -> period1.toLocalDates().endDate
+                day > 25 -> period2.toLocalDates().endDate
                 else -> date
             }
             assertEquals(expectedDate, date.coerceInPermitValidityPeriods(permit1), "permit1")
@@ -77,8 +78,8 @@ class HuntingGroupPermitTest {
         for (day in 1..30) {
             val date = LocalDate(2021, 5, day)
             val expectedDate = when {
-                day < 10 -> period1.beginDate
-                day > 25 -> period2.endDate
+                day < 10 -> period1.toLocalDates().beginDate
+                day > 25 -> period2.toLocalDates().endDate
                 else -> date
             }
             assertEquals(expectedDate, date.coerceInPermitValidityPeriods(permit1))

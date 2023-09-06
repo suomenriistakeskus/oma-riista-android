@@ -1,9 +1,14 @@
 package fi.riista.mobile.vectormap
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Matrix
+import android.graphics.Paint
 import com.google.android.gms.maps.model.Tile
 import com.google.android.gms.maps.model.TileProvider
+import fi.riista.common.map.MapTileVersionProvider
 import fi.riista.mobile.AppConfig
 import fi.riista.mobile.utils.Utils
 import org.apache.commons.io.IOUtils
@@ -13,15 +18,33 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
-import java.util.*
+import java.util.LinkedList
 
 /**
  * Tile provider for fetching MML map tiles from Riista map server
  */
-class VectorTileProvider(context: Context) : TileProvider {
-    enum class AreaType {
-        MOOSE, PIENRIISTA, VALTIONMAA, RHY, GAME_TRIANGLES, SEURA,
-        AVI_HUNTING_BAN, MOOSE_RESTRICTIONS, SMALL_GAME_RESTRICTIONS,
+class VectorTileProvider(
+    context: Context,
+    private val mapTileVersionProvider: MapTileVersionProvider,
+) : TileProvider {
+    enum class AreaType(
+        /**
+         * A fixed id for the tile type.
+         *
+         * Remember to keep in sync with other platforms!
+         */
+        val tileType: String,
+    ) {
+        MOOSE("moose"),
+        PIENRIISTA("pienriista"),
+        VALTIONMAA("valtionmaa"),
+        RHY("rhy"),
+        GAME_TRIANGLES("game_triangles"),
+        SEURA("seura"),
+        AVI_HUNTING_BAN("avi_hunting_ban"),
+        MOOSE_RESTRICTIONS("moose_restrictions"),
+        SMALL_GAME_RESTRICTIONS("small_game_restrictions"),
+        LEAD_SHOT_BAN("lead_shot_ban"),
     }
 
     private val tileSize = (0.4f * 256.0f * context.resources.displayMetrics.density).toInt()
@@ -34,30 +57,34 @@ class VectorTileProvider(context: Context) : TileProvider {
     @Synchronized
     private fun getTileUrl(x: Int, y: Int, zoom: Int): URL? {
         try {
-            when (areaType) {
-                AreaType.MOOSE -> return URL(String.format(MOOSE_PATTERN, zoom, x, y))
-                AreaType.PIENRIISTA -> return URL(String.format(PIENRIISTA_PATTERN, zoom, x, y))
-                AreaType.VALTIONMAA -> return URL(String.format(VALTIONMAA_PATTERN, zoom, x, y))
-                AreaType.RHY -> return URL(String.format(RHY_PATTERN, zoom, x, y))
-                AreaType.GAME_TRIANGLES -> return URL(String.format(GAME_TRIANGLES_PATTERN, zoom, x, y))
-                AreaType.MOOSE_RESTRICTIONS -> return URL(String.format(MOOSE_RESTRICTIONS_PATTERN, zoom, x, y))
-                AreaType.SMALL_GAME_RESTRICTIONS -> return URL(String.format(SMALL_GAME_RESTRICTIONS_PATTERN, zoom, x, y))
-                AreaType.AVI_HUNTING_BAN -> return URL(String.format(AVI_HUNTING_BAN_PATTERN, zoom, x, y))
+            return when (areaType) {
+                AreaType.MOOSE -> URL(String.format(MOOSE_PATTERN, zoom, x, y))
+                AreaType.PIENRIISTA -> URL(String.format(PIENRIISTA_PATTERN, zoom, x, y))
+                AreaType.VALTIONMAA -> URL(String.format(VALTIONMAA_PATTERN, zoom, x, y))
+                AreaType.RHY -> URL(String.format(RHY_PATTERN, zoom, x, y))
+                AreaType.GAME_TRIANGLES -> URL(String.format(GAME_TRIANGLES_PATTERN, zoom, x, y))
+                AreaType.LEAD_SHOT_BAN -> URL(String.format(LEAD_SHOT_BAN_PATTERN, zoom, x, y))
+                AreaType.MOOSE_RESTRICTIONS -> URL(String.format(MOOSE_RESTRICTIONS_PATTERN, zoom, x, y))
+                AreaType.SMALL_GAME_RESTRICTIONS -> URL(String.format(SMALL_GAME_RESTRICTIONS_PATTERN, zoom, x, y))
+                AreaType.AVI_HUNTING_BAN -> URL(String.format(AVI_HUNTING_BAN_PATTERN, zoom, x, y))
                 AreaType.SEURA -> {
                     val base = AppConfig.getBaseUrl()
-                    return URL("$base/area/vector/$mapExternalId/$zoom/$x/$y")
+                    URL("$base/area/vector/$mapExternalId/$zoom/$x/$y")
                 }
+                null -> null
             }
         } catch (e: MalformedURLException) {
             throw AssertionError(e)
         }
-        return null
     }
 
     override fun getTile(x: Int, y: Int, zoom: Int): Tile? {
         val areaId = mapExternalId ?: return TileProvider.NO_TILE
         val tileUrl = getTileUrl(x, y, zoom) ?: return TileProvider.NO_TILE
-        val key = tileUrl.toString() + if (invertColors) { "_inverted_" } else { "_normal_" } + areaId
+        val key = tileUrl.toString() +
+                if (invertColors) { "_inverted_" } else { "_normal_" } +
+                areaId +
+                mapTileVersionProvider.getTileVersion(areaType?.tileType)
 
         var tileData: ByteArray? = null
         try {
@@ -114,6 +141,7 @@ class VectorTileProvider(context: Context) : TileProvider {
                     paint.alpha = 0
                 }
                 AreaType.GAME_TRIANGLES -> paint.color = AREA_GAME_TRIANGLES_COLOR
+                AreaType.LEAD_SHOT_BAN -> paint.color = AREA_RESTRICTION_COLOR_STRONG
                 AreaType.MOOSE_RESTRICTIONS,
                 AreaType.SMALL_GAME_RESTRICTIONS,
                 AreaType.AVI_HUNTING_BAN -> paint.color = AREA_RESTRICTION_COLOR
@@ -122,11 +150,30 @@ class VectorTileProvider(context: Context) : TileProvider {
             return paint
         }
 
-    private fun getBorderPaint(): Paint {
+    private fun getBorderPaint(zoom: Int): Paint {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        paint.color =
-            if (areaType == AreaType.RHY) RHY_BORDER_COLOR else BORDER_COLOR
-        paint.alpha = 255
+        paint.color = when (areaType) {
+            AreaType.RHY -> RHY_BORDER_COLOR
+            AreaType.LEAD_SHOT_BAN -> {
+                if (zoom >= 11) {
+                    BORDER_COLOR
+                } else {
+                    // same as fill
+                    AREA_RESTRICTION_COLOR_STRONG
+                }
+            }
+            else -> BORDER_COLOR
+        }
+        paint.alpha = when (areaType) {
+            AreaType.LEAD_SHOT_BAN -> {
+                if (zoom >= 11) {
+                    255
+                } else {
+                    80
+                }
+            }
+            else -> 255
+        }
         paint.style = Paint.Style.STROKE
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
@@ -142,7 +189,7 @@ class VectorTileProvider(context: Context) : TileProvider {
         val canvas = Canvas(bitmap)
         val cursor = MvtCursor()
         val fillPaint = fillPaint
-        val borderPaint = getBorderPaint()
+        val borderPaint = getBorderPaint(zoom = zoom)
         if (vectorTile?.layers != null) {
             for (layer in vectorTile.layers) {
                 val scale = mTileSize.toFloat() / layer.extent.toFloat()
@@ -231,6 +278,7 @@ class VectorTileProvider(context: Context) : TileProvider {
         private const val VALTIONMAA_PATTERN = "https://kartta.riista.fi/vector/metsahallitus/%s/%s/%s"
         private const val RHY_PATTERN = "https://kartta.riista.fi/vector/rhy/%s/%s/%s"
         private const val GAME_TRIANGLES_PATTERN = "https://kartta.riista.fi/vector/riistakolmiot/%s/%s/%s"
+        private const val LEAD_SHOT_BAN_PATTERN = "https://kartta.riista.fi/vector/lyijyhaulikieltoalueet/%s/%s/%s"
         private const val MOOSE_RESTRICTIONS_PATTERN = "https://kartta.riista.fi/vector/hirvi_rajoitusalueet/%s/%s/%s"
         private const val SMALL_GAME_RESTRICTIONS_PATTERN = "https://kartta.riista.fi/vector/pienriista_rajoitusalueet/%s/%s/%s"
         private const val AVI_HUNTING_BAN_PATTERN = "https://kartta.riista.fi/vector/avi_metsastyskieltoalueet/%s/%s/%s"
@@ -246,6 +294,7 @@ class VectorTileProvider(context: Context) : TileProvider {
         private val AREA_VALTIONMAA_COLOR = Color.argb(64, 0, 0, 255)
         private val AREA_GAME_TRIANGLES_COLOR = Color.argb(64, 255, 0, 0)
         private val AREA_RESTRICTION_COLOR = Color.argb(64, 255, 0, 0)
+        private val AREA_RESTRICTION_COLOR_STRONG = Color.argb(80, 255, 0, 0)
         private const val RHY_BORDER_COLOR = Color.BLUE
 
         private fun bitmapToImage(bitmap: Bitmap): ByteArray {

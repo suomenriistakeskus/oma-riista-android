@@ -3,6 +3,7 @@ package fi.riista.mobile.pages
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,15 +12,18 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
+import com.google.android.material.button.MaterialButton
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import dagger.android.support.AndroidSupportInjection
+import fi.riista.mobile.ExternalUrls
 import fi.riista.mobile.R
 import fi.riista.mobile.models.user.UserInfo
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.UserInfoStore
+import fi.riista.mobile.utils.openInBrowser
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -38,6 +42,7 @@ class MyDetailsLicenseFragment : DialogFragment() {
     private lateinit var mPaymentText: TextView
     private lateinit var mMembershipText: TextView
     private lateinit var mInsuranceText: TextView
+    private lateinit var mInsuranceInstructionsButton: MaterialButton
     private lateinit var mNoValidLicenceItem: TextView
 
     private lateinit var mHuntingBanItem: View
@@ -76,6 +81,10 @@ class MyDetailsLicenseFragment : DialogFragment() {
         mPaymentText = view.findViewById(R.id.my_details_payment_value)
         mMembershipText = view.findViewById(R.id.my_details_membership_value)
         mInsuranceText = view.findViewById(R.id.my_details_insurance_policy)
+        mInsuranceInstructionsButton = view.findViewById(R.id.btn_insurance_instructions)
+        mInsuranceInstructionsButton.setOnClickListener {
+            showInsuranceInstructions()
+        }
         mNoValidLicenceItem = view.findViewById(R.id.my_details_no_valid_license)
 
         mHuntingBanItem = view.findViewById(R.id.my_details_hunting_ban_group)
@@ -130,6 +139,7 @@ class MyDetailsLicenseFragment : DialogFragment() {
             mPaymentGroup.visibility = View.GONE
             mMembershipGroup.visibility = View.GONE
             mInsuranceText.visibility = View.GONE
+            mInsuranceInstructionsButton.visibility = View.GONE
             mNoValidLicenceItem.visibility = View.GONE
             mHuntingBanItem.visibility = View.VISIBLE
         } else if (info.huntingCardValidNow!!) {
@@ -140,6 +150,7 @@ class MyDetailsLicenseFragment : DialogFragment() {
             mPaymentGroup.visibility = View.VISIBLE
             mMembershipGroup.visibility = View.VISIBLE
             mInsuranceText.visibility = View.VISIBLE
+            mInsuranceInstructionsButton.visibility = View.VISIBLE
             mNoValidLicenceItem.visibility = View.GONE
             mHuntingBanItem.visibility = View.GONE
         } else {
@@ -148,6 +159,7 @@ class MyDetailsLicenseFragment : DialogFragment() {
             mPaymentGroup.visibility = View.GONE
             mMembershipGroup.visibility = View.GONE
             mInsuranceText.visibility = View.GONE
+            mInsuranceInstructionsButton.visibility = View.GONE
             mNoValidLicenceItem.visibility = View.VISIBLE
             mHuntingBanItem.visibility = View.GONE
         }
@@ -191,6 +203,13 @@ class MyDetailsLicenseFragment : DialogFragment() {
         } catch (e: WriterException) {
             e.printStackTrace()
         }
+    }
+
+    private fun showInsuranceInstructions() {
+        val languageCode = AppPreferences.getLanguageCodeSetting(requireActivity())
+
+        val insuranceInstructionsUrl = ExternalUrls.getInsuranceInstructionsUrl(languageCode)
+        Uri.parse(insuranceInstructionsUrl).openInBrowser(requireActivity())
     }
 
     @Throws(WriterException::class)

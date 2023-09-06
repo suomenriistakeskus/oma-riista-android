@@ -55,7 +55,17 @@ data class FieldRequirement(
 data class FieldSpecification<FieldId : DataFieldId>(
     val fieldId: FieldId,
     val requirementStatus: FieldRequirement,
-)
+) {
+    fun isRequired(): Boolean = requirementStatus.isRequired()
+
+    internal fun <R> ifRequired(block: () -> R?): R? {
+        return if (isRequired()) {
+            block()
+        } else {
+            null
+        }
+    }
+}
 
 fun <FieldId : DataFieldId> List<FieldSpecification<FieldId>>.contains(fieldId: FieldId): Boolean {
     return indexOfFirst { it.fieldId == fieldId } >= 0
@@ -67,6 +77,17 @@ fun <FieldId : DataFieldId> FieldId.noRequirement(): FieldSpecification<FieldId>
 
 fun <FieldId : DataFieldId> FieldId.required(indicateRequirementStatus: Boolean = true): FieldSpecification<FieldId> {
     return FieldSpecification(this, FieldRequirement(FieldRequirement.Type.REQUIRED, indicateRequirementStatus))
+}
+
+fun <FieldId : DataFieldId> FieldId.requiredIf(
+    condition: Boolean,
+    indicateRequirementStatus: Boolean = true,
+): FieldSpecification<FieldId> {
+    return if (condition) {
+        this.required(indicateRequirementStatus)
+    } else {
+        this.voluntary(indicateRequirementStatus)
+    }
 }
 
 fun <FieldId : DataFieldId> FieldId.voluntary(indicateRequirementStatus: Boolean = true): FieldSpecification<FieldId> {

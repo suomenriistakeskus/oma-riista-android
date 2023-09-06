@@ -40,23 +40,34 @@ object SpeciesCodes {
     const val POLECAT_ID: SpeciesCode = 47240                   // Hilleri
     const val RINGED_SEAL_ID: SpeciesCode = 200555              // Itämerennorppa
     const val WILD_BOAR_ID: SpeciesCode = 47926                 // Villisika
-}
 
-private val DEER_ANIMALS = listOf(
-    SpeciesCodes.FALLOW_DEER_ID,
-    SpeciesCodes.ROE_DEER_ID,
-    SpeciesCodes.WHITE_TAILED_DEER_ID,
-    SpeciesCodes.WILD_FOREST_DEER_ID
-)
+    internal val DEER_ANIMALS = listOf(
+        FALLOW_DEER_ID,
+        ROE_DEER_ID,
+        WHITE_TAILED_DEER_ID,
+        WILD_FOREST_DEER_ID
+    )
+}
 
 fun SpeciesCode.isMoose(): Boolean {
     return this == SpeciesCodes.MOOSE_ID
 }
 
 fun SpeciesCode.isDeer(): Boolean {
-    return this in DEER_ANIMALS
+    return this in SpeciesCodes.DEER_ANIMALS
 }
 
 fun SpeciesCode.isDeerOrMoose(): Boolean {
     return isDeer() || isMoose()
+}
+
+private val PERMIT_BASED_MOOSEIKE_ANIMALS = listOf(
+    SpeciesCodes.MOOSE_ID,
+    SpeciesCodes.FALLOW_DEER_ID,
+    SpeciesCodes.WHITE_TAILED_DEER_ID,
+    SpeciesCodes.WILD_FOREST_DEER_ID
+)
+
+fun SpeciesCode.isPermitBasedMooselike(): Boolean {
+    return this in PERMIT_BASED_MOOSEIKE_ANIMALS
 }

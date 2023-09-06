@@ -58,6 +58,7 @@
     <string name="more_show_magazine">Lue viimeisin Metsästäjä-lehti</string>
     <string name="more_view_hunting_seasons">Metsästysajat</string>
     <string name="more_gallery">Galleria</string>
+    <string name="more_about">Tietoja</string>
     <string name="logout">Kirjaudu ulos</string>
 
     <string name="menu_add_item">Lisää</string>
@@ -132,6 +133,7 @@
     <!-- Settings page -->
     <string name="language">Kieli</string>
     <string name="language_prompt">Valitse kieli</string>
+    <string name="map_settings">Kartan asetukset</string>
 
     <string name="Finnish">Suomi</string>
     <string name="Swedish">Svenska</string>
@@ -173,7 +175,8 @@
     <string name="my_details_title_registry">Metsästäjärekisteri</string>
     <string name="my_details_hunter_id">Metsästäjä\u00ADnumero</string>
     <string name="my_details_title_hunting_license">Metsästyskortti</string>
-    <string name="my_details_insurance_policy_text">Tässä kortissa mainitulla metsästäjällä on metsästäjävakuutus, joka on voimassa kaikissa Pohjoismaissa, Sveitsissä ja EU-maissa.</string>
+    <string name="my_details_insurance_policy_text">Tässä kortissa mainitulla metsästäjällä on metsästäjävakuutus, joka on voimassa Pohjoismaissa, EU-maissa, Sveitsissä ja Iso-Britanniassa enintään 60 vuorokautta kestävillä metsästysmatkoilla.</string>
+    <string name="my_details_insurance_instructions_link_title">Vakuutuksen ohjeet</string>
     <string name="my_details_payment">Riistan\u00ADhoito\u00ADmaksu</string>
     <string name="my_details_exam_date">Tutkinnon suorituspäivä</string>
     <string name="my_details_membership">RHY jäsenyys</string>
@@ -217,11 +220,11 @@
     <string name="occupation_type_petoyhdyshenkilo">Petoyhdyshenkilö</string>
 
     <string name="unregister_account_title">Poista käyttäjätili</string>
-    <string name="unregister_account_message">Haluan poistaa vapaaehtoiset riistatietoni, käyttäjätilini sekä henkilötietoni Oma\u00A0riista\u00A0-palvelusta.\n\nYmmärrän, että tietojani ei voida palauttaa poistamisen jälkeen.</string>
-    <string name="unregister_account_question">Oletko varma, että haluat poistaa käyttäjätilisi?</string>
+    <string name="unregister_account_message">Haluan poistaa vapaaehtoiset riistatietoni, käyttäjätilini sekä henkilötietoni Oma\u00A0riista\u00A0-palvelusta. Ymmärrän, että tietojani ei voida palauttaa poistamisen\u00A0jälkeen.\n\nOma riista -tilin poistaminen ei poista tietojanne metsästäjärekisteristä. Teidän tulee olla kirjallisesti yhteydessä metsästäjärekisteriin, mikäli haluatte tietonne poistettavan myös metsästäjärekisteristä. Tietojen poistaminen metsästäjärekisteristä tarkoittaa metsästysharrastuksen\u00A0päättämistä.</string>
+    <string name="unregister_account_question">Oma riista -tilin käyttäjätunnuksen/sähköpostiosoitteen vaihtaminen ei edellytä käyttäjätilin poistamista vaan se onnistuu uudelleenrekisteröitymällä palveluun. Tällöin myös kaikki palveluun syöttämäsi tiedot säilyvät entisellään.\n\nOletko varma, että haluat poistaa käyttäjätilisi?</string>
     <string name="unregister_account_request_sent_title_short">Pyyntö lähetetty</string>
     <string name="unregister_account_request_sent_title">Käyttäjätilin poistopyyntö on lähetetty</string>
-    <string name="unregister_account_request_sent_message_at_timeime">Käyttäjätilin poistopyynnöstä on lähetetty automaattinen sähköpostiviesti Oma riista -palvelun ylläpitoon %1$s sekä kopio viestistä on välitetty myös omissa tiedoissasi määriteltyyn sähköpostiosoitteeseen. Tyypillisesti käyttäjätili poistetaan ylläpidon toimesta kahden viikon\u00A0kuluessa.\n\nOle hyvä ja ota yhteyttä asiakaspalveluun oma@riista.fi, mikäli pyysit käyttäjätilin poistoa erheellisesti.</string>
+    <string name="unregister_account_request_sent_message_at_timeime">Käyttäjätilin poistopyynnöstä on lähetetty automaattinen sähköpostiviesti Oma riista -palvelun ylläpitoon %1$s sekä kopio viestistä on välitetty myös omissa tiedoissasi määriteltyyn sähköpostiosoitteeseen. Tyypillisesti käyttäjätili poistetaan ylläpidon toimesta kahden viikon\u00A0kuluessa.\n\nOle hyvä ja ota yhteyttä asiakaspalveluun oma@riista.fi, mikäli pyysit käyttäjätilin poistoa erheellisesti.\n\nOma riista -tilin poistaminen ei poista tietojanne metsästäjärekisteristä. Teidän tulee olla kirjallisesti yhteydessä metsästäjärekisteriin, mikäli haluatte tietonne poistettavan myös metsästäjärekisteristä. Tietojen poistaminen metsästäjärekisteristä tarkoittaa metsästysharrastuksen\u00A0päättämistä.</string>
     <string name="unregister_account_continue_using">Jatka palvelun käyttöä</string>
 
     <!-- New diary entry page -->
@@ -243,7 +246,7 @@
     <string name="gps_prompt">GPS ei ole tällä hetkellä käytössä. Haluatko ottaa GPS:n käyttöön?</string>
     <string name="yes">Kyllä</string>
     <string name="no">Ei</string>
-    <string name="cancel">Peru</string>
+    <string name="cancel">Peruuta</string>
     <string name="gps_good">GPS HYVÄ</string>
     <string name="gps_bad">GPS HUONO</string>
     <string name="gps_none">GPS SAAVUTTAMATON</string>
@@ -268,6 +271,28 @@
 
     <string name="harvest_feeding_place_title">Ammuttu ruokintapaikalta?</string>
     <string name="harvest_taiga_bean_goose_title">Onko taigametsähanhi?</string>
+
+    <string name="harvest_settings">Saaliin kirjauksen asetukset</string>
+    <string name="harvest_settings_add_harvest_for_other_hunter">Saaliin kirjaus toiselle</string>
+    <string name="harvest_settings_add_harvest_for_other_hunter_explanation">\u25CF Kirjaa saaliita toisille metsästäjille</string>
+    <string name="harvest_settings_enable_club_selection">Saaliin kirjaus seuralle</string>
+    <string name="harvest_settings_enable_club_selection_explanation">\u25CF Valitse seura, jolle saalis kirjataan</string>
+    <string name="harvest_label_own_harvest">Oma saalis</string>
+    <string name="harvest_showing_harvests_added_for_others">Näytetään toisille kirjatut merkinnät</string>
+
+    <string name="harvest_label_hunting_club">Seura</string>
+    <string name="harvest_label_hunting_club_official_code">Seuran asiakasnumero</string>
+
+    <string name="hunting_club_selection_select_club">Valitse seura</string>
+    <string name="hunting_club_selection_search_by_name">Hae nimellä tai asiakasnumerolla</string>
+    <string name="hunting_club_selection_search_by_name_hint">Nimi tai asiakasnumero</string>
+    <string name="hunting_club_selection_no_club_selection">Ei valintaa</string>
+    <string name="hunting_club_selection_other_club">Muu</string>
+
+    <string name="hunting_club_search_enter_club_official_code">Anna 7-numeroinen seuran asiakasnumero</string>
+    <string name="hunting_club_search_invalid_official_code">Seuran asiakasnumero on virheellinen</string>
+    <string name="hunting_club_search_searching_by_official_code">Haetaan seuran tietoja..</string>
+    <string name="hunting_club_search_search_failed">Asiakasnumerolla ei löydetty seuraa.</string>
 
     <!-- Harvest state -->
 
@@ -301,6 +326,7 @@
 
     <string name="synchronization">Synkronointi</string>
     <string name="refresh">Päivitä</string>
+    <string name="refresh_all">Päivitä kaikki</string>
     <string name="manual">Manuaalinen</string>
     <string name="automatic">Automaattinen</string>
     <string name="licences_dialog_title">Avoimen lähdekoodin käyttöluvat</string>
@@ -336,6 +362,7 @@
     <string name="map_settings_small_game_restrictions_link">Katso: https://retkikartta.fi</string>
     <string name="map_settings_avi_hunting_ban">Avi metsästyskieltoalueet</string>
     <string name="map_settings_avi_hunting_ban_link">Katso: https://avi.fi/tiedotteet</string>
+    <string name="map_settings_lead_shot_ban">Lyijyhaulikieltoalueet</string>
     <string name="map_settings_offline_map_settings">Offline-kartat</string>
     <string name="offline_map_settings_background_map">Taustakartta</string>
     <string name="offline_map_settings_map_layers">Karttatasot</string>
@@ -793,7 +820,7 @@
 
     <string name="group_member_selection_select_hunter">Valitse ampuja</string>
     <string name="group_member_selection_select_observer">Valitse havaitsija</string>
-    <string name="group_member_selection_search_name">Hae nimellä</string>
+    <string name="group_member_selection_search_name">Suodata listaa nimellä</string>
     <string name="group_member_selection_enter_name">Nimi</string>
 
     <!-- Hunting control -->
@@ -826,6 +853,7 @@
     <string name="hunting_control_inspector_selection_search_by_name">@string/group_member_selection_search_name</string>
     <string name="hunting_control_inspector_selection_name_hint">@string/group_member_selection_enter_name</string>
     <string name="hunting_control_error_no_inspectors_for_selected_date">Valitulle päivämäärälle ei ole valvojia</string>
+    <string name="hunting_control_error_no_self_as_inspector">Et voi poistaa itseäsi valvojista</string>
     <string name="hunting_control_event_save_failed_generic">Valvontatapahtuman tallentaminen epäonnistui</string>
     <string name="hunting_control_download_attachment_question">Ladataanko liite palvelimelta?</string>
     <string name="hunting_control_delete_attachment_question">Poistetaanko liite %1$s?</string>
@@ -867,4 +895,10 @@
     <string name="hunting_control_event_type_dog_discipline">Koirakurin valvonta</string>
     <string name="hunting_control_event_type_other">Muu valvonta</string>
 
+    <string name="sunrise_and_sunset_title">Auringon nousu- ja laskuajat</string>
+    <string name="sun_day_selection_label">@string/hunting_control_date</string>
+    <string name="sun_sunrise_label">Auringonnousu</string>
+    <string name="sun_sunset_label">Auringonlasku</string>
+    <string name="sun_instructions">Valitse sijainti nähdäksesi auringon\nnousu- ja laskuajat.</string>
+    <string name="sun_disclaimer">Auringon nousu- ja laskuajat on saatu laske\u00ADmalla kartta\u00ADosoittimen sijainnin perus\u00ADteella. Auringon nousu on se kellon\u00ADlyömä, jolloin auringon ylä\u00ADreuna tulee esille horisontin takaa. Vastaa\u00ADvasti laskuaika on silloin, kun ylä\u00ADreuna häviää paikka\u00ADkunnan hori\u00ADsontin taakse. Auringon nousu- ja lasku\u00ADajat vaihtelevat eri paikka\u00ADkunnilla riippuen paikan sijainnista leveys- ja pituus\u00ADpiireillä ja riippuen vuoden\u00ADajasta. Suomen viralliset auringon nousu- ja lasku\u00ADajat määritetään Helsingin yliopiston julkaisemassa almanakassa.</string>
 </resources>

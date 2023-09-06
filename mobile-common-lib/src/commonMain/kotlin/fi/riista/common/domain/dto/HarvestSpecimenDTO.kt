@@ -1,6 +1,6 @@
 package fi.riista.common.domain.dto
 
-import fi.riista.common.domain.model.HarvestSpecimen
+import fi.riista.common.domain.harvest.model.CommonHarvestSpecimen
 import fi.riista.common.model.toBackendEnum
 import kotlinx.serialization.Serializable
 
@@ -28,27 +28,27 @@ data class HarvestSpecimenDTO(
     val additionalInfo: String? = null,
 )
 
-internal fun HarvestSpecimenDTO.toHarvestSpecimen() : HarvestSpecimen {
-    return HarvestSpecimen(
-            id = id,
-            rev = rev,
-            gender = gender.toBackendEnum(),
-            age = age.toBackendEnum(),
-            weight = weight,
-            weightEstimated = weightEstimated,
-            weightMeasured = weightMeasured,
-            fitnessClass = fitnessClass.toBackendEnum(),
-            antlersLost = antlersLost,
-            antlersType = antlersType.toBackendEnum(),
-            antlersWidth = antlersWidth,
-            antlerPointsLeft = antlerPointsLeft,
-            antlerPointsRight = antlerPointsRight,
-            antlersGirth = antlersGirth,
-            antlersLength = antlersLength,
-            antlersInnerWidth = antlersInnerWidth,
-            antlerShaftWidth = antlerShaftWidth,
-            notEdible = notEdible,
-            alone = alone,
-            additionalInfo = additionalInfo,
+internal fun HarvestSpecimenDTO.toHarvestSpecimen() : CommonHarvestSpecimen {
+    return CommonHarvestSpecimen(
+        id = id,
+        rev = rev,
+        gender = gender.toBackendEnum(),
+        age = age.toBackendEnum(),
+        weight = weight,
+        weightEstimated = weightEstimated,
+        weightMeasured = weightMeasured,
+        fitnessClass = fitnessClass.toBackendEnum(),
+        antlersLost = antlersLost,
+        antlersType = antlersType.toBackendEnum(),
+        antlersWidth = antlersWidth,
+        antlerPointsLeft = antlerPointsLeft,
+        antlerPointsRight = antlerPointsRight,
+        antlersGirth = antlersGirth,
+        antlersLength = antlersLength,
+        antlersInnerWidth = antlersInnerWidth,
+        antlerShaftWidth = antlerShaftWidth,
+        notEdible = notEdible,
+        alone = alone,
+        additionalInfo = additionalInfo,
     )
 }

@@ -1,20 +1,41 @@
 package fi.riista.common.domain.groupHunting.ui.huntingDays.modify
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.constants.isMoose
 import fi.riista.common.domain.groupHunting.GroupHuntingDayUpdateResponse
 import fi.riista.common.domain.groupHunting.dto.GroupHuntingMethodTypeDTO
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDay
+import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
+import fi.riista.common.domain.groupHunting.model.GroupHuntingMethodType
+import fi.riista.common.domain.groupHunting.model.HuntingGroup
+import fi.riista.common.domain.groupHunting.model.HuntingGroupId
+import fi.riista.common.domain.groupHunting.model.HuntingGroupPermit
 import fi.riista.common.domain.groupHunting.validation.GroupHuntingDayValidator.Error
 import fi.riista.common.domain.groupHunting.validation.validate
 import fi.riista.common.logging.getLogger
-import fi.riista.common.model.*
+import fi.riista.common.model.BackendEnum
+import fi.riista.common.model.Entity
+import fi.riista.common.model.HoursAndMinutes
+import fi.riista.common.model.LocalDateTime
+import fi.riista.common.model.LocalTime
+import fi.riista.common.model.Revision
+import fi.riista.common.model.changeDate
+import fi.riista.common.model.minus
+import fi.riista.common.model.plus
+import fi.riista.common.model.toBackendEnum
 import fi.riista.common.resources.RR
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.HasUnreproducibleState
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.DataFieldProducer
+import fi.riista.common.ui.dataField.DataFieldProducerProxy
+import fi.riista.common.ui.dataField.DateAndTimeField
+import fi.riista.common.ui.dataField.EnumStringListFieldFactory
+import fi.riista.common.ui.dataField.FieldRequirement
+import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.Padding
+import fi.riista.common.ui.dataField.SelectDurationField
 import fi.riista.common.ui.intent.IntentHandler
 import fi.riista.common.util.LocalDateTimeProvider
 import kotlinx.serialization.Serializable
@@ -38,7 +59,6 @@ abstract class ModifyGroupHuntingDayController(
     protected var restoredHuntingDay: GroupHuntingDay? = null
 
     init {
-        ensureNeverFrozen()
         initializeDataFieldProducers()
     }
 

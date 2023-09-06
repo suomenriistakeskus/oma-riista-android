@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PoiFilter(val poiFilterType: PoiFilterType) {
 
-    enum class PoiFilterType() {
+    enum class PoiFilterType {
         ALL,
         SIGHTING_PLACE,
         MINERAL_LICK,

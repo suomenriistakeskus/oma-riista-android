@@ -1,6 +1,5 @@
 package fi.riista.common.domain.training.ui
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.training.TrainingContext
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.localized
@@ -13,10 +12,6 @@ class ListTrainingsController(
     private val trainingContext: TrainingContext,
     private val stringProvider: StringProvider,
 ) : ControllerWithLoadableModel<ListTrainingsViewModel>() {
-
-    init {
-        ensureNeverFrozen()
-    }
 
     override fun createLoadViewModelFlow(refresh: Boolean): Flow<ViewModelLoadStatus<ListTrainingsViewModel>> = flow {
         emit(ViewModelLoadStatus.Loading)

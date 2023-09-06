@@ -1,0 +1,83 @@
+-- sqlite does not allow adding total_specimen_amount column between other columns.
+-- create DbSrvaEvent from fresh and copy data
+
+ALTER TABLE DbSrvaEvent RENAME TO DbSrvaEvent_old;
+
+CREATE TABLE DbSrvaEvent (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER,
+    rev INTEGER,
+    mobile_client_ref_id INTEGER,
+    spec_version INTEGER AS Int NOT NULL,
+    state TEXT,
+    rhy_id INTEGER AS Int,
+    can_edit INTEGER AS Boolean NOT NULL,
+    modified INTEGER AS Boolean NOT NULL,
+    deleted INTEGER AS Boolean NOT NULL,
+
+    point_of_time TEXT NOT NULL,
+
+    author_id INTEGER,
+    author_rev INTEGER,
+    author_by_name TEXT,
+    author_last_name TEXT,
+
+    approver_first_name TEXT,
+    approver_last_name TEXT,
+
+    game_species_code INTEGER AS Int,
+    other_species_description TEXT,
+    total_specimen_amount INTEGER AS Int,
+    specimens TEXT,
+
+    event_category TEXT,
+    deportation_order_number TEXT,
+    event_type TEXT,
+    other_event_type_description TEXT,
+    event_type_detail TEXT,
+    other_event_type_detail_description TEXT,
+    event_result TEXT,
+    event_result_detail TEXT,
+    methods TEXT,
+    other_method_description TEXT,
+
+    person_count INTEGER AS Int NOT NULL,
+    hours_spent INTEGER AS Int NOT NULL,
+    description TEXT,
+
+    local_images TEXT,
+    remote_images TEXT,
+
+    -- GeoLocation
+    location_latitude INTEGER AS Int NOT NULL,
+    location_longitude INTEGER AS Int NOT NULL,
+    location_source TEXT,
+    location_accuracy REAL,
+    location_altitude REAL,
+    location_altitudeAccuracy REAL
+);
+
+
+-- drop the index now and create it again for the newly created table
+DROP INDEX srva_event_remote_id_unique;
+CREATE UNIQUE INDEX srva_event_remote_id_unique ON DbSrvaEvent(username, remote_id);
+
+-- copy data from old table
+INSERT INTO DbSrvaEvent
+    (username, remote_id, rev, mobile_client_ref_id, spec_version, state, rhy_id, can_edit, modified, deleted,
+    point_of_time, author_id, author_rev, author_by_name, author_last_name, approver_first_name, approver_last_name,
+    game_species_code, other_species_description, specimens, event_category, deportation_order_number, event_type,
+    other_event_type_description, event_type_detail, other_event_type_detail_description, event_result,
+    event_result_detail, methods, other_method_description, person_count, hours_spent, description, local_images,
+    remote_images, location_latitude, location_longitude, location_source, location_accuracy, location_altitude,
+    location_altitudeAccuracy)
+SELECT username, remote_id, rev, mobile_client_ref_id, spec_version, state, rhy_id, can_edit, modified, deleted,
+    point_of_time, author_id, author_rev, author_by_name, author_last_name, approver_first_name, approver_last_name,
+    game_species_code, other_species_description, specimens, event_category, deportation_order_number, event_type,
+    other_event_type_description, event_type_detail, other_event_type_detail_description, event_result,
+    event_result_detail, methods, other_method_description, person_count, hours_spent, description, local_images,
+    remote_images, location_latitude, location_longitude, location_source, location_accuracy, location_altitude,
+    location_altitudeAccuracy FROM DbSrvaEvent_old;
+
+DROP TABLE DbSrvaEvent_old;

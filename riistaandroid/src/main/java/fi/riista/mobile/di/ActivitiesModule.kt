@@ -9,6 +9,7 @@ import fi.riista.mobile.activity.ShootingTestMainActivity
 import fi.riista.mobile.feature.harvest.HarvestActivity
 import fi.riista.mobile.feature.login.LoginActivity
 import fi.riista.mobile.feature.observation.ObservationActivity
+import fi.riista.mobile.feature.srva.SrvaActivity
 import fi.riista.mobile.feature.unregister.UnregisterUserAccountActivity
 
 @Module
@@ -28,7 +29,11 @@ abstract class ActivitiesModule {
 
     @ActivityScope
     @ContributesAndroidInjector
-    abstract fun bindHarvestActivity2(): HarvestActivity
+    abstract fun bindHarvestActivity(): HarvestActivity
+
+    @ActivityScope
+    @ContributesAndroidInjector
+    abstract fun bindSrvaActivity(): SrvaActivity
 
     @ActivityScope
     @ContributesAndroidInjector

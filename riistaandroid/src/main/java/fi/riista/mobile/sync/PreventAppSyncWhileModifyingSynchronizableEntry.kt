@@ -20,7 +20,7 @@ class PreventAppSyncWhileModifyingSynchronizableEntry private constructor(
                 if (it == null) {
                     // restore appsync possibility just to make sure holding weak reference doesn't
                     // break stuff
-                    appSync.enableSyncPrecondition(AppSync.SyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
+                    appSync.enableSyncPrecondition(AppSyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
                 }
             }
         }
@@ -34,7 +34,7 @@ class PreventAppSyncWhileModifyingSynchronizableEntry private constructor(
 
         if (observedFragment == f) {
             logger.v { "Fragment ${f.tag} view created, preventing appsync" }
-            appSync.disableSyncPrecondition(AppSync.SyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
+            appSync.disableSyncPrecondition(AppSyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
         }
     }
 
@@ -43,7 +43,7 @@ class PreventAppSyncWhileModifyingSynchronizableEntry private constructor(
 
         if (observedFragment == f) {
             logger.v { "Fragment ${f.tag} view destroyed, allowing appsync" }
-            appSync.enableSyncPrecondition(AppSync.SyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
+            appSync.enableSyncPrecondition(AppSyncPrecondition.USER_IS_NOT_MODIFYING_SYNCHRONIZABLE_ENTRY)
         }
     }
 }

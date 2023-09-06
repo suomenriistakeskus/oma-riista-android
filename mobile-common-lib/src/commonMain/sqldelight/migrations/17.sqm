@@ -1,0 +1,1 @@
+ALTER TABLE DbHarvest ADD COLUMN selected_club_id INTEGER REFERENCES DbOrganization(organization_remote_id);

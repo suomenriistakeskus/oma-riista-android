@@ -8,9 +8,6 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -22,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.fragment.app.setFragmentResultListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.location.LocationListener
 import com.google.android.gms.maps.GoogleMap
@@ -29,9 +27,14 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.maps.android.clustering.Cluster
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.harvest.ui.list.ListCommonHarvestsController
+import fi.riista.common.domain.harvest.ui.settings.showActorSelection
+import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.observation.ui.list.ListCommonObservationsController
 import fi.riista.common.domain.poi.ui.PoiController
 import fi.riista.common.domain.poi.ui.PoiFilter
 import fi.riista.common.domain.poi.ui.PoiViewModel
+import fi.riista.common.domain.srva.ui.list.ListCommonSrvaEventsController
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
 import fi.riista.common.resources.StringProvider
@@ -59,6 +62,9 @@ import fi.riista.mobile.ui.GameLogFilterView
 import fi.riista.mobile.ui.GameLogFilterView.GameLogFilterListener
 import fi.riista.mobile.ui.MapOverlayView
 import fi.riista.mobile.ui.MapOverlayView.MapViewerInterface
+import fi.riista.mobile.ui.OwnHarvestsMenuProvider
+import fi.riista.mobile.ui.SettingsMenuProvider
+import fi.riista.mobile.ui.updateBasedOnViewModel
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.AppPreferences.MapLocation
 import fi.riista.mobile.utils.CacheClearTracker.shouldClearBackgroundCache
@@ -110,6 +116,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     private lateinit var model: GameLogViewModel
     private var enableMarkers = false
     private val markerItemsCache: MutableMap<String, MutableList<MapMarkerItem>> = HashMap()
+    private lateinit var forOthersTextView: TextView
 
     private var enablePois = false
     private var poiController: PoiController? = null
@@ -118,9 +125,34 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     private val disposeBag = DisposeBag()
     private var poiViewModel: PoiViewModel? = null
     private lateinit var stringProvider: StringProvider
-    private val srvaEventProvider = RiistaSDK.srvaContext.srvaEventProvider
-    private val observationProvider = RiistaSDK.observationContext.observationProvider
-    private val harvestProvider = RiistaSDK.harvestContext.harvestProvider
+
+    private val settingsMenuProvider by lazy {
+        SettingsMenuProvider {
+            val intent = Intent(context, MapSettingsActivity::class.java)
+            startActivity(intent)
+            true
+        }
+    }
+    private val ownHarvestsMenuProvider by lazy {
+        OwnHarvestsMenuProvider {
+            toggleOwnHarvests()
+            true
+        }
+    }
+    private val listSrvaEventsController = ListCommonSrvaEventsController(
+        metadataProvider = RiistaSDK.metadataProvider,
+        srvaContext = RiistaSDK.srvaContext,
+        listOnlySrvaEventsWithImages = false,
+    )
+    private val listObservationsController = ListCommonObservationsController(
+        metadataProvider = RiistaSDK.metadataProvider,
+        observationContext = RiistaSDK.observationContext,
+        listOnlyObservationsWithImages = false,
+    )
+    private val listHarvestsController = ListCommonHarvestsController(
+        harvestContext = RiistaSDK.harvestContext,
+        listOnlyHarvestsWithImages = false,
+    )
 
     private val poiResultLaunch = PoiLocationActivity.registerForActivityResult(this) { location ->
         centerMapTo(location)
@@ -228,15 +260,14 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             filterView.setupSeasons(model.getSeasons().value, model.getSeasonSelected().value)
             filterView.setupSpecies(model.getSpeciesSelected().value!!, model.getCategorySelected().value)
         }
+        model.isOwnHarvests().observe(viewLifecycleOwner) { ownHarvests ->
+            ownHarvestsMenuProvider.setOwnHarvests(ownHarvests)
+        }
+        filterView.updateBasedOnViewModel(model, viewLifecycleOwner)
+
         model.getTypeSelected().observe(viewLifecycleOwner) { populateMarkerItems() }
+        model.getSpeciesSelected().observe(viewLifecycleOwner) { populateMarkerItems() }
         model.getSeasonSelected().observe(viewLifecycleOwner) { populateMarkerItems() }
-        model.getSpeciesSelected().observe(viewLifecycleOwner) { speciesIds: List<Int?>? ->
-            filterView.setupSpecies(speciesIds!!, model.getCategorySelected().value)
-            populateMarkerItems()
-        }
-        model.getSeasons().observe(viewLifecycleOwner) { seasons ->
-            filterView.setupSeasons(seasons, model.getSeasonSelected().value)
-        }
 
         if (enablePois) {
             val externalId = AppPreferences.getSelectedClubAreaMapId(requireContext())
@@ -245,8 +276,15 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         savedInstanceState?.let {
             poiController?.restoreFromBundle(it, CONTROLLER_STATE_PREFIX)
         }
+        forOthersTextView = view.findViewById(R.id.tv_showing_harvest_for_others)
         setupActionBar()
         setupActionButtons()
+
+        requireActivity().addMenuProvider(ownHarvestsMenuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        requireActivity().addMenuProvider(settingsMenuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        ownHarvestsMenuProvider.setOwnHarvests(model.isOwnHarvests().value ?: true)
+        updateOwnHarvestVisibility()
+
         return view
     }
 
@@ -274,7 +312,6 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             displayMarkersButton.visibility = View.GONE
             displayMarkersTitle.visibility = View.GONE
         }
-        setHasOptionsMenu(true)
     }
 
     private fun setupMarkerButton() {
@@ -286,21 +323,6 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
             displayMarkersTitle.text = getString(R.string.map_show_markers)
             filterView.visibility = View.GONE
             displayMarkersButton.setImageResource(R.drawable.ic_pin_enabled_white)
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_settings, menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.item_settings -> {
-                val intent = Intent(context, MapSettingsActivity::class.java)
-                startActivity(intent)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -354,6 +376,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         mapView?.setShowRhyBordersLayer(AppPreferences.getShowRhyBorders(context))
         mapView?.setShowValtionmaatLayer(AppPreferences.getShowValtionmaat(context))
         mapView?.setShowGameTrianglesLayer(AppPreferences.getShowGameTriangles(context))
+        mapView?.setShowLeadShotBanLayer(AppPreferences.getShowLeadShotBan(context))
         mapView?.setShowMooseRestrictionsLayer(AppPreferences.getShowMooseRestrictions(context))
         mapView?.setShowSmallGameRestrictionsLayer(AppPreferences.getShowSmallGameRestrictions(context))
         mapView?.setShowAviHuntingBanLayer(AppPreferences.getShowAviHuntingBan(context))
@@ -392,30 +415,30 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 }
             }
         }?.disposeBy(disposeBag)
-        srvaEventProvider.loadStatus.bind { status ->
+        listSrvaEventsController.viewModelLoadStatus.bind { loadStatus ->
             val type = model.getTypeSelected().value
-            if (status.loaded && type == GameLog.TYPE_SRVA) {
+            if (loadStatus is ViewModelLoadStatus.Loaded && type == GameLog.TYPE_SRVA) {
                 populateMarkerItems()
             }
         }.disposeBy(disposeBag)
-        harvestProvider.loadStatus.bind { status ->
+        listHarvestsController.viewModelLoadStatus.bind { loadStatus ->
             val type = model.getTypeSelected().value
-            if (status.loaded && type == GameLog.TYPE_HARVEST) {
+            if (loadStatus is ViewModelLoadStatus.Loaded && type == GameLog.TYPE_HARVEST) {
                 populateMarkerItems()
             }
         }.disposeBy(disposeBag)
-        observationProvider.loadStatus.bind { status ->
+        listObservationsController.viewModelLoadStatus.bind { loadStatus ->
             val type = model.getTypeSelected().value
-            if (status.loaded && type == GameLog.TYPE_OBSERVATION) {
+            if (loadStatus is ViewModelLoadStatus.Loaded && type == GameLog.TYPE_OBSERVATION) {
                 populateMarkerItems()
             }
         }.disposeBy(disposeBag)
 
+        updateFilters()
         loadPoisIfNotLoaded()
-        loadSrvasIfNotLoaded()
-        loadObservationsIfNotLoaded()
-        loadHarvestsIfNotLoaded()
-
+        ensureCorrectOwnHarvestsStatus()
+        updateOwnHarvestVisibility()
+        updateForOthersTextVisibility()
         super.onResume()
     }
 
@@ -426,21 +449,29 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
     }
 
     private fun loadSrvasIfNotLoaded() {
+        if (listSrvaEventsController.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            return
+        }
         MainScope().launch {
-            // If a srva event has been edited then provider will force refresh
-            srvaEventProvider.fetch(refresh = false)
+            listSrvaEventsController.loadViewModel(refresh = true)
         }
     }
 
     private fun loadObservationsIfNotLoaded() {
+        if (listObservationsController.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            return
+        }
         MainScope().launch {
-            observationProvider.fetch(refresh = false)
+            listObservationsController.loadViewModel(refresh = true)
         }
     }
 
     private fun loadHarvestsIfNotLoaded() {
+        if (listHarvestsController.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            return
+        }
         MainScope().launch {
-            harvestProvider.fetch(refresh = false)
+            listHarvestsController.loadViewModel(refresh = true)
         }
     }
 
@@ -536,6 +567,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         mapView?.setShowRhyBordersLayer(AppPreferences.getShowRhyBorders(context))
         mapView?.setShowValtionmaatLayer(AppPreferences.getShowValtionmaat(context))
         mapView?.setShowGameTrianglesLayer(AppPreferences.getShowGameTriangles(context))
+        mapView?.setShowLeadShotBanLayer(AppPreferences.getShowLeadShotBan(context))
         mapView?.setShowMooseRestrictionsLayer(AppPreferences.getShowMooseRestrictions(context))
         mapView?.setShowSmallGameRestrictionsLayer(AppPreferences.getShowSmallGameRestrictions(context))
         mapView?.setShowAviHuntingBanLayer(AppPreferences.getShowAviHuntingBan(context))
@@ -643,17 +675,23 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
 
     private fun navigateToLogItem(mapMarkerItem: MapMarkerItem) {
         when (mapMarkerItem.type) {
-            GameLog.TYPE_HARVEST -> harvestProvider.getByLocalId(mapMarkerItem.localId)?.let { harvest ->
-                val intent = HarvestActivity.getLaunchIntentForViewing(requireActivity(), harvest)
-                harvestActivityResultLaunch.launch(intent)
+            GameLog.TYPE_HARVEST -> {
+                listHarvestsController.getLoadedViewModelOrNull()?.getByLocalId(mapMarkerItem.localId)?.let { harvest ->
+                    val intent = HarvestActivity.getLaunchIntentForViewing(requireActivity(), harvest)
+                    harvestActivityResultLaunch.launch(intent)
+                }
             }
-            GameLog.TYPE_OBSERVATION -> observationProvider.getByLocalId(mapMarkerItem.localId)?.let { observation ->
-                val intent = ObservationActivity.getLaunchIntentForViewing(requireActivity(), observation)
-                observationActivityResultLaunch.launch(intent)
+            GameLog.TYPE_OBSERVATION -> {
+                listObservationsController.getLoadedViewModelOrNull()?.getByLocalId(mapMarkerItem.localId)?.let { observation ->
+                    val intent = ObservationActivity.getLaunchIntentForViewing(requireActivity(), observation)
+                    observationActivityResultLaunch.launch(intent)
+                }
             }
-            GameLog.TYPE_SRVA -> srvaEventProvider.getByLocalId(mapMarkerItem.localId)?.let { srvaEvent ->
-                val intent = SrvaActivity.getLaunchIntentForViewing(requireActivity(), srvaEvent)
-                srvaActivityResultLaunch.launch(intent)
+            GameLog.TYPE_SRVA -> {
+                listSrvaEventsController.getLoadedViewModelOrNull()?.getByLocalId(mapMarkerItem.localId)?.let { srvaEvent ->
+                    val intent = SrvaActivity.getLaunchIntentForViewing(requireActivity(), srvaEvent)
+                    srvaActivityResultLaunch.launch(intent)
+                }
             }
             GameLog.TYPE_POI -> {
                 val poiGroupAndLocation = poiController?.findPoiLocationAndItsGroup(mapMarkerItem.localId)
@@ -686,8 +724,8 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
         clusterManager?.clearItems()
         when (Objects.requireNonNull(model.getTypeSelected().value)) {
             GameLog.TYPE_HARVEST -> {
-                harvestProvider.harvests?.let { harvests ->
-                    for (harvest in model.filterHarvestsWithCurrent(harvests)) {
+                listHarvestsController.getLoadedViewModelOrNull()?.filteredHarvests?.let { harvests ->
+                    for (harvest in harvests) {
                         harvest.localId?.let { localId ->
                             val location = harvest.geoLocation.toLocation()
                             val item = MapMarkerItem(
@@ -703,8 +741,8 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 clusterManager?.cluster()
             }
             GameLog.TYPE_OBSERVATION -> {
-                observationProvider.observations?.let { observations ->
-                    for (observation in model.filterObservationsWithCurrent(observations)) {
+                listObservationsController.getLoadedViewModelOrNull()?.filteredObservations?.let { observations ->
+                    for (observation in observations) {
                         observation.localId?.let { localId ->
                             val location = observation.location.toLocation()
                             val item = MapMarkerItem(
@@ -720,8 +758,8 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 }
             }
             GameLog.TYPE_SRVA -> {
-                srvaEventProvider.srvaEvents?.let { events ->
-                    for (srva in model.filterSrvasWithCurrent(events)) {
+                listSrvaEventsController.getLoadedViewModelOrNull()?.filteredSrvaEvents?.let { srvaEvents ->
+                    for (srva in srvaEvents) {
                         srva.localId?.let { localId ->
                             val location = srva.location.toLocation()
                             val item = MapMarkerItem(
@@ -765,6 +803,7 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
 
     override fun onLogTypeSelected(type: String) {
         model.selectLogType(type)
+        updateOwnHarvestVisibility()
 
         if (type == GameLog.TYPE_POI) {
             poiFilterButton.visibility = View.VISIBLE
@@ -783,14 +822,46 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
 
     override fun onLogSeasonSelected(season: Int) {
         model.selectLogSeason(season)
+        updateFilters()
     }
 
     override fun onLogSpeciesSelected(speciesIds: List<Int>) {
         model.selectSpeciesIds(speciesIds)
+        updateFilters()
     }
 
     override fun onLogSpeciesCategorySelected(categoryId: Int) {
         model.selectSpeciesCategory(categoryId)
+        updateFilters()
+    }
+
+    private fun updateFilters() {
+        val ownHarvest = model.isOwnHarvests().value ?: true
+        val huntingYear = model.getSeasonSelected().value ?: return
+        val species = model.getSpeciesSelected().value?.map { speciesCode ->
+            if (speciesCode == null) {
+                 Species.Other
+            } else {
+                Species.Known(speciesCode)
+            }
+        } ?: emptyList()
+
+        when (model.getTypeSelected().value) {
+            GameLog.TYPE_HARVEST -> {
+                MainScope().launch {
+                    loadHarvestsIfNotLoaded()
+                    listHarvestsController.setFilters(ownHarvest, huntingYear, species)
+                }
+            }
+            GameLog.TYPE_OBSERVATION -> {
+                loadObservationsIfNotLoaded()
+                listObservationsController.setFilters(huntingYear, species)
+            }
+            GameLog.TYPE_SRVA -> {
+                loadSrvasIfNotLoaded()
+                listSrvaEventsController.setFilters(huntingYear, species)
+            }
+        }
     }
 
     override fun centerMapTo(location: Location) {
@@ -835,6 +906,39 @@ class MapViewer : DetailsPageFragment(), LocationListener, OnMapReadyCallback, G
                 loadSrvasIfNotLoaded()
             }
         }
+    }
+
+    private fun toggleOwnHarvests() {
+        MainScope().launch {
+            val previousOwnHarvests = model.isOwnHarvests().value ?: true
+            model.setOwnHarvests(!previousOwnHarvests)
+            listHarvestsController.setOwnHarvestsFilter(!previousOwnHarvests)
+            ownHarvestsMenuProvider.setOwnHarvests(!previousOwnHarvests)
+            updateForOthersTextVisibility()
+        }
+    }
+
+    private fun updateOwnHarvestVisibility() {
+        val showOwnHarvestsToggle = RiistaSDK.preferences.showActorSelection() &&
+                model.getTypeSelected().value == GameLog.TYPE_HARVEST
+        ownHarvestsMenuProvider.setVisibility(showOwnHarvestsToggle)
+    }
+
+    private fun ensureCorrectOwnHarvestsStatus() {
+        // If actor selection is disabled then make sure that own harvests are selected in model
+        if (!RiistaSDK.preferences.showActorSelection() && model.isOwnHarvests().value == false) {
+            MainScope().launch {
+                model.setOwnHarvests(true)
+                listHarvestsController.setOwnHarvestsFilter(true)
+                ownHarvestsMenuProvider.setOwnHarvests(true)
+                updateForOthersTextVisibility()
+            }
+        }
+    }
+
+    private fun updateForOthersTextVisibility() {
+        val ownHarvests = model.isOwnHarvests().value ?: true
+        forOthersTextView.visibility = (!ownHarvests).toVisibility()
     }
 
     companion object {

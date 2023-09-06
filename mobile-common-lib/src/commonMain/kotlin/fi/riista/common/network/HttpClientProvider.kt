@@ -1,18 +1,21 @@
 package fi.riista.common.network
 
 import fi.riista.common.RiistaSdkConfiguration
-import io.ktor.client.*
-import io.ktor.client.features.cookies.*
-import io.ktor.client.request.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.client.request.header
 
 internal expect class HttpClientProvider() {
-    fun getConfiguredHttpClient(sdkConfiguration: RiistaSdkConfiguration,
-                                cookiesStorage: CookiesStorage): HttpClient
+    fun getConfiguredHttpClient(
+        sdkConfiguration: RiistaSdkConfiguration,
+        cookiesStorage: CookiesStorage,
+    ): HttpClient
 }
 
 @Suppress("unused") // having HttpClientProvider as receiver provides better scoping
 internal fun HttpClientProvider.configureDefaultRequest(
-    requestBuilder: HttpRequestBuilder,
+    requestBuilder: DefaultRequest.DefaultRequestBuilder,
     sdkConfiguration: RiistaSdkConfiguration
 ) {
     requestBuilder.header("mobileClientVersion", sdkConfiguration.versionInfo.appVersion)

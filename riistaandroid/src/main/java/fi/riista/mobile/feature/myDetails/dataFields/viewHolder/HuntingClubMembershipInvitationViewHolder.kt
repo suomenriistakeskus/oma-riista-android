@@ -6,7 +6,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingclub.invitations.model.HuntingClubMemberInvitationId
 import fi.riista.common.domain.huntingclub.ui.HuntingClubViewModel
 import fi.riista.mobile.R
 

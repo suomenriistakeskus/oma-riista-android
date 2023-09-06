@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import fi.riista.common.RiistaSDK
 import fi.riista.common.util.letWith
@@ -34,7 +35,7 @@ class GalleryAdapter(private var context: Context?)
         val viewBtn: ImageButton = view.findViewById(R.id.gallery_item_view_btn)
     }
 
-    private var dataSet = ArrayList<GalleryItem>()
+    private var dataSet: List<GalleryItem> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -57,13 +58,13 @@ class GalleryAdapter(private var context: Context?)
             else -> null
         }
 
+        val context = context ?: return
+
         val icon: Drawable? = iconResId?.let {
-            context?.resources?.getDrawable(it)
+            ContextCompat.getDrawable(context, it)
         }?.apply {
-            context?.resources?.getColor(R.color.colorPrimary)?.let {
-                // Tint white vector asset to green.
-                setTint(it)
-            }
+            // Tint white vector asset to green.
+            setTint(ContextCompat.getColor(context, R.color.colorPrimary))
         }
 
         holder.image.setOnClickListener { viewImageFull(item) }
@@ -76,7 +77,7 @@ class GalleryAdapter(private var context: Context?)
         return this.dataSet.size
     }
 
-    fun setDataSet(dataSet: ArrayList<GalleryItem>) {
+    fun setDataSet(dataSet: List<GalleryItem>) {
         this.dataSet = dataSet
 
         notifyDataSetChanged()
@@ -84,54 +85,24 @@ class GalleryAdapter(private var context: Context?)
 
     private fun openLogItem(item: GalleryItem) {
         when (item.type) {
-            GameLog.TYPE_HARVEST -> {
-                val harvestProvider = RiistaSDK.harvestContext.harvestProvider
-                if (harvestProvider.harvests.isNullOrEmpty()) {
-                    MainScope().launch {
-                        harvestProvider.fetch(true)
-                        displayHarvest(item.id)
-                    }
-                } else {
-                    displayHarvest(item.id)
-                }
-            }
-            GameLog.TYPE_OBSERVATION -> {
-                val observationProvider = RiistaSDK.observationContext.observationProvider
-                if (observationProvider.observations.isNullOrEmpty()) {
-                    MainScope().launch {
-                        observationProvider.fetch(true)
-                        displayObservation(item.id)
-                    }
-                } else {
-                    displayObservation(item.id)
-                }
-            }
-            GameLog.TYPE_SRVA -> {
-                val srvaEventProvider = RiistaSDK.srvaContext.srvaEventProvider
-                if (srvaEventProvider.srvaEvents.isNullOrEmpty()) {
-                    MainScope().launch {
-                        srvaEventProvider.fetch(true)
-                        displaySrvaEvent(item.id)
-                    }
-                } else {
-                    displaySrvaEvent(item.id)
-                }
-            }
+            GameLog.TYPE_HARVEST -> displayHarvest(item.id)
+            GameLog.TYPE_OBSERVATION -> displayObservation(item.id)
+            GameLog.TYPE_SRVA -> displaySrvaEvent(item.id)
         }
     }
 
     private fun displayHarvest(localId: Long) {
-        val harvestProvider = RiistaSDK.harvestContext.harvestProvider
-        harvestProvider.getByLocalId(localId)
-            ?.letWith(context) { harvest, context ->
-                val intent = HarvestActivity.getLaunchIntentForViewing(context, harvest)
-                context.startActivity(intent)
-            }
+        MainScope().launch {
+            RiistaSDK.harvestContext.getByLocalId(localId)
+                ?.letWith(context) { harvest, context ->
+                    val intent = HarvestActivity.getLaunchIntentForViewing(context, harvest)
+                    context.startActivity(intent)
+                }
+        }
     }
 
     private fun displayObservation(localId: Long) {
-        val observationProvider = RiistaSDK.observationContext.observationProvider
-        observationProvider.getByLocalId(localId)
+        RiistaSDK.observationContext.getByLocalId(localId)
             ?.letWith(context) { observation, context ->
                 val intent = ObservationActivity.getLaunchIntentForViewing(context, observation)
                 context.startActivity(intent)
@@ -139,8 +110,7 @@ class GalleryAdapter(private var context: Context?)
     }
 
     private fun displaySrvaEvent(localId: Long) {
-        val srvaEventProvider = RiistaSDK.srvaContext.srvaEventProvider
-        srvaEventProvider.getByLocalId(localId)
+        RiistaSDK.srvaContext.getByLocalId(localId)
             ?.letWith(context) { event, context ->
                 val intent = SrvaActivity.getLaunchIntentForViewing(context, event)
                 context.startActivity(intent)

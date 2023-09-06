@@ -2,13 +2,14 @@ package fi.riista.common.domain.huntingControl.ui.modify
 
 import fi.riista.common.domain.constants.Constants
 import fi.riista.common.domain.huntingControl.HuntingControlContext
-import fi.riista.common.domain.huntingControl.HuntingControlEventOperationResponse
 import fi.riista.common.domain.huntingControl.HuntingControlRhyContext
 import fi.riista.common.domain.huntingControl.model.HuntingControlEventData
 import fi.riista.common.domain.huntingControl.model.HuntingControlEventStatus
+import fi.riista.common.domain.huntingControl.model.HuntingControlGameWarden
 import fi.riista.common.domain.huntingControl.model.HuntingControlRhyTarget
-import fi.riista.common.domain.huntingControl.ui.HuntingControlEventIntent
+import fi.riista.common.domain.huntingControl.model.toHuntingControlEventInspector
 import fi.riista.common.domain.model.CommonLocation
+import fi.riista.common.domain.userInfo.UserContext
 import fi.riista.common.io.CommonFileProvider
 import fi.riista.common.logging.getLogger
 import fi.riista.common.model.BackendEnum
@@ -23,37 +24,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class CreateHuntingControlEventController(
-    private val huntingControlContext: HuntingControlContext,
-    private val huntingControlRhyTarget: HuntingControlRhyTarget,
     private val localDateTimeProvider: LocalDateTimeProvider,
+    private val huntingControlRhyTarget: HuntingControlRhyTarget,
     stringProvider: StringProvider,
+    huntingControlContext: HuntingControlContext,
     commonFileProvider: CommonFileProvider,
-) : ModifyHuntingControlEventController(stringProvider, commonFileProvider) {
+    userContext: UserContext,
+) : ModifyHuntingControlEventController(stringProvider, huntingControlContext, userContext, commonFileProvider, huntingControlRhyTarget) {
 
     constructor(
         huntingControlContext: HuntingControlContext,
         huntingControlRhyTarget: HuntingControlRhyTarget,
         stringProvider: StringProvider,
         commonFileProvider: CommonFileProvider,
-    ) : this(huntingControlContext, huntingControlRhyTarget, SystemDateTimeProvider(), stringProvider, commonFileProvider)
-
-    suspend fun createHuntingControlEvent(): HuntingControlEventOperationResponse {
-        val eventData = getLoadedViewModelOrNull()?.event ?: kotlin.run {
-            logger.w { "Failed to obtain hunting control event from viewModel in order to create it" }
-            return HuntingControlEventOperationResponse.Error
-        }
-
-        val rhyContext = huntingControlContext.findRhyContext(
-            identifiesRhy = huntingControlRhyTarget,
-        ) ?: kotlin.run {
-            logger.w { "Failed to fetch the RHY (id: ${huntingControlRhyTarget.rhyId})" }
-            return HuntingControlEventOperationResponse.Error
-        }
-
-        moveAttachmentsToAttachmentsDirectory()
-
-        return rhyContext.createHuntingControlEvent(eventData)
-    }
+        userContext: UserContext,
+    ) : this(SystemDateTimeProvider(), huntingControlRhyTarget, stringProvider, huntingControlContext, commonFileProvider, userContext)
 
     override fun createLoadViewModelFlow(
         refresh: Boolean,
@@ -68,22 +53,17 @@ class CreateHuntingControlEventController(
             return@flow
         }
 
-        rhyContext.fetchAllData(refresh = refresh)
-        val events = rhyContext.huntingControlEvents
-        val gameWardens = rhyContext.gameWardens
+        val gameWardens = rhyContext.fetchGameWardens()
 
-        if (events != null && gameWardens != null) {
-            val event = restoredEvent ?: createEmptyHuntingControlEvent(rhyContext)
+        val event = restoredEvent ?: createEmptyHuntingControlEvent(rhyContext, gameWardens)
 
-            val viewModel = createViewModel(
-                event = event,
-                allGameWardens = gameWardens,
-            ).applyPendingIntents()
+        val viewModel = createViewModel(
+            event = event,
+            allGameWardens = gameWardens,
+            selfInspectorWarning = false,
+        ).applyPendingIntents()
 
-            emit(ViewModelLoadStatus.Loaded(viewModel))
-        } else {
-            emit(ViewModelLoadStatus.LoadFailed)
-        }
+        emit(ViewModelLoadStatus.Loaded(viewModel))
     }
 
     fun canMoveEventToCurrentUserLocation(): Boolean {
@@ -109,7 +89,7 @@ class CreateHuntingControlEventController(
         }
 
         handleIntent(
-            HuntingControlEventIntent.ChangeLocation(
+            ModifyHuntingControlEventIntent.ChangeLocation(
                 newLocation = location,
                 locationChangedAfterUserInteraction = false
             )
@@ -117,7 +97,12 @@ class CreateHuntingControlEventController(
         return true
     }
 
-    private fun createEmptyHuntingControlEvent(rhyContext: HuntingControlRhyContext): HuntingControlEventData {
+    private fun createEmptyHuntingControlEvent(
+        rhyContext: HuntingControlRhyContext,
+        gameWardens: List<HuntingControlGameWarden>,
+    ): HuntingControlEventData {
+        val userId = userContext.userInformation?.id
+        val userAsGameWarden = userId?.let { gameWardens.firstOrNull { it.remoteId == userId } }
         return HuntingControlEventData(
             localId = null,
             remoteId = null,
@@ -126,7 +111,7 @@ class CreateHuntingControlEventController(
             rhyId = rhyContext.rhyId,
             eventType = BackendEnum.create(null),
             status = BackendEnum.create(HuntingControlEventStatus.PROPOSED),
-            inspectors = listOf(),
+            inspectors = listOfNotNull(userAsGameWarden?.toHuntingControlEventInspector()),
             cooperationTypes = listOf(),
             otherParticipants = null,
             location = CommonLocation.Unknown,

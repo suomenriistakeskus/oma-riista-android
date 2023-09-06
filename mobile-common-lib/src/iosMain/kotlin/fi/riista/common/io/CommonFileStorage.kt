@@ -192,6 +192,7 @@ actual object CommonFileStorage : CommonFileProvider {
                 CommonFileProvider.Directory.TEMPORARY_FILES -> {
                     return fileManager.temporaryDirectory.path
                 }
+                CommonFileProvider.Directory.LOCAL_IMAGES -> "images"
             }
 
             return if (filesDir != null) {

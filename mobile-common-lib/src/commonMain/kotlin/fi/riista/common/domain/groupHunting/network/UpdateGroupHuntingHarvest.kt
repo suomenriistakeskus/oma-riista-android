@@ -5,8 +5,11 @@ import fi.riista.common.network.NetworkClient
 import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.util.serializeToJson
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.accept
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 internal class UpdateGroupHuntingHarvest(
     private val harvest: GroupHuntingHarvestDTO
@@ -25,7 +28,7 @@ internal class UpdateGroupHuntingHarvest(
                     put(urlString = "${client.serverBaseAddress}/api/mobile/v2/grouphunting/harvest/$harvestId") {
                         accept(ContentType.Application.Json)
                         contentType(ContentType.Application.Json)
-                        body = payload
+                        setBody(body = payload)
                     }
                 },
                 configureResponseHandler = {

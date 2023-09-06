@@ -1,0 +1,50 @@
+CREATE TABLE DbHarvest (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER,
+    rev INTEGER AS Int,
+    mobile_client_ref_id INTEGER,
+
+    can_edit INTEGER AS Boolean NOT NULL,
+    modified INTEGER AS Boolean NOT NULL,
+    deleted INTEGER AS Boolean NOT NULL,
+
+    spec_version INTEGER AS Int NOT NULL,
+    game_species_code INTEGER AS Int,
+
+    specimens TEXT,
+    amount INTEGER AS Int NOT NULL,
+
+    point_of_time TEXT NOT NULL,
+    description TEXT,
+
+    harvest_report_done INTEGER AS Boolean NOT NULL,
+    harvest_report_required INTEGER AS Boolean NOT NULL,
+    harvest_report_state TEXT,
+    rejected INTEGER AS Boolean NOT NULL,
+
+    permit_number TEXT,
+    permit_type TEXT,
+
+    state_accepted_to_harvest_permit TEXT,
+    deer_hunting_type TEXT,
+    deer_hunting_other_type_description TEXT,
+    feeding_place INTEGER AS Boolean,
+    taigaBeanGoose INTEGER AS Boolean,
+    grey_seal_hunting_method TEXT,
+
+    local_images TEXT,
+    remote_images TEXT,
+    has_new_images INTEGER AS Boolean NOT NULL,
+
+    -- GeoLocation
+    location_latitude INTEGER AS Int NOT NULL,
+    location_longitude INTEGER AS Int NOT NULL,
+    location_source TEXT,
+    location_accuracy REAL,
+    location_altitude REAL,
+    location_altitudeAccuracy REAL
+
+);
+
+CREATE UNIQUE INDEX harvest_remote_id_unique ON DbHarvest(username, remote_id);

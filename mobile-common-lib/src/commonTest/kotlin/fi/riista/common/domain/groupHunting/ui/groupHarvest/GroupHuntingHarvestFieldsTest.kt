@@ -6,9 +6,12 @@ import fi.riista.common.domain.groupHunting.dto.GroupHuntingHarvestDTO
 import fi.riista.common.domain.groupHunting.dto.toGroupHuntingHarvest
 import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
 import fi.riista.common.domain.groupHunting.model.HuntingGroupMember
-import fi.riista.common.domain.groupHunting.model.toGroupHuntingHarvestData
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
-import fi.riista.common.domain.model.*
+import fi.riista.common.domain.groupHunting.model.toCommonHarvestData
+import fi.riista.common.domain.harvest.model.CommonHarvestSpecimen
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
+import fi.riista.common.domain.model.DeerHuntingType
+import fi.riista.common.domain.model.GameAge
+import fi.riista.common.domain.model.Gender
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.ui.dataField.FieldSpecification
 import fi.riista.common.util.deserializeFromJson
@@ -16,8 +19,8 @@ import kotlin.test.assertEquals
 
 open class GroupHuntingHarvestFieldsTest {
 
-    fun assertFields(expectedFields: List<FieldSpecification<GroupHarvestField>>,
-                     fields: List<FieldSpecification<GroupHarvestField>>,
+    fun assertFields(expectedFields: List<FieldSpecification<CommonHarvestField>>,
+                     fields: List<FieldSpecification<CommonHarvestField>>,
                      message: String? = null
     ) {
         val expectedCount = expectedFields.size
@@ -44,23 +47,40 @@ open class GroupHuntingHarvestFieldsTest {
                   deerHuntingType: DeerHuntingType? = null,
                   actorInfoOverride: GroupHuntingPerson? = null,
                   groupMembers: List<HuntingGroupMember> = listOf(MockGroupHuntingData.HuntingGroupMember88888888)
-    ): List<FieldSpecification<GroupHarvestField>> {
+    ): List<FieldSpecification<CommonHarvestField>> {
         val harvest =
             MockGroupHuntingData.AcceptedHarvest.deserializeFromJson<GroupHuntingHarvestDTO>()!!
                 .toGroupHuntingHarvest()!!
                 .copy(
-                        deerHuntingType = BackendEnum.create(deerHuntingType),
-                        gameSpeciesCode = speciesCode,
-                        specimens = listOf(
-                                HarvestSpecimen(
-                                        age = BackendEnum.create(age),
-                                        gender = BackendEnum.create(gender),
-                                        antlersLost = antlersLost
-                                )
-                        ),
+                    deerHuntingType = BackendEnum.create(deerHuntingType),
+                    gameSpeciesCode = speciesCode,
+                    specimens = listOf(
+                        CommonHarvestSpecimen(
+                            id = null,
+                            rev = null,
+                            age = BackendEnum.create(age),
+                            gender = BackendEnum.create(gender),
+                            antlersLost = antlersLost,
+                            weight = null,
+                            weightEstimated = null,
+                            weightMeasured = null,
+                            fitnessClass = BackendEnum.create(null),
+                            antlersType = BackendEnum.create(null),
+                            antlersWidth = null,
+                            antlerPointsLeft = null,
+                            antlerPointsRight = null,
+                            antlersGirth = null,
+                            antlersLength = null,
+                            antlersInnerWidth = null,
+                            antlerShaftWidth = null,
+                            notEdible = null,
+                            alone = null,
+                            additionalInfo = null,
+                        )
+                    ),
                 )
 
-        val harvestData = harvest.toGroupHuntingHarvestData(groupMembers)
+        val harvestData = harvest.toCommonHarvestData(groupMembers)
             .let {
                 when (actorInfoOverride) {
                     null -> it
@@ -69,7 +89,7 @@ open class GroupHuntingHarvestFieldsTest {
             }
 
         return GroupHuntingHarvestFields.getFieldsToBeDisplayed(
-                context = GroupHuntingHarvestFields.Context(harvestData, mode)
+            context = GroupHuntingHarvestFields.Context(harvestData, mode)
         )
     }
 }

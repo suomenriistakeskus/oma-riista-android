@@ -3,12 +3,12 @@ package fi.riista.mobile.srva
 import fi.riista.common.RiistaSDK
 import fi.riista.common.domain.constants.SpeciesCode
 import fi.riista.common.domain.srva.metadata.model.SrvaMetadata
-import fi.riista.common.network.SyncDataPiece
+import fi.riista.common.network.sync.SyncDataPiece
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 class SrvaParametersHelper private constructor() {
-    val metadata: SrvaMetadata
+    private val metadata: SrvaMetadata
         get() = RiistaSDK.metadataProvider.srvaMetadata
 
     val speciesCodes: List<SpeciesCode>
@@ -16,7 +16,7 @@ class SrvaParametersHelper private constructor() {
 
     fun fetchParameters() {
         MainScope().launch {
-            RiistaSDK.synchronizeDataPieces(listOf(SyncDataPiece.SRVA_METADATA))
+            RiistaSDK.synchronize(SyncDataPiece.SRVA_METADATA)
         }
     }
 

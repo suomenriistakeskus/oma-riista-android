@@ -3,8 +3,10 @@ package fi.riista.mobile
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.location.Location
 import android.os.Bundle
 import android.os.Looper
+import android.os.SystemClock
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -16,12 +18,14 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import fi.riista.mobile.utils.PermissionHelper
 import fi.riista.mobile.utils.Utils
+import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Wrapper for Google API client location service.
  */
 class LocationClient : Fragment() {
-    private val listeners: MutableSet<LocationListener?> = mutableSetOf()
+    private val listeners = CopyOnWriteArraySet<LocationListener>()
     private var fusedLocationClient: FusedLocationProviderClient? = null
 
     private var locationRequest = LocationRequest
@@ -34,14 +38,12 @@ class LocationClient : Fragment() {
     private var locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
             locationResult.lastLocation?.let { location ->
-                for (listener in listeners) {
-                    listener?.onLocationChanged(location)
-                }
+                notifyListeners(location)
             }
         }
     }
 
-    private var requestingLocationUpdates = false
+    private val requestingLocationUpdates = AtomicBoolean(false)
     private var didRequestPermission = false
 
     private val locationPermissionRequest = registerForActivityResult(
@@ -90,12 +92,12 @@ class LocationClient : Fragment() {
         } else if (this.isResumed && !didRequestPermission) {
             didRequestPermission = true
             locationPermissionRequest.launch(PermissionHelper.locationPermission)
-       }
+        }
     }
 
     private fun stopLocationUpdates() {
-        requestingLocationUpdates = false
         fusedLocationClient?.removeLocationUpdates(locationCallback)
+        requestingLocationUpdates.set(false)
     }
 
     /**
@@ -104,8 +106,25 @@ class LocationClient : Fragment() {
     @SuppressLint("MissingPermission")
     private fun requestLocationUpdates() {
         fusedLocationClient?.let { client ->
-            client.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
-            requestingLocationUpdates = true
+            if (requestingLocationUpdates.compareAndSet(false, true)) {
+                // Initially, get last known location. This can speed up getting location for user significantly
+                client.lastLocation.addOnSuccessListener { location ->
+                    location?.let {
+                        val locationAge = SystemClock.elapsedRealtimeNanos() - location.elapsedRealtimeNanos
+                        if (locationAge <= MAX_ACCEPTABLE_LOCATION_AGE_NS) {
+                            notifyListeners(location)
+                        }
+                    }
+                }
+                // Also request continuous updates in order to get an accurate location
+                client.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+            }
+        }
+    }
+
+    private fun notifyListeners(location: Location) {
+        listeners.forEach {
+            it.onLocationChanged(location)
         }
     }
 
@@ -115,14 +134,12 @@ class LocationClient : Fragment() {
      * It is safe to add same listener multiple times. It will be called only
      * once per location update though.
      */
-    fun addListener(listener: LocationListener?) {
+    fun addListener(listener: LocationListener) {
         listeners.add(listener)
-        if (!requestingLocationUpdates) {
-            startLocationUpdates()
-        }
+        startLocationUpdates()
     }
 
-    fun removeListener(listener: LocationListener?) {
+    fun removeListener(listener: LocationListener) {
         listeners.remove(listener)
         if (listeners.isEmpty()) {
             stopLocationUpdates()
@@ -131,8 +148,9 @@ class LocationClient : Fragment() {
 
     companion object {
         const val LOCATION_CLIENT_TAG = "locationClientTag"
-        private const val UPDATE_INTERVAL_MS: Long = 5000
-        private const val FASTEST_UPDATE_INTERVAL_MS: Long = 2000
-        private const val MAX_UPDATE_DELAY_MS: Long = 10000
+        private const val UPDATE_INTERVAL_MS: Long = 5 * 1000
+        private const val FASTEST_UPDATE_INTERVAL_MS: Long = 2 * 1000
+        private const val MAX_UPDATE_DELAY_MS: Long = 8 * 1000
+        private const val MAX_ACCEPTABLE_LOCATION_AGE_NS = 24L * 60 * 60 * 1000 * 1000 * 1000
     }
 }

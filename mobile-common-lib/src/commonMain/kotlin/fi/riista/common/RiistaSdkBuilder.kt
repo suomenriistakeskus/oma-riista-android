@@ -8,6 +8,8 @@ expect class RiistaSdkBuilder {
      * Initializes the RiistaSDK.
      */
     fun initializeRiistaSDK()
+
+    internal fun setupCrashlytics()
 }
 
 /**

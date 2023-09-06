@@ -1,7 +1,9 @@
 package fi.riista.common.metadata
 
+import fi.riista.common.database.DatabaseWriteContext
 import fi.riista.common.database.DatabaseDriverFactory
 import fi.riista.common.database.RiistaDatabase
+import kotlinx.coroutines.withContext
 
 internal data class MetadataSpecification(
     val metadataType: MetadataRepository.MetadataType,
@@ -18,7 +20,7 @@ internal interface MetadataRepository {
     }
 
     fun getMetadataJson(specification: MetadataSpecification): String?
-    fun saveMetadataJson(specification: MetadataSpecification, metadataJson: String)
+    suspend fun saveMetadataJson(specification: MetadataSpecification, metadataJson: String)
 }
 
 
@@ -41,7 +43,10 @@ internal class MetadataDatabaseRepository(
         return metadataList.firstOrNull()?.metadata_json
     }
 
-    override fun saveMetadataJson(specification: MetadataSpecification, metadataJson: String) {
+    override suspend fun saveMetadataJson(
+        specification: MetadataSpecification,
+        metadataJson: String,
+    ) = withContext(DatabaseWriteContext) {
         metadataQueries.transaction {
             val currentMetadata = getMetadataJson(specification)
             if (currentMetadata == null) {

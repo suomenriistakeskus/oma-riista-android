@@ -5,8 +5,11 @@ import fi.riista.common.domain.dto.PersonWithHunterNumberDTO
 import fi.riista.common.network.NetworkClient
 import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.accept
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 internal class SearchPersonByHunterNumber(
     private val hunterNumberDTO: HunterNumberDTO
@@ -18,7 +21,7 @@ internal class SearchPersonByHunterNumber(
                 post(urlString = "${client.serverBaseAddress}/api/mobile/v2/search/person/hunternumber?hunterNumber=$hunterNumberDTO") {
                     accept(ContentType.Application.Json)
                     contentType(ContentType.Application.Json)
-                    body = ""
+                    setBody(body = "")
                 }
             },
             configureResponseHandler = {

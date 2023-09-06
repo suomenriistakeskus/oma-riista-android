@@ -6,7 +6,7 @@ import fi.riista.common.domain.groupHunting.GroupHuntingHarvestOperationResponse
 import fi.riista.common.domain.groupHunting.MockGroupHuntingData
 import fi.riista.common.domain.groupHunting.dto.GroupHuntingHarvestDTO
 import fi.riista.common.domain.groupHunting.model.GroupHuntingHarvestTarget
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
 import fi.riista.common.helpers.TestStringProvider
 import fi.riista.common.helpers.getLoadedViewModel
 import fi.riista.common.helpers.runBlockingTest
@@ -18,6 +18,7 @@ import fi.riista.common.network.MockResponse
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
+import fi.riista.common.helpers.TestSpeciesResolver
 import fi.riista.common.model.StringWithId
 import kotlin.test.*
 
@@ -28,6 +29,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(),
             harvestTarget = getHarvestTarget(),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -39,6 +41,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(),
             harvestTarget = getHarvestTarget(),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -53,6 +56,7 @@ class EditGroupHarvestControllerTest {
             groupHuntingContext = getGroupHuntingContext(
                 BackendAPIMock(groupHuntingHuntingDayForDeerResponse = MockResponse.error(404))),
             harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.ThirdHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -67,6 +71,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(backendAPIMock),
             harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.ThirdHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -81,6 +86,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(),
             harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -93,12 +99,13 @@ class EditGroupHarvestControllerTest {
     @Test
     fun testMooseCantBeAcceptedWithoutHuntingDayId() = runBlockingTest {
         val controller = EditGroupHarvestController(
-                groupHuntingContext = getGroupHuntingContext(backendApi = BackendAPIMock(
-                        // no hunting days
-                        groupHuntingGroupHuntingDaysResponse = MockResponse.success("[]")
-                )),
-                harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
-                stringProvider = getStringProvider()
+            groupHuntingContext = getGroupHuntingContext(backendApi = BackendAPIMock(
+                    // no hunting days
+                    groupHuntingGroupHuntingDaysResponse = MockResponse.success("[]")
+            )),
+            harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
+            stringProvider = getStringProvider()
         )
 
         controller.loadViewModel()
@@ -110,9 +117,10 @@ class EditGroupHarvestControllerTest {
     @Test
     fun testSpecimenFieldsHaveDefaultValues() = runBlockingTest {
         val controller = EditGroupHarvestController(
-                groupHuntingContext = getGroupHuntingContext(),
-                harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
-                stringProvider = getStringProvider()
+            groupHuntingContext = getGroupHuntingContext(),
+            harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
+            stringProvider = getStringProvider()
         )
 
         controller.loadViewModel()
@@ -131,6 +139,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(backendAPIMock),
             harvestTarget = getHarvestTarget(),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -138,16 +147,16 @@ class EditGroupHarvestControllerTest {
 
         // First set antlers fields for adult male
         controller.eventDispatchers.stringWithIdEventDispatcher.dispatchStringWithIdChanged(
-            GroupHarvestField.ANTLERS_TYPE,
+            CommonHarvestField.ANTLERS_TYPE,
             listOf(StringWithId("hanko", GameAntlersType.CERVINE.ordinal.toLong()))
         )
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLERS_WIDTH, 2)
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLER_POINTS_LEFT, 3)
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLER_POINTS_RIGHT, 4)
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLERS_GIRTH, 5)
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLERS_LENGTH, 6)
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLERS_INNER_WIDTH, 7)
-        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(GroupHarvestField.ANTLER_SHAFT_WIDTH, 8)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLERS_WIDTH, 2)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLER_POINTS_LEFT, 3)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLER_POINTS_RIGHT, 4)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLERS_GIRTH, 5)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLERS_LENGTH, 6)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLERS_INNER_WIDTH, 7)
+        controller.eventDispatchers.intEventDispatcher.dispatchIntChanged(CommonHarvestField.ANTLER_SHAFT_WIDTH, 8)
 
         val harvest = controller.getLoadedViewModel().harvest
 
@@ -163,8 +172,8 @@ class EditGroupHarvestControllerTest {
         }
 
         // Then change age to young (+ set alone flag), save and verify that antlers fields are null
-        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(GroupHarvestField.AGE, GameAge.YOUNG)
-        controller.eventDispatchers.booleanEventDispatcher.dispatchBooleanChanged(GroupHarvestField.ALONE, false)
+        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(CommonHarvestField.AGE, GameAge.YOUNG)
+        controller.eventDispatchers.booleanEventDispatcher.dispatchBooleanChanged(CommonHarvestField.ALONE, false)
 
         val response = controller.acceptHarvest()
         assertTrue(response is GroupHuntingHarvestOperationResponse.Success)
@@ -188,20 +197,21 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(backendAPIMock),
             harvestTarget = getHarvestTarget(),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
         controller.loadViewModel()
 
-        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(GroupHarvestField.AGE, GameAge.YOUNG)
-        controller.eventDispatchers.booleanEventDispatcher.dispatchBooleanChanged(GroupHarvestField.ALONE, true)
+        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(CommonHarvestField.AGE, GameAge.YOUNG)
+        controller.eventDispatchers.booleanEventDispatcher.dispatchBooleanChanged(CommonHarvestField.ALONE, true)
 
         val harvest = controller.getLoadedViewModel().harvest
 
         assertEquals(GameAge.YOUNG, harvest.specimens[0].age?.value)
         assertTrue(harvest.specimens[0].alone!!)
 
-        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(GroupHarvestField.AGE, GameAge.ADULT)
+        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(CommonHarvestField.AGE, GameAge.ADULT)
 
         val response = controller.acceptHarvest()
         assertTrue(response is GroupHuntingHarvestOperationResponse.Success)
@@ -214,6 +224,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(),
             harvestTarget = getHarvestTarget(),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -221,7 +232,7 @@ class EditGroupHarvestControllerTest {
 
         assertTrue(controller.getLoadedViewModel().harvestIsValid)
 
-        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(GroupHarvestField.AGE, GameAge.UNKNOWN)
+        controller.eventDispatchers.ageEventDispatcher.dispatchAgeChanged(CommonHarvestField.AGE, GameAge.UNKNOWN)
 
         assertFalse(controller.getLoadedViewModel().harvestIsValid)
     }
@@ -231,6 +242,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(),
             harvestTarget = getHarvestTarget(),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -238,7 +250,7 @@ class EditGroupHarvestControllerTest {
 
         assertTrue(controller.getLoadedViewModel().harvestIsValid)
 
-        controller.eventDispatchers.genderEventDispatcher.dispatchGenderChanged(GroupHarvestField.GENDER, Gender.UNKNOWN)
+        controller.eventDispatchers.genderEventDispatcher.dispatchGenderChanged(CommonHarvestField.GENDER, Gender.UNKNOWN)
 
         assertFalse(controller.getLoadedViewModel().harvestIsValid)
     }
@@ -249,6 +261,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(backendApi = backendAPIMock),
             harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 
@@ -269,6 +282,7 @@ class EditGroupHarvestControllerTest {
         val controller = EditGroupHarvestController(
             groupHuntingContext = getGroupHuntingContext(backendApi = backendAPIMock),
             harvestTarget = getHarvestTarget(harvestId = MockGroupHuntingData.SecondHarvestId),
+            speciesResolver = TestSpeciesResolver.INSTANCE,
             stringProvider = getStringProvider()
         )
 

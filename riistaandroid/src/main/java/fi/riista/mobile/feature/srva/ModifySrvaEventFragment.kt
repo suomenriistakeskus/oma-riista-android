@@ -441,9 +441,11 @@ abstract class ModifySrvaEventFragment<
     }
 
     override fun onDateTimeSelected(fieldId: Int, dateTime: DateTime) {
-        SrvaEventField.fromInt(fieldId)?.let { fieldId ->
+        SrvaEventField.fromInt(fieldId)?.let { field ->
             controller.eventDispatchers.localDateTimeEventDispatcher.dispatchLocalDateTimeChanged(
-                    fieldId, LocalDateTime.fromJodaDateTime(dateTime))
+                fieldId = field,
+                value = LocalDateTime.fromJodaDateTime(dateTime)
+            )
         }
     }
 

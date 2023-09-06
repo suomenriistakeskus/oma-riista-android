@@ -1,10 +1,9 @@
 package fi.riista.common.preferences
 
-import co.touchlab.stately.collections.IsoMutableMap
 import fi.riista.common.logging.getLogger
 
 class MockPreferences: Preferences {
-    internal val container = IsoMutableMap<String, Any>()
+    internal val container = mutableMapOf<String, Any>()
 
     override fun contains(key: String): Boolean {
         return container.containsKey(key).also {

@@ -1,0 +1,57 @@
+CREATE TABLE DbObservation (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER,
+    rev INTEGER,
+    mobile_client_ref_id INTEGER,
+
+    can_edit INTEGER AS Boolean NOT NULL,
+    modified INTEGER AS Boolean NOT NULL,
+    deleted INTEGER AS Boolean NOT NULL,
+
+    spec_version INTEGER AS Int NOT NULL,
+    game_species_code INTEGER AS Int,
+    observation_category TEXT,
+    observation_type TEXT,
+
+    deer_hunting_type TEXT,
+    deer_hunting_other_type_description TEXT,
+
+    point_of_time TEXT NOT NULL,
+    description TEXT,
+
+    specimens TEXT,
+    total_specimen_amount INTEGER AS Int,
+
+    mooselike_male_amount INTEGER AS Int,
+    mooselike_female_amount INTEGER AS Int,
+    mooselike_female_1calf_amount INTEGER AS Int,
+    mooselike_female_2calfs_amount INTEGER AS Int,
+    mooselike_female_3calfs_amount INTEGER AS Int,
+    mooselike_female_4calfs_amount INTEGER AS Int,
+    mooselike_calf_amount INTEGER AS Int,
+    mooselike_unknown_specimen_amount INTEGER AS Int,
+
+    observer_name TEXT,
+    observer_phone_number TEXT,
+    official_additional_info TEXT,
+    verified_by_carnivore_authority INTEGER AS Boolean,
+
+    in_yard_distance_to_residence INTEGER AS Int,
+    litter INTEGER AS Boolean,
+    pack INTEGER AS Boolean,
+
+    local_images TEXT,
+    remote_images TEXT,
+    has_new_images INTEGER AS Boolean NOT NULL,
+
+    -- GeoLocation
+    location_latitude INTEGER AS Int NOT NULL,
+    location_longitude INTEGER AS Int NOT NULL,
+    location_source TEXT,
+    location_accuracy REAL,
+    location_altitude REAL,
+    location_altitudeAccuracy REAL
+);
+
+CREATE UNIQUE INDEX observation_remote_id_unique ON DbObservation(username, remote_id);

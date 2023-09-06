@@ -1,0 +1,18 @@
+CREATE TABLE DbHarvestSeason (
+    hunting_year INTEGER AS Int NOT NULL,
+    json_format_version INTEGER AS Int NOT NULL,
+    harvest_seasons_json TEXT,
+
+    CONSTRAINT pk_constraint_DbHarvestSeason PRIMARY KEY (hunting_year, json_format_version)
+);
+
+selectHarvestSeason:
+SELECT harvest_seasons_json FROM DbHarvestSeason WHERE hunting_year = ? AND json_format_version = ?;
+
+insertHarvestSeasons:
+INSERT INTO DbHarvestSeason(hunting_year, json_format_version, harvest_seasons_json)
+VALUES (?, ?, ?);
+
+updateHarvestSeasons:
+UPDATE DbHarvestSeason SET harvest_seasons_json=? WHERE hunting_year = ? AND json_format_version = ?;
+

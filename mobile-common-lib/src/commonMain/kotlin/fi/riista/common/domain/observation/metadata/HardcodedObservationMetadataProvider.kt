@@ -15,7 +15,7 @@ internal object HardcodedObservationMetadataProvider {
     internal val metadataJson =
         """
         {
-          "lastModified": "2021-05-27T07:25:55.076+0300",
+          "lastModified": "2023-03-15T17:55:22.948+0200",
           "speciesList": [
             {
               "gameSpeciesCode": 26287,
@@ -48,6 +48,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -198,6 +242,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -334,6 +422,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -478,6 +610,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -614,6 +790,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -758,6 +978,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -894,6 +1158,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -1038,6 +1346,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -1174,6 +1526,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -1318,6 +1714,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -1454,6 +1894,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -1598,6 +2082,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -1734,6 +2262,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -1878,6 +2450,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -1961,6 +2577,22 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "SOIDIN",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "MUUTON_AIKAINEN_LEPAILYALUE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -2014,6 +2646,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -2158,6 +2834,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -2294,6 +3014,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -2488,6 +3252,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -2624,6 +3432,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -2818,6 +3670,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "JALKI",
                   "baseFields": {},
                   "specimenFields": {}
@@ -3004,6 +3900,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -3198,6 +4138,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -3328,6 +4312,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -3465,6 +4493,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -3587,6 +4659,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -3667,6 +4783,22 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "SOIDIN",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "MUU",
                   "baseFields": {
                     "amount": "VOLUNTARY"
@@ -3705,6 +4837,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -3831,6 +5007,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -3949,6 +5169,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -4075,6 +5339,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -4193,6 +5501,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -4319,6 +5671,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -4441,6 +5837,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -4559,6 +5999,50 @@ internal object HardcodedObservationMetadataProvider {
                   "allowedMarkings": [
                     "NOT_MARKED",
                     "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
                   ]
                 },
                 {
@@ -10754,6 +12238,50 @@ internal object HardcodedObservationMetadataProvider {
                 },
                 {
                   "category": "NORMAL",
+                  "type": "POIKUE",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "VOLUNTARY",
+                    "gender": "VOLUNTARY",
+                    "state": "VOLUNTARY",
+                    "marking": "VOLUNTARY"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ],
+                  "allowedStates": [
+                    "HEALTHY",
+                    "ILL",
+                    "WOUNDED",
+                    "DEAD"
+                  ],
+                  "allowedMarkings": [
+                    "NOT_MARKED",
+                    "LEG_RING_OR_WING_TAG"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
+                  "type": "PARI",
+                  "baseFields": {
+                    "amount": "YES"
+                  },
+                  "specimenFields": {
+                    "age": "YES",
+                    "gender": "YES"
+                  },
+                  "allowedAges": [
+                    "ADULT",
+                    "LT1Y",
+                    "UNKNOWN"
+                  ]
+                },
+                {
+                  "category": "NORMAL",
                   "type": "ULOSTE",
                   "baseFields": {},
                   "specimenFields": {}
@@ -11202,7 +12730,7 @@ internal object HardcodedObservationMetadataProvider {
               ]
             }
           ],
-          "observationSpecVersion": 4
+          "observationSpecVersion": 5
         }
         """.trimIndent()
 }

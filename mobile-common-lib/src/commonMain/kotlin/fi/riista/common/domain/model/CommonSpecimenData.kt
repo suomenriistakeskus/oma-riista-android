@@ -16,12 +16,71 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class CommonSpecimenData(
-    val remoteId: Long? = null,
-    val revision: Int? = null,
-    val gender: BackendEnum<Gender>? = null,
-    val age: BackendEnum<GameAge>? = null,
-    val stateOfHealth: BackendEnum<ObservationSpecimenState>? = null,
-    val marking: BackendEnum<ObservationSpecimenMarking>? = null,
-    val lengthOfPaw: Double? = null,
-    val widthOfPaw: Double? = null,
-)
+    val remoteId: Long?,
+    val revision: Int?,
+    val gender: BackendEnum<Gender>?,
+    val age: BackendEnum<GameAge>?,
+
+    // mostly observation
+    val stateOfHealth: BackendEnum<ObservationSpecimenState>?,
+    val marking: BackendEnum<ObservationSpecimenMarking>?,
+    val lengthOfPaw: Double?,
+    val widthOfPaw: Double?,
+
+    // mostly harvest
+    val weight: Double?,
+    val weightEstimated: Double?,
+    val weightMeasured: Double?,
+    val fitnessClass: BackendEnum<GameFitnessClass>?,
+    val antlersLost: Boolean?,
+    val antlersType: BackendEnum<GameAntlersType>?,
+    val antlersWidth: Int?,
+    val antlerPointsLeft: Int?,
+    val antlerPointsRight: Int?,
+    val antlersGirth: Int?,
+    val antlersLength: Int?,
+    val antlersInnerWidth: Int?,
+    val antlerShaftWidth: Int?,
+    val notEdible: Boolean?,
+    val alone: Boolean?,
+    val additionalInfo: String?
+) {
+    constructor(): this(
+        remoteId = null,
+        revision = null,
+        gender = null,
+        age = null,
+        stateOfHealth = null,
+        marking = null,
+        lengthOfPaw = null,
+        widthOfPaw = null,
+        weight = null,
+        weightEstimated = null,
+        weightMeasured = null,
+        fitnessClass = null,
+        antlersLost = null,
+        antlersType = null,
+        antlersWidth = null,
+        antlerPointsLeft = null,
+        antlerPointsRight = null,
+        antlersGirth = null,
+        antlersLength = null,
+        antlersInnerWidth = null,
+        antlerShaftWidth = null,
+        notEdible = null,
+        alone = null,
+        additionalInfo = null,
+    )
+
+    fun isEmpty(): Boolean {
+        return this == EMPTY_SPECIMEN
+    }
+
+    companion object {
+        // add so that this can be extended
+    }
+}
+
+private val EMPTY_SPECIMEN = CommonSpecimenData()
+
+internal fun Iterable<CommonSpecimenData>.keepNonEmpty() = filter { !it.isEmpty() }

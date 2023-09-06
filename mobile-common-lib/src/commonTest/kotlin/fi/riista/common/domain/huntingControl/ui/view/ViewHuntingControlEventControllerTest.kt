@@ -1,38 +1,51 @@
 package fi.riista.common.domain.huntingControl.ui.view
 
 import fi.riista.common.RiistaSDK
-import fi.riista.common.RiistaSdkConfiguration
 import fi.riista.common.database.DatabaseDriverFactory
 import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.dto.MockUserInfo
-import fi.riista.common.helpers.*
 import fi.riista.common.domain.huntingControl.HuntingControlContext
 import fi.riista.common.domain.huntingControl.HuntingControlRepository
+import fi.riista.common.domain.huntingControl.MockHuntingControlData
 import fi.riista.common.domain.huntingControl.model.HuntingControlCooperationType
 import fi.riista.common.domain.huntingControl.model.HuntingControlEventTarget
 import fi.riista.common.domain.huntingControl.sync.HuntingControlRhyToDatabaseUpdater
 import fi.riista.common.domain.huntingControl.sync.dto.LoadRhysAndHuntingControlEventsDTO
 import fi.riista.common.domain.huntingControl.sync.dto.toLoadRhyHuntingControlEvents
 import fi.riista.common.domain.huntingControl.ui.HuntingControlEventField
-import fi.riista.common.domain.huntingControl.MockHuntingControlData
 import fi.riista.common.domain.huntingControl.ui.modify.EditHuntingControlEventControllerTest
-import fi.riista.common.io.CommonFileProviderMock
+import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
+import fi.riista.common.helpers.TestStringProvider
+import fi.riista.common.helpers.createDatabaseDriverFactory
+import fi.riista.common.helpers.getAttachmentField
+import fi.riista.common.helpers.getChipField
+import fi.riista.common.helpers.getDateField
+import fi.riista.common.helpers.getLabelField
+import fi.riista.common.helpers.getLoadedViewModel
+import fi.riista.common.helpers.getLocationField
+import fi.riista.common.helpers.getStringField
+import fi.riista.common.helpers.getTimespanField
+import fi.riista.common.helpers.initializeMocked
+import fi.riista.common.helpers.runBlockingTest
 import fi.riista.common.logging.getLogger
-import fi.riista.common.domain.model.*
+import fi.riista.common.model.LocalDate
+import fi.riista.common.model.LocalTime
 import fi.riista.common.network.BackendAPI
 import fi.riista.common.network.BackendAPIMock
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.toLocalizedStringWithId
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.ChipField
-import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
-import fi.riista.common.model.*
 import fi.riista.common.util.JsonHelper
-import fi.riista.common.util.MockDateTimeProvider
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ViewHuntingControlEventControllerTest {
-    private val serverAddress = "https://oma.riista.fi"
 
     @Test
     fun testDataInitiallyNotLoaded() {
@@ -50,6 +63,7 @@ class ViewHuntingControlEventControllerTest {
     fun testDataCanBeLoaded() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -58,7 +72,7 @@ class ViewHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(rhysAndEvents)
         val dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
 
@@ -79,6 +93,7 @@ class ViewHuntingControlEventControllerTest {
     fun testProducedFieldsMatchData() = runBlockingTest {
         // Insert Data to DB
         val username = MockUserInfo.PenttiUsername
+        currentUserContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
         val dbDriverFactory = createDatabaseDriverFactory()
         val database = RiistaDatabase(dbDriverFactory.createDriver())
         val repository = HuntingControlRepository(database)
@@ -87,14 +102,15 @@ class ViewHuntingControlEventControllerTest {
             MockHuntingControlData.HuntingControlRhys
         )
         val rhysAndEvents = rhysAndEventsDTO.map { it.toLoadRhyHuntingControlEvents(logger) }
-        val updater = HuntingControlRhyToDatabaseUpdater(database, username)
+        val updater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
         updater.update(rhysAndEvents)
         val dbEvents = repository.getHuntingControlEvents(username, MockHuntingControlData.RhyId)
+        val event = dbEvents[1]
 
         val huntingControlContext = getHuntingControlContext(dbDriverFactory)
         val controller = ViewHuntingControlEventController(
             huntingControlContext = huntingControlContext,
-            huntingControlEventTarget = getHuntingControlEventTarget(eventId = dbEvents[0].localId),
+            huntingControlEventTarget = getHuntingControlEventTarget(eventId = event.localId),
             stringProvider = getStringProvider()
         )
 
@@ -105,15 +121,7 @@ class ViewHuntingControlEventControllerTest {
         assertEquals(17, fields.size)
         var expectedIndex = 0
         fields.getLocationField(expectedIndex++, HuntingControlEventField.Type.LOCATION.toField()).let {
-            val location = ETRMSGeoLocation(
-                latitude = 6822000,
-                longitude = 326316,
-                source = BackendEnum.create(GeoLocationSource.MANUAL),
-                accuracy =  null,
-                altitude = null,
-                altitudeAccuracy = null,
-            ).asKnownLocation()
-            assertEquals(location, it.location)
+            assertEquals(event.geoLocation.asKnownLocation(), it.location)
             assertTrue(it.settings.readOnly)
         }
         fields.getStringField(expectedIndex++, HuntingControlEventField.Type.LOCATION_DESCRIPTION.toField()).let {
@@ -206,21 +214,13 @@ class ViewHuntingControlEventControllerTest {
         databaseDriverFactory: DatabaseDriverFactory,
         backendApi: BackendAPI = BackendAPIMock(),
     ): HuntingControlContext {
-        val userContextProvider = CurrentUserContextProviderFactory.createMocked()
-        userContextProvider.userLoggedIn(MockUserInfo.parse(MockUserInfo.Pentti))
-
-        val configuration = RiistaSdkConfiguration("1", "2", serverAddress)
         RiistaSDK.initializeMocked(
-            sdkConfiguration = configuration,
             databaseDriverFactory = databaseDriverFactory,
             mockBackendAPI = backendApi,
-            mockCurrentUserContextProvider = userContextProvider,
-            mockLocalDateTimeProvider = MockDateTimeProvider(),
-            mockMainScopeProvider = MockMainScopeProvider(),
-            mockFileProvider = CommonFileProviderMock(),
+            mockCurrentUserContextProvider = currentUserContextProvider,
         )
 
-        return userContextProvider.userContext.huntingControlContext
+        return RiistaSDK.huntingControlContext
     }
 
     private fun getHuntingControlEventTarget(
@@ -232,6 +232,7 @@ class ViewHuntingControlEventControllerTest {
         )
     }
 
+    private val currentUserContextProvider = CurrentUserContextProviderFactory.createMocked()
     private fun getStringProvider(): StringProvider = TestStringProvider.INSTANCE
     private val logger by getLogger(EditHuntingControlEventControllerTest::class)
 }

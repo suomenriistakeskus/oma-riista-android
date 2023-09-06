@@ -1,5 +1,6 @@
 package fi.riista.mobile.riistaSdkHelpers
 
+import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
 import fi.riista.common.domain.harvest.model.CommonHarvest
 import fi.riista.common.domain.harvest.model.CommonHarvestSpecimen
 import fi.riista.common.domain.model.EntityImage
@@ -87,7 +88,9 @@ fun GameHarvest.toCommonHarvest(): CommonHarvest? {
         rejected = mHarvestReportState == GameHarvest.HARVEST_REJECTED,
         feedingPlace = mFeedingPlace,
         taigaBeanGoose = mTaigaBeanGoose,
-        greySealHuntingMethod = mHuntingMethod?.name.toBackendEnum()
+        greySealHuntingMethod = mHuntingMethod?.name.toBackendEnum(),
+        actorInfo = GroupHuntingPerson.Unknown,
+        selectedClub = null,
     )
 }
 

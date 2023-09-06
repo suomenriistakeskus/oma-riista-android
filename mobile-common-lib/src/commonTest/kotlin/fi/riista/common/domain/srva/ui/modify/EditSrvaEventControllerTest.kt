@@ -11,6 +11,7 @@ import fi.riista.common.domain.model.Gender
 import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.model.asKnownLocation
 import fi.riista.common.domain.specimens.ui.SpecimenFieldType
+import fi.riista.common.domain.srva.SrvaContext
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.model.CommonSrvaEventApprover
 import fi.riista.common.domain.srva.model.CommonSrvaEventAuthor
@@ -26,6 +27,7 @@ import fi.riista.common.domain.srva.model.toCommonSpecimenData
 import fi.riista.common.domain.srva.model.toCommonSrvaMethod
 import fi.riista.common.domain.srva.model.toSrvaEventData
 import fi.riista.common.domain.srva.ui.SrvaEventField
+import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
 import fi.riista.common.helpers.TestStringProvider
 import fi.riista.common.helpers.getBooleanField
 import fi.riista.common.helpers.getDateTimeField
@@ -38,6 +40,7 @@ import fi.riista.common.helpers.getSpecimenField
 import fi.riista.common.helpers.getStringField
 import fi.riista.common.helpers.getStringListField
 import fi.riista.common.helpers.runBlockingTest
+import fi.riista.common.io.CommonFileProviderMock
 import fi.riista.common.metadata.MetadataProvider
 import fi.riista.common.metadata.MockMetadataProvider
 import fi.riista.common.model.BackendEnum
@@ -45,6 +48,10 @@ import fi.riista.common.model.ETRMSGeoLocation
 import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.model.LocalDateTime
 import fi.riista.common.model.toBackendEnum
+import fi.riista.common.network.BackendAPI
+import fi.riista.common.network.BackendAPIMock
+import fi.riista.common.network.BackendApiProvider
+import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.resources.EMPTY_BACKEND_ENUM_VALUE_ID
 import fi.riista.common.resources.RR
 import fi.riista.common.resources.StringProvider
@@ -52,6 +59,8 @@ import fi.riista.common.resources.toLocalizedStringWithId
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.BooleanField
 import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.util.LocalDateTimeProvider
+import fi.riista.common.util.MockDateTimeProvider
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -1004,6 +1013,8 @@ class EditSrvaEventControllerTest {
             state = SrvaEventState.UNFINISHED.toBackendEnum(),
             rhyId = 12,
             canEdit = true,
+            modified = false,
+            deleted = false,
             location = ETRMSGeoLocation(
                 latitude = 12,
                 longitude =  13,
@@ -1022,6 +1033,7 @@ class EditSrvaEventControllerTest {
             ),
             species = Species.Known(speciesCode = SpeciesCodes.MOOSE_ID),
             otherSpeciesDescription = null,
+            totalSpecimenAmount = 1,
             specimens = listOf(
                 CommonSrvaSpecimen(
                     gender = Gender.MALE.toBackendEnum(),
@@ -1076,10 +1088,20 @@ class EditSrvaEventControllerTest {
         metadataProvider: MetadataProvider = getMetadataProvider(),
         stringProvider: StringProvider = getStringProvider(),
         srvaEvent: CommonSrvaEvent? = getSrvaEvent(),
+        dateTimeProvider: LocalDateTimeProvider = MockDateTimeProvider(),
     ): EditSrvaEventController {
         return EditSrvaEventController(
             metadataProvider = metadataProvider,
             stringProvider = stringProvider,
+            srvaContext = SrvaContext(
+                backendApiProvider = object : BackendApiProvider {
+                    override val backendAPI: BackendAPI = BackendAPIMock()
+                },
+                preferences = MockPreferences(),
+                localDateTimeProvider = dateTimeProvider,
+                commonFileProvider = CommonFileProviderMock(),
+                currentUserContextProvider = CurrentUserContextProviderFactory.createMocked(),
+            ),
         ).also {
             srvaEvent?.let { event ->
                 it.editableSrvaEvent = EditableSrvaEvent(srvaEvent = event)

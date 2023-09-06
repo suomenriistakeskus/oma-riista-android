@@ -1,6 +1,6 @@
 package fi.riista.common.domain.huntingclub.ui
 
-import fi.riista.common.domain.huntingclub.model.HuntingClubMemberInvitationId
+import fi.riista.common.domain.huntingclub.invitations.model.HuntingClubMemberInvitationId
 
 sealed class HuntingClubViewModel {
     abstract val id: Long

@@ -144,6 +144,19 @@
                 android:layout_marginRight="0dp" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/enable_layer_lead_shot_ban"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/item_spacing_small"
+                android:layout_marginRight="@dimen/item_spacing_small"
+                android:text="@string/map_settings_lead_shot_ban" />
+
+            <View
+                style="@style/HorizontalSeparator"
+                android:layout_marginLeft="0dp"
+                android:layout_marginRight="0dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/enable_layer_moose_restrictions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

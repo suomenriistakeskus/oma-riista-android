@@ -1,10 +1,10 @@
 package fi.riista.common.domain.groupHunting.ui.groupHarvest
 
+import fi.riista.common.domain.constants.SpeciesCodes
 import fi.riista.common.domain.groupHunting.model.GroupHuntingPerson
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
 import fi.riista.common.domain.model.GameAge
 import fi.riista.common.domain.model.Gender
-import fi.riista.common.domain.constants.SpeciesCodes
 import fi.riista.common.ui.dataField.FieldRequirement
 import fi.riista.common.ui.dataField.noRequirement
 import fi.riista.common.ui.dataField.required
@@ -19,8 +19,8 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
     fun testViewRoeDeer() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
         )
 
         assertFields(
@@ -37,8 +37,8 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
     fun testEditRoeDeer() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
         )
 
         assertFields(
@@ -58,8 +58,8 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
                 actorHunterNumberRequirement = FieldRequirement.voluntary(),
                 includeActorHunterNumber = true,
             ),
-            GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-            GroupHarvestField.WEIGHT_MEASURED.voluntary(),
+            CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+            CommonHarvestField.WEIGHT_MEASURED.voluntary(),
         )
 
         assertFields(
@@ -81,8 +81,8 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
                 includeActorHunterNumber = true,
                 includeActorHunterNumberInfoOrError = true,
             ),
-            GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-            GroupHarvestField.WEIGHT_MEASURED.voluntary(),
+            CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+            CommonHarvestField.WEIGHT_MEASURED.voluntary(),
         )
 
         assertFields(
@@ -100,13 +100,13 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
     fun testViewRoeDeerAdultMaleAntlersNotLost() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
-                GroupHarvestField.ANTLER_POINTS_LEFT.voluntary(),
-                GroupHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
-                GroupHarvestField.ANTLERS_LENGTH.voluntary(),
-                GroupHarvestField.ANTLER_SHAFT_WIDTH.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.ANTLER_POINTS_LEFT.voluntary(),
+                CommonHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
+                CommonHarvestField.ANTLERS_LENGTH.voluntary(),
+                CommonHarvestField.ANTLER_SHAFT_WIDTH.voluntary(),
         )
 
         assertFields(expectedFields, getFields(
@@ -130,14 +130,14 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
     fun testEditRoeDeerAdultMaleAntlersNotLost() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
-                GroupHarvestField.ANTLER_INSTRUCTIONS.noRequirement(),
-                GroupHarvestField.ANTLER_POINTS_LEFT.voluntary(),
-                GroupHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
-                GroupHarvestField.ANTLERS_LENGTH.voluntary(),
-                GroupHarvestField.ANTLER_SHAFT_WIDTH.voluntary(),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.ANTLER_INSTRUCTIONS.noRequirement(),
+                CommonHarvestField.ANTLER_POINTS_LEFT.voluntary(),
+                CommonHarvestField.ANTLER_POINTS_RIGHT.voluntary(),
+                CommonHarvestField.ANTLERS_LENGTH.voluntary(),
+                CommonHarvestField.ANTLER_SHAFT_WIDTH.voluntary(),
         )
 
         assertFields(expectedFields, getFields(
@@ -161,9 +161,9 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
     fun testViewRoeDeerAdultMaleAntlersLost() {
         val expectedFields = listOf(
                 *getCommonViewFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
         )
 
         assertFields(expectedFields, getFields(
@@ -179,9 +179,9 @@ class RoeDeerHarvestFieldsTest: DeerHarvestFieldsTest() {
     fun testEditRoeDeerAdultMaleAntlersLost() {
         val expectedFields = listOf(
                 *getCommonEditFields(),
-                GroupHarvestField.WEIGHT_ESTIMATED.voluntary(),
-                GroupHarvestField.WEIGHT_MEASURED.voluntary(),
-                GroupHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
+                CommonHarvestField.WEIGHT_ESTIMATED.voluntary(),
+                CommonHarvestField.WEIGHT_MEASURED.voluntary(),
+                CommonHarvestField.ANTLERS_LOST.required(indicateRequirementStatus = false),
         )
 
         assertFields(expectedFields, getFields(

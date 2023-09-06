@@ -1,0 +1,26 @@
+PRAGMA foreign_keys=0;
+
+ALTER TABLE DbHuntingControlGameWarden RENAME TO DbHuntingControlGameWarden_old;
+
+CREATE TABLE DbHuntingControlGameWarden(
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rhy_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    remote_id INTEGER NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    start_date TEXT CHECK(start_date IS strftime('%Y-%m-%d', start_date)),
+    end_date TEXT CHECK(end_date IS strftime('%Y-%m-%d', end_date)),
+
+    CONSTRAINT fk_DbHuntingControlRhy
+      FOREIGN KEY (rhy_id, username)
+      REFERENCES DbHuntingControlRhy (remote_id, username)
+      ON DELETE CASCADE
+);
+
+INSERT INTO DbHuntingControlGameWarden(local_id,rhy_id,username,remote_id,first_name,last_name,start_date,end_date)
+    SELECT local_id,rhy_id,username,remote_id,first_name,last_name,start_date,end_date FROM DbHuntingControlGameWarden_old;
+
+DROP TABLE DbHuntingControlGameWarden_old;
+
+PRAGMA foreign_keys=1;

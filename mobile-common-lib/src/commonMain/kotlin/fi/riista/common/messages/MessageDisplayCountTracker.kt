@@ -1,6 +1,5 @@
 package fi.riista.common.messages
 
-import co.touchlab.stately.collections.IsoMutableList
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.deserializeFromJson
 import fi.riista.common.util.removeFirst
@@ -23,7 +22,7 @@ class MessageDisplayCountTracker internal constructor(
     // the key to be used when saving display counts to persistent storage
     private val storageKey: String,
 ) {
-    internal val messageDisplayCounts = IsoMutableList<MessageDisplayCount>()
+    internal val messageDisplayCounts = mutableListOf<MessageDisplayCount>()
 
     init {
         loadDisplayCounts()

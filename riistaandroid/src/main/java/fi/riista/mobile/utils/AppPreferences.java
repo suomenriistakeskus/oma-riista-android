@@ -2,7 +2,7 @@ package fi.riista.mobile.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -34,7 +34,7 @@ public class AppPreferences {
     private static final String SHOW_RHY_BORDERS_KEY = "showRhyBorders";
     private static final String SHOW_VALTIONMAAT_KEY = "showValtionmaat";
     private static final String SHOW_GAME_TRIANGLES_KEY = "showGameTriangles";
-
+    private static final String SHOW_LEAD_SHOT_BAN = "showLeadShotBan";
     private static final String SHOW_MOOSE_RESTRICTIONS = "showMooseRestrictions";
     private static final String SHOW_SMALL_GAME_RESTRICTIONS = "showSmallGameRestrictions";
     private static final String SHOW_AVI_HUNTING_BAN = "showAviHuntingBan";
@@ -241,6 +241,21 @@ public class AppPreferences {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (prefs != null) {
             return prefs.getBoolean(SHOW_GAME_TRIANGLES_KEY, false);
+        }
+        return false;
+    }
+
+    public static void setShowLeadShotBan(Context context, boolean show) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            prefs.edit().putBoolean(SHOW_LEAD_SHOT_BAN, show).apply();
+        }
+    }
+
+    public static boolean getShowLeadShotBan(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (prefs != null) {
+            return prefs.getBoolean(SHOW_LEAD_SHOT_BAN, false);
         }
         return false;
     }

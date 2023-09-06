@@ -1,6 +1,5 @@
 package fi.riista.common.domain.poi.ui
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.poi.PoiLocationGroupContext
 import fi.riista.common.domain.poi.model.PoiLocation
 import fi.riista.common.domain.poi.model.PoiLocationGroupId
@@ -27,9 +26,6 @@ class PoiLocationController(
     private var selectedId: PoiLocationId = 0
     private var stateToRestore: State? = null
 
-    init {
-        ensureNeverFrozen()
-    }
 
     override fun createLoadViewModelFlow(refresh: Boolean): Flow<ViewModelLoadStatus<PoiLocationsViewModel>> = flow {
         updateStateToRestore()

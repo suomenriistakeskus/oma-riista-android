@@ -1,6 +1,5 @@
 package fi.riista.common.domain.groupHunting.ui.huntingDays.select
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDayId
 import fi.riista.common.domain.groupHunting.model.IdentifiesHuntingGroup
@@ -22,10 +21,6 @@ class SelectHuntingDayController(
 ) : ControllerWithLoadableModel<SelectHuntingDayViewModel>(),
     IntentHandler<SelectHuntingDayIntent>,
     HasUnreproducibleState<SelectHuntingDayController.State> {
-
-    init {
-        ensureNeverFrozen()
-    }
 
     /**
      * The preferred hunting day date if [initiallySelectedHuntingDayId] is null or

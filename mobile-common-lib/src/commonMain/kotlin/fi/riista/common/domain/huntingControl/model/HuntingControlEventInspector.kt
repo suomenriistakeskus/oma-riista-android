@@ -11,3 +11,8 @@ data class HuntingControlEventInspector(
     val lastName: String,
 )
 
+fun HuntingControlGameWarden.toHuntingControlEventInspector() = HuntingControlEventInspector(
+    id = remoteId,
+    firstName = firstName,
+    lastName = lastName,
+)

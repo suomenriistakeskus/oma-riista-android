@@ -30,6 +30,9 @@ class AppStartupMessageHandler(
         delegateMessageHandler.parseMessageFromJson(messageJson)
     }
 
+    fun resetStartupMessageDisplayAttempted() {
+        startupMessageDisplayAttempted.value = false
+    }
     /**
      * Gets the app startup message to be displayed.
      *

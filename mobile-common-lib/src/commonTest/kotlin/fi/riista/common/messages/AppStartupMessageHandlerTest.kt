@@ -3,10 +3,14 @@ package fi.riista.common.messages
 import fi.riista.common.PlatformName
 import fi.riista.common.dto.LocalizedStringDTO
 import fi.riista.common.domain.dto.MessageDTO
+import fi.riista.common.domain.dto.MessageLinkDTO
 import fi.riista.common.domain.dto.MessageTargetApplicationVersionsDTO
+import fi.riista.common.model.Language
+import fi.riista.common.model.LocalizedString
 import fi.riista.common.preferences.MockPreferences
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.JsonHelper
+import fi.riista.common.util.toLocalizedStringDTO
 import kotlin.test.*
 
 class AppStartupMessageHandlerTest {
@@ -123,6 +127,39 @@ class AppStartupMessageHandlerTest {
     }
 
     @Test
+    fun messageCanCauseFurtherAppUsageToBePrevented() {
+        val msgHandler = handler()
+
+        msgHandler.parseAppStartupMessageFromJson(messageJson(preventFurtherAppUsage = true))
+        assertEquals(true, msgHandler.delegateMessageHandler.getMessage()?.preventFurtherAppUsage, "true")
+
+        msgHandler.parseAppStartupMessageFromJson(messageJson(preventFurtherAppUsage = false))
+        assertEquals(false, msgHandler.delegateMessageHandler.getMessage()?.preventFurtherAppUsage, "false")
+
+        msgHandler.parseAppStartupMessageFromJson(messageJson(preventFurtherAppUsage = null))
+        assertEquals(false, msgHandler.delegateMessageHandler.getMessage()?.preventFurtherAppUsage, "null")
+    }
+
+    @Test
+    fun messageCanContainLink() {
+        val msgHandler = handler()
+
+        msgHandler.parseAppStartupMessageFromJson(messageJson(link = null))
+        assertNull(msgHandler.delegateMessageHandler.getMessage()?.link, "null")
+
+        msgHandler.parseAppStartupMessageFromJson(messageJson(link = MessageLink(
+            name = LocalizedString("foo", null, null),
+            url = LocalizedString("bar", null, null)
+        )))
+
+        with (assertNotNull(msgHandler.delegateMessageHandler.getMessage()?.link, "null")) {
+            assertEquals("foo", localizedName(Language.FI))
+            assertEquals("bar", localizedUrl(Language.FI))
+        }
+
+    }
+
+    @Test
     fun messageCanBeTargetedToAppVersion() {
         handler(appVersion = APP_VERSION, platformName = PlatformName.IOS).let { handler ->
             handler.parseAppStartupMessageFromJson(
@@ -188,17 +225,26 @@ class AppStartupMessageHandlerTest {
         msgId: MessageId = MSG_ID,
         maxDisplayCount: Int = 1,
         iosVersions: List<String>? = null,
-        androidVersions: List<String>? = null
+        androidVersions: List<String>? = null,
+        preventFurtherAppUsage: Boolean? = null,
+        link: MessageLink? = null,
     ): String {
         val msg = MessageDTO(
-                id = msgId,
-                maxDisplayCount = maxDisplayCount,
-                targetApplicationVersions = MessageTargetApplicationVersionsDTO(
-                        ios = iosVersions,
-                        android = androidVersions,
-                ),
-                title = LocalizedStringDTO("Title"),
-                message = LocalizedStringDTO("Message")
+            id = msgId,
+            maxDisplayCount = maxDisplayCount,
+            targetApplicationVersions = MessageTargetApplicationVersionsDTO(
+                    ios = iosVersions,
+                    android = androidVersions,
+            ),
+            title = LocalizedStringDTO("Title"),
+            message = LocalizedStringDTO("Message"),
+            preventFurtherAppUsage = preventFurtherAppUsage,
+            link = link?.let {
+                MessageLinkDTO(
+                    name = it.name.toLocalizedStringDTO(),
+                    url =  it.url.toLocalizedStringDTO()
+                )
+            }
         )
 
         return JsonHelper.serializeToJsonUnsafe(msg)

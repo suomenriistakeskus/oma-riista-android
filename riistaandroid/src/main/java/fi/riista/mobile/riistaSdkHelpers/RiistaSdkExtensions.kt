@@ -3,11 +3,15 @@ package fi.riista.mobile.riistaSdkHelpers
 import android.content.Context
 import androidx.annotation.StringRes
 import fi.riista.common.domain.constants.SpeciesCode
+import fi.riista.common.domain.permit.metsahallitusPermit.model.CommonMetsahallitusPermit
 import fi.riista.common.domain.season.HarvestSeasons
 import fi.riista.common.model.*
+import fi.riista.common.ui.controller.ControllerWithLoadableModel
+import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.ActionEventDispatcher
 import fi.riista.common.ui.dataField.DataFieldId
 import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.util.prefixed
 import fi.riista.mobile.models.GeoLocation
 import fi.riista.mobile.ui.dataFields.DataFieldRecyclerViewAdapter
 import fi.riista.mobile.ui.dataFields.viewHolder.CaptionViewHolder
@@ -16,6 +20,9 @@ import fi.riista.mobile.ui.dataFields.viewHolder.ErrorLabelViewHolder
 import fi.riista.mobile.ui.dataFields.viewHolder.IndicatorViewHolder
 import fi.riista.mobile.ui.dataFields.viewHolder.InfoViewHolder
 import fi.riista.mobile.ui.dataFields.viewHolder.LinkLabelViewHolder
+import fi.riista.mobile.utils.DateTimeUtils
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 
 fun LocalDate.toJodaLocalDate(): org.joda.time.LocalDate {
@@ -76,11 +83,11 @@ fun HoursAndMinutes.formatToHoursAndMinutesString(
     )
 }
 
-fun HarvestSeasons.isDuringHuntingSeason(
+fun HarvestSeasons.isDuringHarvestSeason(
     speciesCode: SpeciesCode,
     date: org.joda.time.LocalDate
 ): Boolean {
-    return isDuringHuntingSeason(speciesCode, LocalDate.fromJodaLocalDate(date))
+    return isDuringHarvestSeason(speciesCode, LocalDate.fromJodaLocalDate(date))
 }
 
 fun GeoLocation.toETRMSGeoLocation() = ETRMSGeoLocation(
@@ -102,6 +109,19 @@ fun ETRMSGeoLocation.toGeoLocation(): GeoLocation {
         location.altitudeAccuracy = altitudeAccuracy
     }
 }
+
+
+val CommonMetsahallitusPermit.formattedPeriodDates: String
+    get() {
+        val formattedBeginDate = beginDate?.let {
+            DateTimeUtils.formatLocalDateUsingShortFinnishFormat(it.toJodaLocalDate())?.plus(" ")
+        } ?: ""
+        val formattedEndDate = endDate?.let {
+            DateTimeUtils.formatLocalDateUsingShortFinnishFormat(it.toJodaLocalDate())?.prefixed(" ")
+        } ?: ""
+
+        return "$formattedBeginDate-$formattedEndDate"
+    }
 
 
 // data field helpers
@@ -126,4 +146,20 @@ fun <FieldId : DataFieldId> DataFieldRecyclerViewAdapter<FieldId>.registerLabelF
         LinkLabelViewHolder.Factory(eventDispatcher = linkActionEventDispatcher)
     )
     registerViewHolderFactory(IndicatorViewHolder.Factory())
+}
+
+
+// controller helpers
+
+fun <ViewModel : Any, Controller : ControllerWithLoadableModel<ViewModel>> Controller.loadViewModelIfNotLoaded(
+    loadStarted: (() -> Unit)? = null
+) {
+    if (viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+        return
+    }
+
+    MainScope().launch {
+        loadStarted?.let { it() }
+        loadViewModel()
+    }
 }

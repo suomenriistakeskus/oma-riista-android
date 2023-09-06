@@ -1,6 +1,5 @@
 package fi.riista.common.domain.huntingControl.ui.view
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.huntingControl.HuntingControlContext
 import fi.riista.common.domain.huntingControl.model.HuntingControlAttachment
 import fi.riista.common.domain.huntingControl.model.HuntingControlEvent
@@ -18,10 +17,18 @@ import fi.riista.common.resources.localized
 import fi.riista.common.resources.toLocalizedStringWithId
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.AttachmentField
+import fi.riista.common.ui.dataField.ChipField
+import fi.riista.common.ui.dataField.DataFieldProducer
+import fi.riista.common.ui.dataField.DataFieldProducerProxy
+import fi.riista.common.ui.dataField.DateField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.LocationField
+import fi.riista.common.ui.dataField.Padding
+import fi.riista.common.ui.dataField.StringField
+import fi.riista.common.ui.dataField.TimespanField
 import fi.riista.common.util.toStringOrMissingIndicator
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 
 class ViewHuntingControlEventController(
@@ -34,9 +41,6 @@ class ViewHuntingControlEventController(
     private lateinit var attachmentDataFieldProducer: DataFieldProducer<AttachmentWrapper, HuntingControlEventField>
 
     init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-
         initializeFieldProducers()
     }
 
@@ -63,8 +67,6 @@ class ViewHuntingControlEventController(
     override fun createLoadViewModelFlow(refresh: Boolean): Flow<ViewModelLoadStatus<ViewHuntingControlEventViewModel>> = flow {
         emit(ViewModelLoadStatus.Loading)
 
-        huntingControlContext.fetchRhys(refresh = refresh)
-
         val huntingControlRhyContext = huntingControlContext.findRhyContext(
             identifiesRhy = huntingControlEventTarget,
         ) ?: kotlin.run {
@@ -73,13 +75,13 @@ class ViewHuntingControlEventController(
             return@flow
         }
 
-        val event = huntingControlRhyContext.fetchHuntingControlEvent(
+        val event = huntingControlRhyContext.findHuntingControlEvent(
             identifiesHuntingControlEvent = huntingControlEventTarget,
-            allowCached = !refresh
         )
 
         if (event != null) {
-            emit(ViewModelLoadStatus.Loaded(
+            emit(
+                ViewModelLoadStatus.Loaded(
                     viewModel = createViewModel(event)
                 )
             )

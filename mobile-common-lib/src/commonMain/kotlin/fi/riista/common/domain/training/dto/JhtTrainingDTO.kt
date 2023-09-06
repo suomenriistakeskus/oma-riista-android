@@ -12,7 +12,7 @@ data class JhtTrainingDTO(
     val trainingType: String,
     val occupationType: String,
     val date: LocalDateDTO,
-    val location: String,
+    val location: String? = null,
 )
 
 fun JhtTrainingDTO.toJhtTraining(): JhtTraining? {

@@ -1,6 +1,6 @@
 package fi.riista.common.logging
 
-class PrintlnLogger() {
+class PrintlnLogger {
     fun log(
         tag: String,
         logLevel: LogLevel,

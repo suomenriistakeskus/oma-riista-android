@@ -2,9 +2,13 @@
 
 package fi.riista.common.domain.srva.ui.modify
 
-import co.touchlab.stately.ensureNeverFrozen
-import fi.riista.common.domain.model.CommonSpecimenData
+import fi.riista.common.domain.model.CommonLocation
+import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.model.keepNonEmpty
+import fi.riista.common.domain.srva.SaveSrvaResponse
+import fi.riista.common.domain.srva.SrvaContext
+import fi.riista.common.domain.srva.SrvaEventOperationResponse
 import fi.riista.common.domain.srva.model.CommonSrvaEvent
 import fi.riista.common.domain.srva.model.CommonSrvaEventData
 import fi.riista.common.domain.srva.model.toCommonSrvaMethod
@@ -21,9 +25,7 @@ import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.FieldSpecification
 import fi.riista.common.ui.intent.IntentHandler
 import fi.riista.common.util.LocalDateTimeProvider
-import fi.riista.common.util.SystemDateTimeProvider
 import fi.riista.common.util.replace
-import fi.riista.common.util.withNumberOfElements
 import kotlinx.serialization.Serializable
 
 /**
@@ -31,21 +33,12 @@ import kotlinx.serialization.Serializable
  */
 abstract class ModifySrvaEventController internal constructor(
     private val metadataProvider: MetadataProvider,
+    protected val srvaContext: SrvaContext,
+    protected val localDateTimeProvider: LocalDateTimeProvider,
     stringProvider: StringProvider,
-    localDateTimeProvider: LocalDateTimeProvider
 ) : ControllerWithLoadableModel<ModifySrvaEventViewModel>(),
     IntentHandler<ModifySrvaEventIntent>,
     HasUnreproducibleState<ModifySrvaEventController.SavedState> {
-
-    constructor(
-        metadataProvider: MetadataProvider,
-        stringProvider: StringProvider,
-    ): this(
-        metadataProvider = metadataProvider,
-        stringProvider = stringProvider,
-        localDateTimeProvider = SystemDateTimeProvider()
-    )
-
 
     private val srvaEventFields = SrvaEventFields(metadataProvider = metadataProvider)
     val eventDispatchers: ModifySrvaEventDispatcher by lazy {
@@ -70,15 +63,35 @@ abstract class ModifySrvaEventController internal constructor(
         localDateTimeProvider = localDateTimeProvider,
     )
 
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
 
-    fun getValidatedSrvaEvent(): CommonSrvaEvent? {
-        return getLoadedViewModelOrNull()
-            ?.getValidatedSrvaDataOrNull()
-            ?.toSrvaEvent()
+    /**
+     * Saves the srva event to local database and optionally tries to send it to backend.
+     */
+    suspend fun saveSrvaEvent(updateToBackend: Boolean): SaveSrvaResponse {
+        val srvaEventToBeSaved = getSrvaEventToSaveOrNull()?.copy(modified = true) ?: kotlin.run {
+            return SaveSrvaResponse(
+                databaseSaveResponse = SrvaEventOperationResponse.Error("no valid SRVA event")
+            )
+        }
+
+        return when (val saveResponse = srvaContext.saveSrvaEvent(srvaEventToBeSaved)) {
+            is SrvaEventOperationResponse.Error,
+            is SrvaEventOperationResponse.SaveFailure,
+            is SrvaEventOperationResponse.NetworkFailure -> {
+                SaveSrvaResponse(databaseSaveResponse = saveResponse)
+            }
+            is SrvaEventOperationResponse.Success -> {
+                if (updateToBackend) {
+                    val networkResponse = srvaContext.sendSrvaEventToBackend(srvaEvent = saveResponse.srvaEvent)
+                    SaveSrvaResponse(
+                        databaseSaveResponse = saveResponse,
+                        networkSaveResponse = networkResponse
+                    )
+                } else {
+                    SaveSrvaResponse(databaseSaveResponse = saveResponse)
+                }
+            }
+        }
     }
 
     override fun handleIntent(intent: ModifySrvaEventIntent) {
@@ -139,24 +152,14 @@ abstract class ModifySrvaEventController internal constructor(
                 srvaEvent.copy(pointOfTime = intent.dateAndTime)
             }
             is ModifySrvaEventIntent.ChangeSpecimenAmount -> {
-                if (intent.specimenAmount == null) {
-                    srvaEvent.copy(
-                        specimenAmount = intent.specimenAmount
-                    )
-                } else {
-                    val updatedSpecimens = srvaEvent.specimens.withNumberOfElements(intent.specimenAmount) {
-                        CommonSpecimenData()
-                    }
-                    srvaEvent.copy(
-                        specimenAmount = intent.specimenAmount,
-                        specimens = updatedSpecimens
-                    )
-                }
+                srvaEvent.copy(
+                    specimenAmount = intent.specimenAmount
+                )
             }
             is ModifySrvaEventIntent.ChangeSpecimenData ->
                 srvaEvent.copy(
                     specimenAmount = intent.specimenData.specimens.size,
-                    specimens = intent.specimenData.specimens
+                    specimens = intent.specimenData.specimens.keepNonEmpty()
                 )
             is ModifySrvaEventIntent.ChangeEventCategory -> {
                 // changing category requires clearing also the event type, event result and methods as those
@@ -300,56 +303,147 @@ abstract class ModifySrvaEventController internal constructor(
         return viewModel
     }
 
-    private fun ModifySrvaEventViewModel.getValidatedSrvaDataOrNull(): CommonSrvaEventData? {
+    /**
+     * Attempts to get the srva event and prepare it to be saved.
+     *
+     * Validates the current srva event data and ensures it only contains data that is allowed
+     * to be saved.
+     */
+    private fun getSrvaEventToSaveOrNull(): CommonSrvaEvent? {
+        val viewModel = getLoadedViewModelOrNull() ?: kotlin.run { return null }
+
+        return prepareForSave(
+            saveCandidate = viewModel.srvaEvent,
+        )?.toSrvaEvent()
+    }
+
+    /**
+     * Prepares the given ([saveCandidate]) srva event to be saved. Returns either valid srva event with data
+     * that can be saved or `null` if srva event could not be validated.
+     */
+    private fun prepareForSave(
+        saveCandidate: CommonSrvaEventData,
+    ): CommonSrvaEventData? {
         val displayedFields = srvaEventFields.getFieldsToBeDisplayed(
             SrvaEventFields.Context(
-                srvaEvent = srvaEvent,
+                srvaEvent = saveCandidate,
                 mode = SrvaEventFields.Context.Mode.EDIT
             )
         )
 
-        val validationErrors = CommonSrvaEventValidator.validate(
-            srvaEvent = srvaEvent,
-            srvaMetadata = metadataProvider.srvaMetadata,
-            displayedFields = displayedFields,
-        )
-        if (validationErrors.isNotEmpty()) {
+        if (!saveCandidate.isValidAgainstFields(displayedFields)) {
+            logger.w { "Srva event save-candidate was not valid." }
             return null
         }
 
-        return srvaEvent.createCopyWithFields(displayedFields)
+        val srvaEventToSave = saveCandidate.prepareForSaveWithFields(
+            fields = displayedFields.map { it.fieldId.type }.toSet()
+        ) ?: kotlin.run {
+            logger.w { "Failed to obtain srva-event-to-save." }
+            return null
+        }
 
+        if (!srvaEventToSave.isValidAgainstFields(displayedFields)) {
+            logger.w { "Srva event save-candidate was not valid." }
+            return null
+        }
+
+        return srvaEventToSave
     }
 
-    private fun CommonSrvaEventData.createCopyWithFields(
-        fields: List<FieldSpecification<SrvaEventField>>,
-    ): CommonSrvaEventData {
-        val fieldTypes: Set<SrvaEventField.Type> = fields.map { it.fieldId.type }.toSet()
+    private fun CommonSrvaEventData.isValidAgainstFields(
+        displayedFields: List<FieldSpecification<SrvaEventField>>,
+    ): Boolean {
+        val validationErrors = CommonSrvaEventValidator.validate(
+            srvaEvent = this,
+            srvaMetadata = metadataProvider.srvaMetadata,
+            displayedFields = displayedFields,
+        )
+        return validationErrors.isEmpty()
+    }
 
-        // todo: should probably list all fields here instead of implicitly depending on SrvaEventFields
-        //       implementation about condiditional fields..
-        return copy(
+    private fun CommonSrvaEventData.prepareForSaveWithFields(
+        fields: Set<SrvaEventField.Type>,
+    ): CommonSrvaEventData? {
+        return CommonSrvaEventData(
+            localId = localId,
+            localUrl = localUrl,
+            remoteId = remoteId,
+            revision = revision,
+            mobileClientRefId = mobileClientRefId,
+            srvaSpecVersion = srvaSpecVersion,
+            state = state,
+            rhyId = rhyId,
+            canEdit = canEdit,
+            location = location.takeIf {
+                fields.contains(SrvaEventField.Type.LOCATION)
+            } ?: CommonLocation.Unknown,
+            pointOfTime = pointOfTime.also {
+                if (!fields.contains(SrvaEventField.Type.DATE_AND_TIME)) {
+                    logger.e { "Fields didn't contain DATE_AND_TIME!" }
+                    return null
+                }
+            },
+            author = author,
+            approver = approver.takeIf {
+                fields.contains(SrvaEventField.Type.APPROVER_OR_REJECTOR)
+            },
+            species = species.takeIf {
+                fields.contains(SrvaEventField.Type.SPECIES_CODE)
+            } ?: Species.Unknown,
             otherSpeciesDescription = otherSpeciesDescription.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.OTHER_SPECIES_DESCRIPTION)
+                fields.contains(SrvaEventField.Type.OTHER_SPECIES_DESCRIPTION)
             },
+            specimenAmount = specimenAmount.takeIf {
+                fields.contains(SrvaEventField.Type.SPECIMEN_AMOUNT)
+            },
+            specimens = specimens.let {
+                if (fields.contains(SrvaEventField.Type.SPECIMEN)) {
+                    it.keepNonEmpty()
+                } else {
+                    emptyList()
+                }
+            },
+            eventCategory = eventCategory.takeIf {
+                fields.contains(SrvaEventField.Type.EVENT_CATEGORY)
+            } ?: BackendEnum.create(null),
             deportationOrderNumber = deportationOrderNumber.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.DEPORTATION_ORDER_NUMBER)
+                fields.contains(SrvaEventField.Type.DEPORTATION_ORDER_NUMBER)
             },
+            eventType = eventType.takeIf {
+                fields.contains(SrvaEventField.Type.EVENT_TYPE)
+            } ?: BackendEnum.create(null),
             otherEventTypeDescription = otherEventTypeDescription.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.EVENT_OTHER_TYPE_DESCRIPTION)
+                fields.contains(SrvaEventField.Type.EVENT_OTHER_TYPE_DESCRIPTION)
             },
             eventTypeDetail = eventTypeDetail.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.EVENT_TYPE_DETAIL)
+                fields.contains(SrvaEventField.Type.EVENT_TYPE_DETAIL)
             } ?: BackendEnum.create(null),
             otherEventTypeDetailDescription = otherEventTypeDetailDescription.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.EVENT_OTHER_TYPE_DETAIL_DESCRIPTION)
+                fields.contains(SrvaEventField.Type.EVENT_OTHER_TYPE_DETAIL_DESCRIPTION)
             },
-            eventResultDetail = eventResultDetail.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.EVENT_RESULT_DETAIL)
+            eventResult = eventResult.takeIf {
+                fields.contains(SrvaEventField.Type.EVENT_RESULT)
             } ?: BackendEnum.create(null),
+            eventResultDetail = eventResultDetail.takeIf {
+                fields.contains(SrvaEventField.Type.EVENT_RESULT_DETAIL)
+            } ?: BackendEnum.create(null),
+            methods = methods, // always include
             otherMethodDescription = otherMethodDescription.takeIf {
-                fieldTypes.contains(SrvaEventField.Type.OTHER_METHOD_DESCRIPTION)
-            }
+                fields.contains(SrvaEventField.Type.OTHER_METHOD_DESCRIPTION)
+            },
+            personCount = personCount.takeIf {
+                fields.contains(SrvaEventField.Type.PERSON_COUNT)
+            },
+            hoursSpent = hoursSpent.takeIf {
+                fields.contains(SrvaEventField.Type.HOURS_SPENT)
+            },
+            description = description.takeIf {
+                fields.contains(SrvaEventField.Type.DESCRIPTION)
+            },
+            images = images,
+            modified = modified,
+            deleted = deleted,
         )
     }
 

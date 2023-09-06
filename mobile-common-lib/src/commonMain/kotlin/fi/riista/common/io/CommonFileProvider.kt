@@ -4,7 +4,7 @@ interface CommonFileProvider {
     enum class Directory {
         ATTACHMENTS,
         TEMPORARY_FILES,
-        //LOCAL_IMAGES,
+        LOCAL_IMAGES,
     }
 
     /**

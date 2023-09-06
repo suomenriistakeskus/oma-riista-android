@@ -1,13 +1,17 @@
 package fi.riista.common.domain.groupHunting.ui.groupObservation.view
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.constants.SpeciesCodes
 import fi.riista.common.domain.constants.isDeer
 import fi.riista.common.domain.constants.isDeerOrMoose
 import fi.riista.common.domain.groupHunting.GroupHuntingContext
 import fi.riista.common.domain.groupHunting.GroupHuntingObservationOperationResponse
 import fi.riista.common.domain.groupHunting.HuntingClubGroupDataPiece
-import fi.riista.common.domain.groupHunting.model.*
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservation
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationData
+import fi.riista.common.domain.groupHunting.model.GroupHuntingObservationTarget
+import fi.riista.common.domain.groupHunting.model.HuntingGroupArea
+import fi.riista.common.domain.groupHunting.model.toGroupHuntingObservation
+import fi.riista.common.domain.groupHunting.model.toGroupHuntingObservationData
 import fi.riista.common.domain.groupHunting.ui.GroupObservationField
 import fi.riista.common.domain.groupHunting.ui.ObservationActionResolver
 import fi.riista.common.domain.model.asKnownLocation
@@ -16,7 +20,14 @@ import fi.riista.common.resources.RR
 import fi.riista.common.resources.StringProvider
 import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.ViewModelLoadStatus
-import fi.riista.common.ui.dataField.*
+import fi.riista.common.ui.dataField.DataFieldProducer
+import fi.riista.common.ui.dataField.DataFieldProducerProxy
+import fi.riista.common.ui.dataField.DateAndTimeField
+import fi.riista.common.ui.dataField.LabelField
+import fi.riista.common.ui.dataField.LocationField
+import fi.riista.common.ui.dataField.Padding
+import fi.riista.common.ui.dataField.SpeciesField
+import fi.riista.common.ui.dataField.StringField
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -33,9 +44,6 @@ class ViewGroupObservationController(
     private lateinit var dataFieldProducers: List<DataFieldProducer<GroupHuntingObservationData, GroupObservationField>>
 
     init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-
         initializeFieldProducers()
     }
 

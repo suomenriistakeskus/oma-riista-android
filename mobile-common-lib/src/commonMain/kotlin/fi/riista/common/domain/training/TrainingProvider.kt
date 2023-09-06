@@ -5,8 +5,6 @@ import co.touchlab.stately.concurrency.value
 import fi.riista.common.domain.training.dto.TrainingsDTO
 import fi.riista.common.domain.training.dto.toTrainings
 import fi.riista.common.domain.training.model.Trainings
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LoadStatus
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
@@ -43,11 +41,5 @@ internal class TrainingsFromNetworkProvider(
     fun clear() {
         _trainings.set(null)
         loadStatus.set(LoadStatus.NotLoaded())
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(TrainingsFromNetworkProvider::class)
     }
 }

@@ -11,6 +11,7 @@ import fi.riista.common.domain.harvest.ui.modify.EditHarvestController
 import fi.riista.common.domain.harvest.ui.modify.EditableHarvest
 import fi.riista.common.extensions.deserializeJson
 import fi.riista.common.extensions.serializeToBundleAsJson
+import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
 import fi.riista.mobile.riistaSdkHelpers.AppSpeciesResolver
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 
@@ -30,7 +31,10 @@ class EditHarvestFragment
         EditHarvestController(
             harvestSeasons = RiistaSDK.harvestSeasons,
             harvestContext = RiistaSDK.harvestContext,
-            permitProvider = permitProvider,
+            harvestPermitProvider = harvestPermitProvider,
+            selectableHuntingClubs = RiistaSDK.huntingClubsSelectableForEntriesFactory.create(),
+            languageProvider = AppLanguageProvider(requireContext()),
+            preferences = RiistaSDK.preferences,
             speciesResolver = AppSpeciesResolver(),
             stringProvider = ContextStringProviderFactory.createForContext(requireContext())
         )

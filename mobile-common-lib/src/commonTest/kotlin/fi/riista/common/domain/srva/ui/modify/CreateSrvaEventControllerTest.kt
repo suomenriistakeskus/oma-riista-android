@@ -1,27 +1,50 @@
 package fi.riista.common.domain.srva.ui.modify
 
 import fi.riista.common.domain.constants.SpeciesCodes
-import fi.riista.common.helpers.*
-import fi.riista.common.logging.getLogger
-import fi.riista.common.metadata.MetadataProvider
-import fi.riista.common.metadata.MockMetadataProvider
-import fi.riista.common.domain.model.*
-import fi.riista.common.resources.RR
-import fi.riista.common.resources.StringProvider
-import fi.riista.common.resources.toLocalizedStringWithId
+import fi.riista.common.domain.model.CommonLocation
+import fi.riista.common.domain.model.CommonSpecimenData
+import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.specimens.ui.SpecimenFieldType
+import fi.riista.common.domain.srva.SrvaContext
 import fi.riista.common.domain.srva.model.SrvaEventCategoryType
 import fi.riista.common.domain.srva.model.SrvaEventResult
 import fi.riista.common.domain.srva.model.SrvaEventType
 import fi.riista.common.domain.srva.ui.SrvaEventField
+import fi.riista.common.domain.userInfo.CurrentUserContextProviderFactory
+import fi.riista.common.helpers.TestStringProvider
+import fi.riista.common.helpers.getDateTimeField
+import fi.riista.common.helpers.getIntField
+import fi.riista.common.helpers.getLoadedViewModel
+import fi.riista.common.helpers.getLocationField
+import fi.riista.common.helpers.getSpeciesField
+import fi.riista.common.helpers.getSpecimenField
+import fi.riista.common.helpers.getStringField
+import fi.riista.common.helpers.getStringListField
+import fi.riista.common.helpers.runBlockingTest
+import fi.riista.common.io.CommonFileProviderMock
+import fi.riista.common.logging.getLogger
+import fi.riista.common.metadata.MetadataProvider
+import fi.riista.common.metadata.MockMetadataProvider
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.model.ETRMSGeoLocation
 import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.model.StringWithId
+import fi.riista.common.network.BackendAPI
+import fi.riista.common.network.BackendAPIMock
+import fi.riista.common.network.BackendApiProvider
+import fi.riista.common.preferences.MockPreferences
+import fi.riista.common.resources.RR
+import fi.riista.common.resources.StringProvider
+import fi.riista.common.resources.toLocalizedStringWithId
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.util.LocalDateTimeProvider
 import fi.riista.common.util.MockDateTimeProvider
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class CreateSrvaEventControllerTest {
 
@@ -189,8 +212,17 @@ class CreateSrvaEventControllerTest {
     ): CreateSrvaEventController {
         return CreateSrvaEventController(
             metadataProvider = metadataProvider,
+            srvaContext = SrvaContext(
+                backendApiProvider = object : BackendApiProvider {
+                    override val backendAPI: BackendAPI = BackendAPIMock()
+                },
+                preferences = MockPreferences(),
+                localDateTimeProvider = dateTimeProvider,
+                commonFileProvider = CommonFileProviderMock(),
+                currentUserContextProvider = CurrentUserContextProviderFactory.createMocked(),
+            ),
+            localDateTimeProvider = dateTimeProvider,
             stringProvider = stringProvider,
-            dateTimeProvider = dateTimeProvider,
         )
     }
 

@@ -20,6 +20,7 @@ local.properties
 .launch
 .cproject
 .buildpath
+riistaandroid/production
 
 # IntelliJ files
 .idea/
@@ -36,3 +37,4 @@ google-services.json
 
 fastlane/README.md
 fastlane/report.xml
+

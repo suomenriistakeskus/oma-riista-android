@@ -5,6 +5,7 @@ import fi.riista.common.domain.specimens.ui.SpecimenFieldType
 import fi.riista.common.model.BackendEnum
 import fi.riista.common.resources.toBackendEnum
 import fi.riista.common.ui.dataField.AgeEventDispatcher
+import fi.riista.common.ui.dataField.DoubleEventDispatcher
 import fi.riista.common.ui.dataField.GenderEventDispatcher
 import fi.riista.common.ui.dataField.StringWithIdEventDispatcher
 import fi.riista.common.ui.intent.IntentHandler
@@ -62,6 +63,19 @@ internal class EditSpecimenEventToIntentMapper(
 
             intentHandler.handleIntent(intent)
         }
+
+    override val doubleEventDispatcher = DoubleEventDispatcher<SpecimenFieldId> { fieldId, value ->
+        val intent = when (fieldId.type) {
+            SpecimenFieldType.WEIGHT ->
+                EditSpecimenIntent.ChangeWeight(
+                    fieldId = fieldId,
+                    weight = value
+                )
+            else -> throw createUnexpectedEventException(fieldId, "Double", value)
+        }
+
+        intentHandler.handleIntent(intent)
+    }
 
 
     private fun createUnexpectedEventException(

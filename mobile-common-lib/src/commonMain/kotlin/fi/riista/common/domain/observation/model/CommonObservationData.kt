@@ -33,11 +33,17 @@ internal data class CommonObservationData(
     val description: String?,
     val images: EntityImages,
 
-    // the amount of specimens as inputted by the user
+    // the amount of specimens as inputted by the user. Allowed to be null (user has cleared the amount field)
     val totalSpecimenAmount: Int?,
+
+    // the current specimen data. The size of the list most likely doesn't match totalSpecimenAmount.
+    // The final, saved specimens should be determined upon saving based on these and totalSpecimenAmount
     val specimens: List<CommonSpecimenData>?,
 
     val canEdit: Boolean,
+    val modified: Boolean,
+    val deleted: Boolean,
+
     val mooselikeMaleAmount: Int?,
     val mooselikeFemaleAmount: Int?,
     val mooselikeFemale1CalfAmount: Int?,
@@ -100,6 +106,8 @@ internal fun CommonObservationData.toCommonObservation(): CommonObservation? {
         images = images,
         specimens = specimens?.map { it.toObservationSpecimen() },
         canEdit = canEdit,
+        modified = modified,
+        deleted = deleted,
         totalSpecimenAmount = totalSpecimenAmount,
         mooselikeMaleAmount = mooselikeMaleAmount,
         mooselikeFemaleAmount = mooselikeFemaleAmount,

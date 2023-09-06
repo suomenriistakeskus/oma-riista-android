@@ -70,6 +70,21 @@ class ExtensionsTest {
     }
 
     @Test
+    fun testContainsAny() {
+        assertFalse(listOf<Int>().containsAny(emptyList()), "empty : empty")
+        assertFalse(listOf<Int>().containsAny(listOf(1)), "empty : 1")
+        assertFalse(listOf(1, 2).containsAny(emptyList()), "1,2 : empty")
+        assertFalse(listOf(1, 2).containsAny(listOf(3)), "1,2 : 3")
+
+        assertTrue(listOf(1).containsAny(listOf(1)), "1 : 1")
+        assertFalse(listOf(1).containsAny(listOf(2)), "1 : 2")
+
+        assertTrue(listOf(1, 2).containsAny(listOf(1)), "1,2 : 1")
+        assertTrue(listOf(1, 2).containsAny(listOf(2)), "1,2 : 2")
+        assertFalse(listOf(1, 2).containsAny(listOf(3)), "1,2 : 3")
+    }
+
+    @Test
     fun testReplaceValidIndex() {
         assertEquals(listOf(0, 2), listOf(1, 2).replace(0, 0))
         assertEquals(listOf(1, 3), listOf(1, 2).replace(1, 3))
@@ -192,6 +207,12 @@ class ExtensionsTest {
             listOf(1, 2, 3, 5, 5),
             initialList.withNumberOfElements(5) { 5 }
         )
+    }
+
+    @Test
+    fun `prefixing strings`() {
+        assertEquals("foobar", "bar".prefixed("foo"))
+        assertEquals("bar", "bar".prefixed(""))
     }
 }
 

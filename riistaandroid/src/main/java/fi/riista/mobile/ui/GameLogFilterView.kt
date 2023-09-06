@@ -7,12 +7,11 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatSpinner
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.button.MaterialButton
 import fi.riista.common.domain.poi.ui.PoiFilter
 import fi.riista.mobile.R
@@ -25,14 +24,15 @@ import fi.riista.mobile.models.GameLog
 import fi.riista.mobile.utils.AppPreferences
 import fi.riista.mobile.utils.Utils
 import fi.riista.mobile.utils.toVisibility
+import fi.riista.mobile.viewmodel.GameLogViewModel
 import java.util.Collections.emptyList
 
 class GameLogFilterView : ConstraintLayout {
 
     interface GameLogFilterListener {
-        fun onLogTypeSelected(@Nullable type: String)
+        fun onLogTypeSelected(type: String)
         fun onLogSeasonSelected(season: Int)
-        fun onLogSpeciesSelected(@NonNull speciesIds: List<Int>)
+        fun onLogSpeciesSelected(speciesIds: List<Int>)
         fun onLogSpeciesCategorySelected(categoryId: Int)
     }
 
@@ -219,7 +219,7 @@ class GameLogFilterView : ConstraintLayout {
         }
     }
 
-    fun setupSpecies(@Nullable selected: List<Int?>, @Nullable category: Int?) {
+    fun setupSpecies(selected: List<Int?>, category: Int?) {
         val textView = findViewById<TextView>(R.id.log_filter_species_text)
 
         if (category != null) {
@@ -227,7 +227,7 @@ class GameLogFilterView : ConstraintLayout {
             clearButton.visibility = View.VISIBLE
         } else {
             when {
-                selected.count() == 0 -> {
+                selected.isEmpty() -> {
                     textView.text = resources.getString(R.string.species_prompt)
                     clearButton.visibility = View.GONE
                 }
@@ -250,4 +250,32 @@ class GameLogFilterView : ConstraintLayout {
 
     private fun isSrvaSelected(): Boolean = typeSpinner.selectedItemPosition == srvaPosition
     private fun isPoiSelected(): Boolean = typeSpinner.selectedItemPosition == poiPosition
+}
+
+
+fun GameLogFilterView.updateBasedOnViewModel(model: GameLogViewModel, viewLifecycleOwner: LifecycleOwner) {
+    model.getSeasonSelected().observe(viewLifecycleOwner) { seasonSelected ->
+        setupSeasons(
+            seasons = model.getSeasons().value,
+            selected = seasonSelected
+        )
+    }
+    model.getSeasons().observe(viewLifecycleOwner) { seasons ->
+        setupSeasons(
+            seasons = seasons,
+            selected = model.getSeasonSelected().value
+        )
+    }
+    model.getSpeciesSelected().observe(viewLifecycleOwner) { selectedSpecies ->
+        setupSpecies(
+            selected = selectedSpecies ?: listOf(),
+            category = model.getCategorySelected().value
+        )
+    }
+    model.getCategorySelected().observe(viewLifecycleOwner) { selectedSpeciesCategory ->
+        setupSpecies(
+            selected = model.getSpeciesSelected().value ?: listOf(),
+            category = selectedSpeciesCategory
+        )
+    }
 }

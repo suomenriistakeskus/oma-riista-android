@@ -6,21 +6,27 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.SparseArray
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import dagger.android.support.AndroidSupportInjection
 import fi.riista.common.RiistaSDK
+import fi.riista.common.domain.harvest.ui.list.ListCommonHarvestsController
+import fi.riista.common.domain.harvest.ui.settings.showActorSelection
+import fi.riista.common.domain.model.Species
+import fi.riista.common.domain.observation.ui.list.ListCommonObservationsController
+import fi.riista.common.domain.srva.ui.list.ListCommonSrvaEventsController
+import fi.riista.common.network.sync.SynchronizationLevel
 import fi.riista.common.reactive.DisposeBag
 import fi.riista.common.reactive.disposeBy
+import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.mobile.R
 import fi.riista.mobile.adapter.GameLogAdapter
 import fi.riista.mobile.database.HarvestDatabase.SeasonStats
@@ -32,19 +38,23 @@ import fi.riista.mobile.models.GameLog
 import fi.riista.mobile.sync.AppSync
 import fi.riista.mobile.sync.SyncConfig
 import fi.riista.mobile.sync.SyncMode
+import fi.riista.mobile.sync.SynchronizationEvent
+import fi.riista.mobile.ui.AddMenuProvider
 import fi.riista.mobile.ui.GameLogFilterView
 import fi.riista.mobile.ui.GameLogFilterView.GameLogFilterListener
 import fi.riista.mobile.ui.GameLogListItem
 import fi.riista.mobile.ui.GameLogListItem.OnClickListItemListener
-import fi.riista.mobile.utils.Constants
+import fi.riista.mobile.ui.OwnHarvestsMenuProvider
+import fi.riista.mobile.ui.RefreshMenuProvider
+import fi.riista.mobile.ui.updateBasedOnViewModel
 import fi.riista.mobile.utils.DateTimeUtils
 import fi.riista.mobile.utils.UiUtils.isSrvaVisible
 import fi.riista.mobile.utils.UserInfoStore
+import fi.riista.mobile.utils.toVisibility
 import fi.riista.mobile.viewmodel.GameLogViewModel
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import org.joda.time.DateTime
-import java.util.*
+import java.util.Calendar
 import javax.inject.Inject
 import kotlin.math.max
 
@@ -63,14 +73,32 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
 
     private val disposeBag = DisposeBag()
 
-    private var refreshItem: MenuItem? = null
     private var swipeRefreshLayout: SwipeRefreshLayout? = null
     private lateinit var adapter: GameLogAdapter
     private var displayItems: MutableList<GameLogListItem> = ArrayList()
     private val calendarYears = SparseArray<CalendarYear?>()
     private lateinit var filterView: GameLogFilterView
     private lateinit var model: GameLogViewModel
+    private lateinit var forOthersTextView: TextView
 
+    private val refreshMenuProvider by lazy {
+        RefreshMenuProvider {
+            startSync()
+            true
+        }
+    }
+    private val addMenuProvider by lazy {
+        AddMenuProvider {
+            startAddingEntity()
+            true
+        }
+    }
+    private val ownHarvestsMenuProvider by lazy {
+        OwnHarvestsMenuProvider {
+            toggleOwnHarvests()
+            true
+        }
+    }
     private val harvestActivityResultLaunch = registerForActivityResult(StartActivityForResult()) {
             result: ActivityResult -> onHarvestActivityResult(result.resultCode, result.data)
     }
@@ -80,6 +108,21 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
     private val srvaActivityResultLaunch = registerForActivityResult(StartActivityForResult()) {
             result: ActivityResult -> onSrvaActivityResult(result.resultCode, result.data)
     }
+
+    private val listSrvaEventsController = ListCommonSrvaEventsController(
+        metadataProvider = RiistaSDK.metadataProvider,
+        srvaContext = RiistaSDK.srvaContext,
+        listOnlySrvaEventsWithImages = false,
+    )
+    private val listObservationsController = ListCommonObservationsController(
+        metadataProvider = RiistaSDK.metadataProvider,
+        observationContext = RiistaSDK.observationContext,
+        listOnlyObservationsWithImages = false,
+    )
+    private val listHarvestsController = ListCommonHarvestsController(
+        harvestContext = RiistaSDK.harvestContext,
+        listOnlyHarvestsWithImages = false,
+    )
 
     // Dagger injection of a Fragment instance must be done in On-Attach lifecycle phase.
     override fun onAttach(context: Context) {
@@ -99,7 +142,7 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
             ?.also { layout ->
                 layout.setOnRefreshListener {
                     //layout.isRefreshing = false // use other indicator instead
-                    appSync.synchronizeUsing(syncMode = SyncMode.SYNC_MANUAL)
+                    appSync.scheduleImmediateSyncUsing(syncMode = SyncMode.SYNC_MANUAL)
                 }
                 layout.setColorSchemeResources(R.color.colorPrimary)
             }
@@ -117,6 +160,11 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
             // POIs are not supported here, default to harvests
             model.selectLogType(GameLog.TYPE_HARVEST)
         }
+        model.isOwnHarvests().observe(viewLifecycleOwner) { ownHarvests ->
+            ownHarvestsMenuProvider.setOwnHarvests(ownHarvests)
+        }
+        filterView.updateBasedOnViewModel(model, viewLifecycleOwner)
+
         model.refreshSeasons()
         filterView.setupTypes(
             isSrvaVisible(userInfoStore.getUserInfo()),
@@ -125,57 +173,41 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
         )
         filterView.setupSeasons(model.getSeasons().value, model.getSeasonSelected().value)
         filterView.setupSpecies(model.getSpeciesSelected().value!!, model.getCategorySelected().value)
-        refreshList()
+
+        forOthersTextView = view.findViewById(R.id.tv_showing_harvest_for_others)
+
+        requireActivity().addMenuProvider(ownHarvestsMenuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        requireActivity().addMenuProvider(refreshMenuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        requireActivity().addMenuProvider(addMenuProvider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+        updateOwnHarvestVisibility()
         return view
     }
 
-    private fun refreshList() {
-        model.refreshSeasons()
-        val selection = model.getTypeSelected().value
-        if (GameLog.TYPE_HARVEST == selection) {
-            loadHarvests()
-        } else if (GameLog.TYPE_OBSERVATION == selection) {
-            loadObservations()
-        } else if (GameLog.TYPE_SRVA == selection) {
-            loadSrvas()
-        } else if (selection != null) {
-            throw RuntimeException("Unsupported selection type: $selection")
+    private fun loadHarvestsIfNotLoaded() {
+        if (listHarvestsController.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            return
+        }
+        MainScope().launch {
+            listHarvestsController.loadViewModel(refresh = true)
         }
     }
 
-    private fun loadHarvests() {
-        val harvestProvider = RiistaSDK.harvestContext.harvestProvider
+    private fun loadObservationsIfNotLoaded() {
+        if (listObservationsController.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            return
+        }
         MainScope().launch {
-            harvestProvider.fetch(refresh = false)
-            val harvests = harvestProvider.harvests
-            val items = harvests?.map { harvest ->
-                GameLogListItem.fromHarvest(harvest)
-            } ?: emptyList()
-            addItems(items, false)
+            listObservationsController.loadViewModel(refresh = true)
         }
     }
 
-    private fun loadObservations() {
-        val observationProvider = RiistaSDK.observationContext.observationProvider
-        MainScope().launch {
-            observationProvider.fetch(refresh = false)
-            val observations = observationProvider.observations
-            val items = observations?.map { observation ->
-                GameLogListItem.fromObservation(observation)
-            } ?: emptyList()
-            addItems(items, false)
+    private fun loadSrvasIfNotLoaded() {
+        if (listSrvaEventsController.viewModelLoadStatus.value is ViewModelLoadStatus.Loaded) {
+            return
         }
-    }
-
-    private fun loadSrvas() {
-        val srvaEventProvider = RiistaSDK.srvaContext.srvaEventProvider
         MainScope().launch {
-            srvaEventProvider.fetch(refresh = false)
-            val srvaEvents = srvaEventProvider.srvaEvents
-            val items = srvaEvents?.map { event ->
-                GameLogListItem.fromSrva(event)
-            } ?: emptyList()
-            addItems(items, true)
+            listSrvaEventsController.loadViewModel(refresh = true)
         }
     }
 
@@ -184,42 +216,35 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
         adapter.notifyDataSetChanged()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_add, menu)
-        inflater.inflate(R.menu.menu_refresh, menu)
-
-        // Show/hide refresh button according to sync settings.
-        refreshItem = menu.findItem(R.id.item_refresh)
-        updateManualSyncButtonIndicator(manualSyncPossible = appSync.manualSynchronizationPossible.value)
+    private fun startAddingEntity() {
+        val typeSelected = model.getTypeSelected().value
+        if (GameLog.TYPE_HARVEST == typeSelected) {
+            val intent = HarvestActivity.getLaunchIntentForCreating(requireActivity(), speciesCode = null)
+            harvestActivityResultLaunch.launch(intent)
+        } else if (GameLog.TYPE_OBSERVATION == typeSelected) {
+            val intent = ObservationActivity.getLaunchIntentForCreating(requireActivity(), speciesCode = null)
+            observationActivityResultLaunch.launch(intent)
+        } else if (GameLog.TYPE_SRVA == typeSelected) {
+            val intent = SrvaActivity.getLaunchIntentForCreating(requireActivity())
+            srvaActivityResultLaunch.launch(intent)
+        }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val typeSelected = model.getTypeSelected().value
-        return when (item.itemId) {
-            R.id.item_add -> {
-                if (GameLog.TYPE_HARVEST == typeSelected) {
-                    val intent = HarvestActivity.getLaunchIntentForCreating(requireActivity(), speciesCode = null)
-                    harvestActivityResultLaunch.launch(intent)
-                } else if (GameLog.TYPE_OBSERVATION == typeSelected) {
-                    val intent = ObservationActivity.getLaunchIntentForCreating(requireActivity(), speciesCode = null)
-                    observationActivityResultLaunch.launch(intent)
-                } else if (GameLog.TYPE_SRVA == typeSelected) {
-                    val intent = SrvaActivity.getLaunchIntentForCreating(requireActivity())
-                    srvaActivityResultLaunch.launch(intent)
-                }
-                true
-            }
-            R.id.item_refresh -> {
-                if (appSync.synchronizeUsing(syncMode = SyncMode.SYNC_MANUAL)) {
-                    // user initiated manual synchronization using refresh button
-                    // -> prevent other sync possibility (swipe-to-refresh)
-                    swipeRefreshLayout?.isEnabled = false
-                }
-                true
-            }
-            else -> {
-                super.onOptionsItemSelected(item)
-            }
+    private fun startSync() {
+        if (appSync.scheduleImmediateSyncUsing(syncMode = SyncMode.SYNC_MANUAL)) {
+            // user initiated manual synchronization using refresh button
+            // -> prevent other sync possibility (swipe-to-refresh)
+            swipeRefreshLayout?.isEnabled = false
+        }
+    }
+
+    private fun toggleOwnHarvests() {
+        MainScope().launch {
+            val previousOwnHarvests = model.isOwnHarvests().value ?: true
+            model.setOwnHarvests(!previousOwnHarvests)
+            listHarvestsController.setOwnHarvestsFilter(!previousOwnHarvests)
+            ownHarvestsMenuProvider.setOwnHarvests(!previousOwnHarvests)
+            updateForOthersTextVisibility()
         }
     }
 
@@ -236,6 +261,46 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
             )
         }.disposeBy(disposeBag)
         appSync.addSyncListener(listener = this, notifyImmediately = false)
+        listSrvaEventsController.viewModelLoadStatus.bind { loadStatus ->
+            if (loadStatus is ViewModelLoadStatus.Loaded) {
+                val type = model.getTypeSelected().value
+                if (type == GameLog.TYPE_SRVA) {
+                    listSrvaEventsController.getLoadedViewModelOrNull()?.filteredSrvaEvents?.let { srvaEvents ->
+                        val items = srvaEvents.map { srvaEvent ->
+                            GameLogListItem.fromSrva(srvaEvent)
+                        }
+                        addItems(items, true)
+                    }
+                }
+            }
+        }.disposeBy(disposeBag)
+        listHarvestsController.viewModelLoadStatus.bind { loadStatus ->
+            if (loadStatus is ViewModelLoadStatus.Loaded) {
+                val type = model.getTypeSelected().value
+                if (type == GameLog.TYPE_HARVEST) {
+                    listHarvestsController.getLoadedViewModelOrNull()?.filteredHarvests?.let { harvests ->
+                        val items = harvests.map { harvest ->
+                            GameLogListItem.fromHarvest(harvest)
+                        }
+                        addItems(items, false)
+                    }
+                }
+            }
+        }.disposeBy(disposeBag)
+        listObservationsController.viewModelLoadStatus.bind { loadStatus ->
+            if (loadStatus is ViewModelLoadStatus.Loaded) {
+                val type = model.getTypeSelected().value
+                if (type == GameLog.TYPE_OBSERVATION) {
+                    listObservationsController.getLoadedViewModelOrNull()?.filteredObservations?.let { observations ->
+                        val items = observations.map { observation ->
+                            GameLogListItem.fromObservation(observation)
+                        }
+                        addItems(items, false)
+                    }
+                }
+            }
+        }.disposeBy(disposeBag)
+        updateFilters()
     }
 
     override fun onStop() {
@@ -246,6 +311,9 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
 
     override fun onResume() {
         super.onResume()
+        ensureCorrectOwnHarvestsStatus()
+        updateOwnHarvestVisibility()
+        updateForOthersTextVisibility()
 
         updateSynchronizationUI(
             manualSyncPossible = appSync.manualSynchronizationPossible.value,
@@ -269,20 +337,14 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
     }
 
     private fun updateManualSyncButtonIndicator(manualSyncPossible: Boolean) {
-        refreshItem?.let { item ->
-            item.isVisible = syncConfig.syncMode == SyncMode.SYNC_MANUAL
-            item.isEnabled = manualSyncPossible
-            item.icon.alpha = when (manualSyncPossible) {
-                true -> 255
-                false -> Constants.DISABLED_ALPHA
-            }
-        }
+        refreshMenuProvider.setCanRefresh(manualSyncPossible)
+        refreshMenuProvider.setVisibility(syncConfig.syncMode == SyncMode.SYNC_MANUAL)
     }
 
     private fun onHarvestActivityResult(resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK && data != null) {
             if (HarvestActivity.getHarvestCreatedOrModified(data.extras)) {
-                refreshList()
+                updateFilters()
             }
         }
     }
@@ -290,7 +352,7 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
     private fun onObservationActivityResult(resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK && data != null) {
             if (ObservationActivity.getObservationCreatedOrModified(data.extras)) {
-                refreshList()
+                updateFilters()
             }
         }
     }
@@ -299,71 +361,33 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
         if (resultCode == Activity.RESULT_OK && data != null) {
             if (SrvaActivity.getSrvaEventCreatedOrModified(data.extras)) {
                 // assume srva is already saved, no need for automatic sync
-                refreshList()
+                updateFilters()
             }
         }
     }
 
-    private fun filterCurrentYearItems(items: List<GameLogListItem>): MutableList<GameLogListItem> {
-        val filtered: MutableList<GameLogListItem> = ArrayList(items.size)
-        val season = model.getSeasonSelected().value ?: return filtered
-        val startDate = DateTimeUtils.getHuntingYearStart(season)
-        val endDate = DateTimeUtils.getHuntingYearEnd(season)
-        for (event in items) {
-            val eventTime = DateTime(event.dateTime)
-            if (GameLog.TYPE_SRVA == event.type) {
-                if (eventTime.year == season) {
-                    filtered.add(event)
-                }
-            } else {
-                if (eventTime.isAfter(startDate) && eventTime.isBefore(endDate)) {
-                    filtered.add(event)
-                }
-            }
-        }
-        return filterSpeciesItems(filtered)
-    }
-
-    private fun filterSpeciesItems(items: MutableList<GameLogListItem>): MutableList<GameLogListItem> {
-        val speciesCodes: List<Int?>? = model.getSpeciesSelected().value
-        if (speciesCodes == null || speciesCodes.isEmpty()) {
-            return items
-        }
-        val filtered: MutableList<GameLogListItem> = ArrayList(items.size)
-        for (event in items) {
-            if (speciesCodes.contains(event.speciesCode)) {
-                filtered.add(event)
-            }
-        }
-        return filtered
-    }
-
-    private fun addItems(allEvents: List<GameLogListItem>, hideStats: Boolean) {
+    private fun addItems(items: List<GameLogListItem>, hideStats: Boolean) {
         if (activity != null) {
             clearList()
 
-            val newItems = allEvents.sortedByDescending { it.dateTime }
-                .let { events ->
-                    setupCalendarYears(events)
-                    filterCurrentYearItems(events)
-                }
+            setupCalendarYears(items)
 
-            displayItems = newItems
-            for (i in newItems.indices.reversed()) {
-                val item = newItems[i]
+            displayItems = items.toMutableList()
+            for (i in items.indices.reversed()) {
+                val item = items[i]
                 if (i == 0) {
                     val sectionItem = GameLogListItem()
                     sectionItem.isHeader = true
-                    sectionItem.month = newItems[i].dateTime!![Calendar.MONTH]
-                    sectionItem.year = newItems[i].dateTime!![Calendar.YEAR]
+                    sectionItem.month = items[i].dateTime!![Calendar.MONTH]
+                    sectionItem.year = items[i].dateTime!![Calendar.YEAR]
                     displayItems.add(i, sectionItem)
                 } else {
-                    val prevItem = newItems[i - 1]
+                    val prevItem = items[i - 1]
                     if (item.month != prevItem.month) {
                         val sectionItem = GameLogListItem()
                         sectionItem.isHeader = true
-                        sectionItem.month = newItems[i].dateTime!![Calendar.MONTH]
-                        sectionItem.year = newItems[i].dateTime!![Calendar.YEAR]
+                        sectionItem.month = items[i].dateTime!![Calendar.MONTH]
+                        sectionItem.year = items[i].dateTime!![Calendar.YEAR]
                         displayItems.add(i, sectionItem)
                     }
                 }
@@ -452,31 +476,60 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
     override fun onLogTypeSelected(type: String) {
         if (type != model.getTypeSelected().value) {
             model.selectLogType(type)
-            refreshList()
+            updateOwnHarvestVisibility()
+            updateFilters()
         }
     }
 
     override fun onLogSeasonSelected(season: Int) {
         if (season != model.getSeasonSelected().value) {
             model.selectLogSeason(season)
-            refreshList()
+            updateFilters()
         }
     }
 
     override fun onLogSpeciesSelected(speciesIds: List<Int>) {
         if (speciesIds != model.getSpeciesSelected()) {
+            // updating model updates filterview
             model.selectSpeciesIds(speciesIds)
-            filterView.setupSpecies(speciesIds, model.getCategorySelected().value)
-            refreshList()
+            updateFilters()
         }
     }
 
     override fun onLogSpeciesCategorySelected(categoryId: Int) {
         if (categoryId != model.getCategorySelected().value) {
+            // updating model updates filterview
             model.selectSpeciesCategory(categoryId)
-            val speciesIds = model.getSpeciesSelected().value!!
-            filterView.setupSpecies(speciesIds, model.getCategorySelected().value)
-            refreshList()
+            updateFilters()
+        }
+    }
+
+    private fun updateFilters() {
+        val ownHarvest = model.isOwnHarvests().value ?: true
+        val huntingYear = model.getSeasonSelected().value ?: return
+        val species = model.getSpeciesSelected().value?.map { speciesCode ->
+            if (speciesCode == null) {
+                Species.Other
+            } else {
+                Species.Known(speciesCode)
+            }
+        } ?: emptyList()
+
+        when (model.getTypeSelected().value) {
+            GameLog.TYPE_HARVEST -> {
+                MainScope().launch {
+                    loadHarvestsIfNotLoaded()
+                    listHarvestsController.setFilters(ownHarvest, huntingYear, species)
+                }
+            }
+            GameLog.TYPE_OBSERVATION -> {
+                loadObservationsIfNotLoaded()
+                listObservationsController.setFilters(huntingYear, species)
+            }
+            GameLog.TYPE_SRVA -> {
+                loadSrvasIfNotLoaded()
+                listSrvaEventsController.setFilters(huntingYear, species)
+            }
         }
     }
 
@@ -505,12 +558,38 @@ class GameLogFragment : PageFragment(), GameLogFilterListener, OnClickListItemLi
         }
     }
 
-    override fun onSyncStarted() {
-        // no-op
+    override fun onSynchronizationEvent(synchronizationEvent: SynchronizationEvent) {
+        if (synchronizationEvent is SynchronizationEvent.Completed &&
+            synchronizationEvent.synchronizationLevel == SynchronizationLevel.USER_CONTENT) {
+            updateFilters()
+        }
     }
 
-    override fun onSyncCompleted() {
-        refreshList()
+    override fun onSynchronizationScheduled(isImmediateUserContentSync: Boolean) {
+        // nop
+    }
+
+    private fun updateOwnHarvestVisibility() {
+        val showOwnHarvestsToggle = RiistaSDK.preferences.showActorSelection() &&
+                model.getTypeSelected().value == GameLog.TYPE_HARVEST
+        ownHarvestsMenuProvider.setVisibility(showOwnHarvestsToggle)
+    }
+
+    private fun ensureCorrectOwnHarvestsStatus() {
+        // If actor selection is disabled then make sure that own harvests are selected in model
+        if (!RiistaSDK.preferences.showActorSelection() && model.isOwnHarvests().value == false) {
+            MainScope().launch {
+                model.setOwnHarvests(true)
+                listHarvestsController.setOwnHarvestsFilter(true)
+                ownHarvestsMenuProvider.setOwnHarvests(true)
+                updateForOthersTextVisibility()
+            }
+        }
+    }
+
+    private fun updateForOthersTextVisibility() {
+        val ownHarvests = model.isOwnHarvests().value ?: true
+        forOthersTextView.visibility = (!ownHarvests).toVisibility()
     }
 
     private class CalendarYear {

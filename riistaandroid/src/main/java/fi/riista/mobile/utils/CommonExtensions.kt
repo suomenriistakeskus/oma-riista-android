@@ -2,10 +2,13 @@ package fi.riista.mobile.utils
 
 import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.Lifecycle
 import fi.riista.mobile.R
 
 fun Boolean.toVisibility() =
@@ -14,6 +17,16 @@ fun Boolean.toVisibility() =
     } else {
         View.GONE
     }
+
+fun Uri.openInBrowserWithConfirmation(context: Context, confirmationMessage: String) {
+    AlertDialog.Builder(context, R.style.AlertDialog_Default)
+        .setMessage(confirmationMessage)
+        .setPositiveButton(android.R.string.ok) { _: DialogInterface?, _: Int ->
+            openInBrowser(context)
+        }
+        .setNegativeButton(android.R.string.cancel) { _: DialogInterface?, _: Int -> /* Do nothing */ }
+        .show()
+}
 
 fun Uri.openInBrowser(context: Context) {
     val intent = Intent(Intent.ACTION_VIEW, this)
@@ -41,3 +54,5 @@ fun Uri.openInGooglePlay(context: Context) {
         Uri.parse("https://play.google.com/store/apps/details?$query").openInBrowser(context)
     }
 }
+
+fun Lifecycle.isResumed() = currentState.isAtLeast(Lifecycle.State.RESUMED)

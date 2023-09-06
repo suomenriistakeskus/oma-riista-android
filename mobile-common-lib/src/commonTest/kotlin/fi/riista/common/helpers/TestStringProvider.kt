@@ -1,5 +1,6 @@
 package fi.riista.common.helpers
 
+import fi.riista.common.model.LocalDate
 import fi.riista.common.resources.RR
 import fi.riista.common.resources.StringProvider
 
@@ -10,34 +11,44 @@ class TestStringProvider: StringProvider {
             RR.string.generic_yes -> "yes"
             RR.string.generic_no -> "no"
             RR.string.error_date_not_allowed -> "error_date_not_allowed"
+            RR.string.error_datetime_in_future -> "error_datetime_in_future"
             RR.string.group_hunting_label_club -> "club"
             RR.string.group_hunting_label_season -> "season"
             RR.string.group_hunting_label_species -> "species"
             RR.string.group_hunting_label_hunting_group -> "hunting_group"
             RR.string.group_hunting_error_hunting_has_finished -> "hunting_has_finished"
             RR.string.group_hunting_error_time_not_within_hunting_day -> "error_time_not_within_hunting_day"
-            RR.string.group_hunting_harvest_field_hunting_day_and_time -> "hunting_day_and_time"
-            RR.string.group_hunting_harvest_field_actor -> "actor"
-            RR.string.group_hunting_harvest_field_author -> "author"
-            RR.string.group_hunting_harvest_field_deer_hunting_type -> "deer_hunting_type"
-            RR.string.group_hunting_harvest_field_deer_hunting_other_type_description -> "deer_hunting_other_type_description"
-            RR.string.group_hunting_harvest_field_not_edible -> "not_edible"
-            RR.string.group_hunting_harvest_field_weight_estimated -> "weight_estimated"
-            RR.string.group_hunting_harvest_field_weight_measured -> "weight_measured"
-            RR.string.group_hunting_harvest_field_fitness_class -> "fitness_class"
-            RR.string.group_hunting_harvest_field_antlers_type -> "antlers_type"
-            RR.string.group_hunting_harvest_field_antlers_width -> "antlers_width"
-            RR.string.group_hunting_harvest_field_antler_points_left -> "antler_points_left"
-            RR.string.group_hunting_harvest_field_antler_points_right -> "antler_points_right"
-            RR.string.group_hunting_harvest_field_antlers_lost -> "antlers_lost"
-            RR.string.group_hunting_harvest_field_antlers_girth -> "antlers_girth"
-            RR.string.group_hunting_harvest_field_antler_shaft_width -> "antler_shaft_width"
-            RR.string.group_hunting_harvest_field_antlers_length -> "antlers_length"
-            RR.string.group_hunting_harvest_field_antlers_inner_width -> "antlers_inner_width"
-            RR.string.group_hunting_harvest_field_alone -> "alone"
-            RR.string.group_hunting_harvest_field_additional_information -> "additional_information"
-            RR.string.group_hunting_harvest_field_additional_information_instructions -> "additional_information_instructions"
-            RR.string.group_hunting_harvest_field_additional_information_instructions_white_tailed_deer -> "additional_information_instructions_white_tailed_deer"
+            RR.string.harvest_label_select_permit -> "select_permit"
+            RR.string.harvest_label_permit_information -> "permit_information"
+            RR.string.harvest_label_permit_required -> "permit_required"
+            RR.string.harvest_label_wild_boar_feeding_place -> "feeding_place"
+            RR.string.harvest_label_amount -> "amount"
+            RR.string.harvest_label_grey_seal_hunting_method -> "grey_seal_hunting_method"
+            RR.string.harvest_label_is_taiga_bean_goose -> "is_taiga_bean_goose"
+            RR.string.harvest_label_description -> "description"
+            RR.string.harvest_label_weight -> "weight"
+            RR.string.harvest_label_hunting_day_and_time -> "hunting_day_and_time"
+            RR.string.harvest_label_actor -> "actor"
+            RR.string.harvest_label_author -> "author"
+            RR.string.harvest_label_deer_hunting_type -> "deer_hunting_type"
+            RR.string.harvest_label_deer_hunting_other_type_description -> "deer_hunting_other_type_description"
+            RR.string.harvest_label_not_edible -> "not_edible"
+            RR.string.harvest_label_weight_estimated -> "weight_estimated"
+            RR.string.harvest_label_weight_measured -> "weight_measured"
+            RR.string.harvest_label_fitness_class -> "fitness_class"
+            RR.string.harvest_label_antlers_type -> "antlers_type"
+            RR.string.harvest_label_antlers_width -> "antlers_width"
+            RR.string.harvest_label_antler_points_left -> "antler_points_left"
+            RR.string.harvest_label_antler_points_right -> "antler_points_right"
+            RR.string.harvest_label_antlers_lost -> "antlers_lost"
+            RR.string.harvest_label_antlers_girth -> "antlers_girth"
+            RR.string.harvest_label_antler_shaft_width -> "antler_shaft_width"
+            RR.string.harvest_label_antlers_length -> "antlers_length"
+            RR.string.harvest_label_antlers_inner_width -> "antlers_inner_width"
+            RR.string.harvest_label_alone -> "alone"
+            RR.string.harvest_label_additional_information -> "additional_information"
+            RR.string.harvest_label_additional_information_instructions -> "additional_information_instructions"
+            RR.string.harvest_label_additional_information_instructions_white_tailed_deer -> "additional_information_instructions_white_tailed_deer"
             RR.string.group_hunting_observation_field_hunting_day_and_time -> "hunting_day_and_time"
             RR.string.group_hunting_observation_field_observation_type -> "observation_type"
             RR.string.group_hunting_observation_field_actor -> "actor"
@@ -106,7 +117,19 @@ class TestStringProvider: StringProvider {
             RR.string.harvest_fitness_class_normaali -> "fitness_class_normaali"
             RR.string.harvest_fitness_class_laiha -> "fitness_class_laiha"
             RR.string.harvest_fitness_class_naantynyt -> "fitness_class_naantynyt"
+            RR.string.grey_seal_hunting_method_shot -> "grey_seal_hunting_method_shot"
+            RR.string.grey_seal_hunting_method_captured_alive -> "grey_seal_hunting_method_captured_alive"
+            RR.string.grey_seal_hunting_method_shot_but_lost -> "grey_seal_hunting_method_shot_but_lost"
+            RR.string.harvest_report_state_sent_for_approval -> "harvest_report_state_sent_for_approval"
+            RR.string.harvest_report_state_approved -> "harvest_report_state_approved"
+            RR.string.harvest_report_state_rejected -> "harvest_report_state_rejected"
+            RR.string.harvest_report_required -> "harvest_report_required"
+            RR.string.harvest_permit_accepted -> "harvest_permit_accepted"
+            RR.string.harvest_permit_proposed -> "harvest_permit_proposed"
+            RR.string.harvest_permit_rejected -> "harvest_permit_rejected"
             RR.string.observation_type_nako -> "nako"
+            RR.string.observation_type_poikue -> "poikue"
+            RR.string.observation_type_pari -> "pari"
             RR.string.observation_type_jalki -> "jalki"
             RR.string.observation_type_uloste -> "uloste"
             RR.string.observation_type_aani -> "aani"
@@ -143,6 +166,7 @@ class TestStringProvider: StringProvider {
             RR.string.observation_type_leppakuusimetsa_tai_koivikuusimetsa -> "leppakuusimetsa_tai_koivikuusimetsa"
             RR.string.observation_type_ruokailupajukko_tai_koivikko -> "ruokailupajukko_tai_koivikko"
             RR.string.observation_type_muu -> "muu"
+            RR.string.error_observation_specimen_amount_at_least_two -> "specimen_amount_at_least_two"
             RR.string.hunting_club_membership_invitations -> "membership_invitations"
             RR.string.hunting_club_memberships -> "memberships"
             RR.string.poi_location_group_type_sighting_place -> "sighting_place"
@@ -169,6 +193,7 @@ class TestStringProvider: StringProvider {
             RR.string.hunting_control_inspector_selection_search_by_name -> "inspector_selection_search_by_name"
             RR.string.hunting_control_inspector_selection_name_hint -> "selection_name_hint"
             RR.string.hunting_control_error_no_inspectors_for_selected_date -> "no_inspectors_for_selected_date"
+            RR.string.hunting_control_error_no_self_as_inspector -> "no_self_as_inspector"
             RR.string.hunting_control_attachments -> "attachments"
             RR.string.hunting_control_add_attachment -> "add_attachment"
             RR.string.hunting_control_cooperation_type_poliisi -> "cooperation_type_poliisi"
@@ -283,20 +308,87 @@ class TestStringProvider: StringProvider {
             RR.string.observation_category_normal -> "normal"
             RR.string.observation_category_moose_hunting -> "moose_hunting"
             RR.string.observation_category_deer_hunting -> "deer_hunting"
+            RR.string.hunting_control_hunter_details -> "hunter_details"
+            RR.string.hunting_control_hunter_name -> "hunter_name"
+            RR.string.hunting_control_hunter_date_of_birth -> "date_of_birth"
+            RR.string.hunting_control_hunter_home_municipality -> "home_municipality"
+            RR.string.hunting_control_hunter_number -> "hunter_id"
+            RR.string.hunting_control_hunting_license -> "hunting_license"
+            RR.string.hunting_control_hunting_license_status -> "hunting_license_status"
+            RR.string.hunting_control_hunting_license_status_active -> "hunting_license_status_active"
+            RR.string.hunting_control_hunting_license_status_inactive -> "hunting_license_status_inactive"
+            RR.string.hunting_control_hunting_license_date_of_payment -> "hunting_license_date_of_payment"
+            RR.string.hunting_control_shooting_tests -> "shooting_tests"
+            RR.string.hunting_control_reset_hunter_info -> "reset"
+            RR.string.hunting_control_hunter_not_found -> "hunter_not_found"
+            RR.string.hunting_control_network_error -> "network_error"
+            RR.string.hunting_control_retry -> "retry"
+            RR.string.shooting_test_state_waiting_to_start -> "waiting_to_start"
+            RR.string.shooting_test_state_ongoing -> "ongoing"
+            RR.string.shooting_test_state_ongoing_ready_to_close -> "ready_to_close"
+            RR.string.shooting_test_state_closed -> "closed"
+            RR.string.shooting_test_type_moose -> "moose"
+            RR.string.shooting_test_type_bear -> "bear"
+            RR.string.shooting_test_type_roe_deer -> "deer"
+            RR.string.shooting_test_type_bow -> "bow"
+            RR.string.shooting_test_result_qualified -> "qualified"
+            RR.string.shooting_test_result_unqualified -> "unqualified"
+            RR.string.shooting_test_result_timed_out -> "timed_out"
+            RR.string.shooting_test_result_rebated -> "rebated"
+            RR.string.hunting_control_ssn -> "ssn"
+            RR.string.hunting_control_searching_hunter -> "searching_hunter"
+            RR.string.harvest_settings_add_harvest_for_other_hunter -> "add_harvest_for_other_hunter"
+            RR.string.harvest_settings_add_harvest_for_other_hunter_explanation -> "add_harvest_for_other_hunter_explanation"
+            RR.string.harvest_settings_enable_club_selection -> "enable_club_selection"
+            RR.string.harvest_settings_enable_club_selection_explanation -> "enable_club_selection_explanation"
+            RR.string.harvest_label_own_harvest -> "own_harvest"
+            RR.string.harvest_label_hunting_club -> "hunting_club"
+            RR.string.harvest_label_hunting_club_official_code -> "hunting_club_official_code"
+            RR.string.hunting_club_selection_select_club -> "select_club"
+            RR.string.hunting_club_selection_search_by_name -> "search_by_name"
+            RR.string.hunting_club_selection_search_by_name_hint -> "search_by_name_hint"
+            RR.string.hunting_club_selection_no_club_selection -> "no_club_selection"
+            RR.string.hunting_club_selection_other_club -> "other_club"
+            RR.string.hunting_club_search_enter_club_official_code -> "enter_club_official_code"
+            RR.string.hunting_club_search_invalid_official_code -> "invalid_official_code"
+            RR.string.hunting_club_search_searching_by_official_code -> "searching_by_official_code"
+            RR.string.hunting_club_search_search_failed -> "search_failed"
+            RR.string.sun_day_selection_label -> "day_selection_label"
+            RR.string.sun_sunrise_label -> "sunrise_label"
+            RR.string.sun_sunset_label -> "sunset_label"
+            RR.string.sun_instructions -> "instructions"
+            RR.string.sun_disclaimer -> "disclaimer"
         }
     }
 
     override fun getFormattedString(stringFormatId: RR.stringFormat, arg: String): String {
         return when (stringFormatId) {
             RR.stringFormat.group_hunting_label_permit_formatted -> "permit: $arg"
-            else -> throw RuntimeException("Unexpected stringFormatId ($stringFormatId) requested")
+            else -> throw RuntimeException("1 string arg: unexpected stringFormatId ($stringFormatId) requested")
         }
     }
 
     override fun getFormattedString(stringFormatId: RR.stringFormat, arg1: String, arg2: String): String {
         return when (stringFormatId) {
-            RR.stringFormat.generic_hours_and_minutes_format -> "%s %s"
-            else -> throw RuntimeException("Unexpected stringFormatId ($stringFormatId) requested")
+            RR.stringFormat.generic_hours_and_minutes_format -> "$arg1 $arg2"
+            else -> throw RuntimeException("2 string arg: unexpected stringFormatId ($stringFormatId) requested")
+        }
+    }
+
+    override fun getFormattedDouble(stringFormatId: RR.stringFormat, arg: Double): String {
+        return when (stringFormatId) {
+            RR.stringFormat.double_format_one_decimal -> arg.toString().let { withAllDecimals ->
+                withAllDecimals.substring(
+                    startIndex = 0,
+                    endIndex = withAllDecimals.lastIndexOf('.')
+                        .takeIf { it != -1 }
+                        ?.let { it + 2 }
+                        ?.coerceAtMost(withAllDecimals.length)
+                        ?: withAllDecimals.length
+                )
+            }
+            RR.stringFormat.double_format_zero_decimals -> arg.toString().substringBefore('.')
+            else -> throw RuntimeException("1 double arg: unexpected stringFormatId ($stringFormatId) requested")
         }
     }
 
@@ -313,6 +405,13 @@ class TestStringProvider: StringProvider {
                 "$arg minutes"
             }
             else -> throw RuntimeException("Unexpected pluralsId ($pluralsId) requested")
+        }
+    }
+
+    override fun getFormattedDate(dateFormatId: RR.stringFormat, arg: LocalDate): String {
+        return when (dateFormatId) {
+            RR.stringFormat.date_format_short -> "${arg.dayOfMonth}.${arg.monthNumber}.${arg.year}"
+            else -> throw RuntimeException("Unexpected dateFormatId ($dateFormatId) requested")
         }
     }
 

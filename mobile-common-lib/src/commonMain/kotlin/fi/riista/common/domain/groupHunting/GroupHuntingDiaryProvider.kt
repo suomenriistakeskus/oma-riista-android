@@ -6,8 +6,6 @@ import fi.riista.common.domain.groupHunting.dto.GroupHuntingDiaryDTO
 import fi.riista.common.domain.groupHunting.dto.toGroupHuntingDiary
 import fi.riista.common.domain.groupHunting.model.GroupHuntingDiary
 import fi.riista.common.domain.groupHunting.model.HuntingGroupId
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
 import fi.riista.common.network.calls.NetworkResponse
@@ -44,11 +42,4 @@ internal class GroupHuntingDiaryNetworkProvider(
     override fun handleError401() {
         _gameDiary.set(GroupHuntingDiary(emptyList(), emptyList(), emptyList(), emptyList()))
     }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(GroupHuntingDiaryNetworkProvider::class)
-    }
-
 }

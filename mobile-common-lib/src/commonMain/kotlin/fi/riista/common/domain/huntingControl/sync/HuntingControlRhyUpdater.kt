@@ -3,6 +3,7 @@ package fi.riista.common.domain.huntingControl.sync
 import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.huntingControl.HuntingControlRepository
 import fi.riista.common.domain.huntingControl.sync.model.LoadRhyHuntingControlEvents
+import fi.riista.common.domain.userInfo.CurrentUserContextProvider
 import fi.riista.common.logging.getLogger
 
 sealed class HuntingControlRhyOperationResponse {
@@ -16,12 +17,17 @@ interface HuntingControlRhyUpdater {
 
 internal class HuntingControlRhyToDatabaseUpdater(
     database: RiistaDatabase,
-    private val username: String,
+    private val currentUserContextProvider: CurrentUserContextProvider,
 ) : HuntingControlRhyUpdater {
 
     private val repository = HuntingControlRepository(database)
 
     override suspend fun update(rhysAndEvents: List<LoadRhyHuntingControlEvents>): HuntingControlRhyOperationResponse {
+
+        val username = currentUserContextProvider.userContext.username ?: kotlin.run {
+            logger.w { "Unable to sync when no logged in user" }
+            return HuntingControlRhyOperationResponse.Failure("No user")
+        }
 
         // First update RHYs
         val rhys = rhysAndEvents.map { rhyEvents ->
@@ -46,8 +52,8 @@ internal class HuntingControlRhyToDatabaseUpdater(
         }
 
         // Finally update events
-        val events = rhysAndEvents.associate { rhysAndEvents ->
-            rhysAndEvents.rhy.id to rhysAndEvents.events
+        val events = rhysAndEvents.associate {
+            it.rhy.id to it.events
         }
         try {
             repository.updateHuntingControlEvents(username, events)

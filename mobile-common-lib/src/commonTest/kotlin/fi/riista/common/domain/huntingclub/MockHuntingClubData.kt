@@ -15,9 +15,9 @@ object MockHuntingClubData {
             "organisation" : {
                 "id" : 329,
                 "name" : {
-                "fi" : "Nokian metsästysseura",
-                "sv" : "Nokian metsästysseura SV"
-            },
+                    "fi" : "Nokian metsästysseura",
+                    "sv" : "Nokian metsästysseura SV"
+                },
                 "officialCode" : "123456"
             }
         } ]
@@ -50,4 +50,14 @@ object MockHuntingClubData {
 
     const val EmptyHuntingClubMemberships = "[]"
     const val EmptyHuntingClubMemberInvitations = "[]"
+
+    const val HuntingClubSearchResult =
+        """
+        {
+            "id": 399,
+            "nameFI": "Nokian metsästysseura",
+            "nameSV": "Nokian metsästysseura",
+            "officialCode": "1531219"
+        }
+        """
 }

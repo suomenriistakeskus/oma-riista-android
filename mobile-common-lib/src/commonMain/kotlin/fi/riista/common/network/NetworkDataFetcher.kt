@@ -13,16 +13,16 @@ import fi.riista.common.util.SequentialDataFetcher
 abstract class NetworkDataFetcher<DataType>: SequentialDataFetcher() {
 
     override suspend fun doFetch() {
-        logger()?.v { "Initiating fetch from network.."}
+        logger.v { "Initiating fetch from network.."}
 
         val fetchResponse = fetchFromNetwork()
 
-        logger()?.v { "Network fetch completed, handling response.." }
+        logger.v { "Network fetch completed, handling response.." }
 
         fetchResponse.onSuccess { statusCode, responseData ->
             handleSuccess(statusCode, responseData)
 
-            logger()?.v { "Fetch completed successfully" }
+            logger.v { "Fetch completed successfully" }
             loadStatus.set(LoadStatus.Loaded())
         }
 
@@ -33,7 +33,7 @@ abstract class NetworkDataFetcher<DataType>: SequentialDataFetcher() {
                 handleError(statusCode, exception)
             }
 
-            logger()?.v { "Failed to fetch (statusCode: $statusCode)" }
+            logger.v { "Failed to fetch (statusCode: $statusCode)" }
 
             // todo: consider passing statuscode + exception to LoadError
             loadStatus.set(LoadStatus.LoadError())
@@ -42,7 +42,7 @@ abstract class NetworkDataFetcher<DataType>: SequentialDataFetcher() {
         fetchResponse.onCancel {
             handleCancellation()
 
-            logger()?.v { "Fetching from the network was cancelled." }
+            logger.v { "Fetching from the network was cancelled." }
 
             loadStatus.set(LoadStatus.LoadError())
         }

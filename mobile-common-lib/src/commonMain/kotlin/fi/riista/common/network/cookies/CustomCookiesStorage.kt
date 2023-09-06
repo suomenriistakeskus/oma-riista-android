@@ -1,16 +1,25 @@
 package fi.riista.common.network.cookies
 
-import co.touchlab.stately.collections.IsoMutableMap
 import fi.riista.common.logging.getLogger
-import io.ktor.client.features.cookies.*
-import io.ktor.http.*
-import io.ktor.util.date.*
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+import io.ktor.client.plugins.cookies.CookiesStorage
+import io.ktor.http.Cookie
+import io.ktor.http.Url
+import io.ktor.http.hostIsIp
+import io.ktor.http.isSecure
+import io.ktor.util.date.GMTDate
 import kotlinx.datetime.Clock
+import kotlin.collections.List
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
+import kotlin.collections.toList
 
 class CustomCookiesStorage: CookiesStorage {
     // cannot use normal MutableList here since cookies get added from background thread
     // which would cause InvalidMutabilityException on iOS.
-    private val _addedCookies = IsoMutableMap<String, CookieData>()
+    private val _addedCookies = mutableMapOf<String, CookieData>()
     val addedCookies: List<CookieData>
         get() = _addedCookies.values.toList()
 

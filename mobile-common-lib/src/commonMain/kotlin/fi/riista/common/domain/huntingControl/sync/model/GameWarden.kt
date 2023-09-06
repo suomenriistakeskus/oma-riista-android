@@ -5,6 +5,6 @@ import fi.riista.common.model.LocalDate
 
 data class GameWarden(
     val inspector: HuntingControlEventInspector,
-    val beginDate: LocalDate,
-    val endDate: LocalDate,
+    val beginDate: LocalDate?,
+    val endDate: LocalDate?,
 )

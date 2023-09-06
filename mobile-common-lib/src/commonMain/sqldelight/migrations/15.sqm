@@ -1,0 +1,14 @@
+CREATE TABLE DbHarvestShooter (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER NOT NULL,
+    rev INTEGER AS Int NOT NULL,
+    byName TEXT NOT NULL,
+    lastName TEXT NOT NULL,
+    hunterNumber TEXT,
+    extendedName TEXT
+);
+
+CREATE UNIQUE INDEX harvest_shooter_remote_id_unique ON DbHarvestShooter(username, remote_id);
+
+ALTER TABLE DbHarvest ADD COLUMN actor_id INTEGER REFERENCES DbHarvestShooter(local_id);

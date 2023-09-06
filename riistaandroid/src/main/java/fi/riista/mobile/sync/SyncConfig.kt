@@ -3,7 +3,7 @@ package fi.riista.mobile.sync
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.Editor
-import android.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import fi.riista.mobile.di.DependencyQualifiers.APPLICATION_CONTEXT_NAME
 import javax.inject.Inject
 import javax.inject.Named

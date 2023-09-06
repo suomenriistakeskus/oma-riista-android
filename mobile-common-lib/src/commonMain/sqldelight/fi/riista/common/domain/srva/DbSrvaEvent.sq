@@ -1,0 +1,131 @@
+CREATE TABLE DbSrvaEvent (
+    local_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    remote_id INTEGER,
+    rev INTEGER,
+    mobile_client_ref_id INTEGER,
+    spec_version INTEGER AS Int NOT NULL,
+    state TEXT,
+    rhy_id INTEGER AS Int,
+    can_edit INTEGER AS Boolean NOT NULL,
+    modified INTEGER AS Boolean NOT NULL,
+    deleted INTEGER AS Boolean NOT NULL,
+
+    point_of_time TEXT NOT NULL,
+
+    author_id INTEGER,
+    author_rev INTEGER,
+    author_by_name TEXT,
+    author_last_name TEXT,
+
+    approver_first_name TEXT,
+    approver_last_name TEXT,
+
+    game_species_code INTEGER AS Int,
+    other_species_description TEXT,
+    total_specimen_amount INTEGER AS Int,
+    specimens TEXT,
+
+    event_category TEXT,
+    deportation_order_number TEXT,
+    event_type TEXT,
+    other_event_type_description TEXT,
+    event_type_detail TEXT,
+    other_event_type_detail_description TEXT,
+    event_result TEXT,
+    event_result_detail TEXT,
+    methods TEXT,
+    other_method_description TEXT,
+
+    person_count INTEGER AS Int NOT NULL,
+    hours_spent INTEGER AS Int NOT NULL,
+    description TEXT,
+
+    local_images TEXT,
+    remote_images TEXT,
+
+    -- GeoLocation
+    location_latitude INTEGER AS Int NOT NULL,
+    location_longitude INTEGER AS Int NOT NULL,
+    location_source TEXT,
+    location_accuracy REAL,
+    location_altitude REAL,
+    location_altitudeAccuracy REAL
+);
+
+CREATE UNIQUE INDEX srva_event_remote_id_unique ON DbSrvaEvent(username, remote_id);
+
+CREATE INDEX srva_event_point_of_time ON DbSrvaEvent(username, point_of_time);
+
+selectByLocalId:
+SELECT * FROM DbSrvaEvent WHERE local_id = ?;
+
+selectByRemoteId:
+SELECT * FROM DbSrvaEvent WHERE username = ? AND remote_id = ?;
+
+getModifiedEvents:
+SELECT * FROM DbSrvaEvent WHERE username = ? AND modified = 1 AND deleted = 0;
+
+eventExists:
+SELECT EXISTS(SELECT 1 FROM DbSrvaEvent WHERE username = ? AND remote_id = ?);
+
+selectByMobileClientRefId:
+SELECT * FROM DbSrvaEvent WHERE username = ? AND mobile_client_ref_id = ?;
+
+insert:
+INSERT INTO DbSrvaEvent (username,remote_id,rev,mobile_client_ref_id,spec_version,state,rhy_id,can_edit,modified,deleted,
+    point_of_time,author_id,author_rev,author_by_name,author_last_name,approver_first_name,approver_last_name,
+    game_species_code,other_species_description,total_specimen_amount,specimens,event_category,deportation_order_number,event_type,
+    other_event_type_description,event_type_detail,other_event_type_detail_description,event_result,event_result_detail,
+    methods,other_method_description,person_count,hours_spent,description,local_images, remote_images,
+    location_latitude,location_longitude,location_source,location_accuracy,location_altitude,location_altitudeAccuracy)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?);
+
+updateByLocalId:
+UPDATE DbSrvaEvent SET
+    remote_id=?,rev=?,mobile_client_ref_id=?,spec_version=?,state=?,rhy_id=?,can_edit=?,modified=?,deleted=?,
+    point_of_time=?,author_id=?,author_rev=?,author_by_name=?,author_last_name=?,approver_first_name=?,approver_last_name=?,
+    game_species_code=?,other_species_description=?,total_specimen_amount=?,specimens=?,event_category=?,deportation_order_number=?,event_type=?,
+    other_event_type_description=?,event_type_detail=?,other_event_type_detail_description=?,event_result=?,event_result_detail=?,
+    methods=?,other_method_description=?,person_count=?,hours_spent=?,description=?,local_images=?,remote_images=?,
+    location_latitude=?,location_longitude=?,location_source=?,location_accuracy=?,location_altitude=?,location_altitudeAccuracy=?
+WHERE local_id=?;
+
+lastInsertRowId:
+SELECT last_insert_rowid();
+
+selectByUser:
+SELECT * FROM DbSrvaEvent WHERE username = ? AND deleted = 0 ORDER BY point_of_time DESC;
+
+markDeleted:
+UPDATE DbSrvaEvent SET deleted = 1 WHERE local_id = ?;
+
+hardDelete:
+DELETE FROM DbSrvaEvent WHERE local_id = ?;
+
+hardDeleteByRemoteId:
+DELETE FROM DbSrvaEvent WHERE username = ? AND remote_id = ?;
+
+getDeletedEvents:
+SELECT * FROM DbSrvaEvent WHERE username = ? AND deleted = 1;
+
+getEventIdsWithLocalImages:
+SELECT local_id FROM DbSrvaEvent WHERE username = ? AND deleted = 0 AND local_images IS NOT NULL;
+
+getEventsWithLocalIds:
+SELECT * FROM DbSrvaEvent WHERE local_id IN ? ORDER BY point_of_time DESC;
+
+getEventDateTimes:
+SELECT point_of_time FROM DbSrvaEvent WHERE username = ? AND deleted = 0;
+
+filter:
+SELECT * FROM DbSrvaEvent WHERE
+    username = :username
+    AND deleted = 0
+    AND CASE WHEN :startDateTime IS NOT NULL THEN point_of_time >= :startDateTime ELSE 1 END
+    AND CASE WHEN :endDateTime IS NOT NULL THEN point_of_time <= :endDateTime ELSE 1 END
+    AND CASE WHEN :filterSpecies THEN game_species_code IN :species ELSE 1 END
+    AND CASE WHEN :filterOtherSpecies THEN game_species_code IS NULL ELSE 1 END
+    AND CASE WHEN :filterSpeciesAndOtherSpecies THEN game_species_code IN :species OR game_species_code IS NULL ELSE 1 END
+    AND CASE WHEN :requireImages THEN local_images IS NOT NULL OR remote_images IS NOT NULL ELSE 1 END
+    ORDER BY point_of_time DESC;

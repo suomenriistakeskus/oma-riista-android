@@ -4,6 +4,7 @@ enum class SpecimenFieldType {
     SPECIMEN_HEADER,
     GENDER,
     AGE,
+    WEIGHT,
     WIDTH_OF_PAW,
     LENGTH_OF_PAW,
     STATE_OF_HEALTH,

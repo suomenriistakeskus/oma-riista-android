@@ -1,5 +1,9 @@
 package fi.riista.mobile.ui.dataFields.viewHolder
 
+import android.graphics.text.LineBreaker
+import android.os.Build
+import android.text.Layout
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +19,22 @@ class InfoViewHolder<FieldId : DataFieldId>(view: View)
     private val textView: TextView = view.findViewById(R.id.tv_text)
 
     override fun onBeforeUpdateBoundData(dataField: LabelField<FieldId>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            textView.hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_FULL
+        }
+
         textView.text = dataField.text
+        textView.gravity = when (dataField.settings.textAlignment) {
+            LabelField.TextAlignment.JUSTIFIED, // fallback to left alignment but include justification mode if supported
+            LabelField.TextAlignment.LEFT -> Gravity.START
+            LabelField.TextAlignment.CENTER -> Gravity.CENTER_HORIZONTAL
+        }
+
+        if (dataField.settings.textAlignment == LabelField.TextAlignment.JUSTIFIED) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                textView.justificationMode = LineBreaker.JUSTIFICATION_MODE_INTER_WORD
+            }
+        }
     }
 
     class Factory<FieldId : DataFieldId> : DataFieldViewHolderFactory<FieldId, LabelField<FieldId>>(

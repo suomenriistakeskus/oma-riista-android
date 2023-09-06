@@ -5,8 +5,10 @@ import fi.riista.common.network.NetworkClient
 import fi.riista.common.network.calls.NetworkRequest
 import fi.riista.common.network.calls.NetworkResponse
 import fi.riista.common.util.serializeToJson
-import io.ktor.client.request.*
-import io.ktor.http.*
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 internal class RejectGroupHuntingDiaryEntry(
     private val rejectDiaryEntryDTO: RejectDiaryEntryDTO
@@ -23,7 +25,7 @@ internal class RejectGroupHuntingDiaryEntry(
                 request = {
                     post(urlString = "${client.serverBaseAddress}/api/mobile/v2/grouphunting/$groupId/rejectentry") {
                         contentType(ContentType.Application.Json)
-                        body = payload
+                        setBody(body = payload)
                     }
                 },
                 configureResponseHandler = {

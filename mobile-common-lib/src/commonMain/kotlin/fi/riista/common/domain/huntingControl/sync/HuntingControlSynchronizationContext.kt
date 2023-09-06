@@ -1,61 +1,17 @@
 package fi.riista.common.domain.huntingControl.sync
 
-import co.touchlab.stately.concurrency.AtomicReference
-import co.touchlab.stately.concurrency.value
-import fi.riista.common.RiistaSDK
 import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.huntingControl.HuntingControlRepository
+import fi.riista.common.domain.huntingControl.model.HuntingControlEvent
+import fi.riista.common.domain.userInfo.CurrentUserContextProvider
 import fi.riista.common.io.CommonFileProvider
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
-import fi.riista.common.network.AbstractSynchronizationContext
-import fi.riista.common.network.AbstractSynchronizationContextProvider
 import fi.riista.common.network.BackendApiProvider
-import fi.riista.common.network.SyncDataPiece
+import fi.riista.common.network.sync.AbstractSynchronizationContext
+import fi.riista.common.network.sync.SyncDataPiece
+import fi.riista.common.network.sync.SynchronizationConfig
 import fi.riista.common.preferences.Preferences
 import fi.riista.common.util.LocalDateTimeProvider
 
-internal class HuntingControlSynchronizationContextProvider(
-    private val backendApiProvider: BackendApiProvider,
-    private val database: RiistaDatabase,
-    private val preferences: Preferences,
-    private val localDateTimeProvider: LocalDateTimeProvider,
-    private val commonFileProvider: CommonFileProvider,
-    syncFinishedListener: (suspend () -> Unit)?,
-) : AbstractSynchronizationContextProvider(syncFinishedListener = syncFinishedListener) {
-
-    private data class UserSynchronizationContext(
-        val username: String,
-        val synchronizationContext: HuntingControlSynchronizationContext
-    )
-    private var userSynchronizationContext: AtomicReference<UserSynchronizationContext?> = AtomicReference(null)
-
-    override val synchronizationContext: HuntingControlSynchronizationContext?
-        get() {
-            val username = RiistaSDK.currentUserContext.username
-            return if (username != null) {
-                var synchronizationContext = userSynchronizationContext.value
-                if (synchronizationContext == null || synchronizationContext.username != username) {
-                    synchronizationContext = UserSynchronizationContext(
-                        username = username,
-                        synchronizationContext = HuntingControlSynchronizationContext(
-                            backendApiProvider = backendApiProvider,
-                            database = database,
-                            preferences = preferences,
-                            localDateTimeProvider = localDateTimeProvider,
-                            commonFileProvider = commonFileProvider,
-                            username = username,
-                        )
-                    ).also {
-                        userSynchronizationContext.set(it)
-                    }
-                }
-                return synchronizationContext.synchronizationContext
-            } else {
-                null
-            }
-        }
-}
 
 internal class HuntingControlSynchronizationContext(
     val backendApiProvider: BackendApiProvider,
@@ -63,7 +19,7 @@ internal class HuntingControlSynchronizationContext(
     preferences: Preferences,
     localDateTimeProvider: LocalDateTimeProvider,
     private val commonFileProvider: CommonFileProvider,
-    val username: String,
+    private val currentUserContextProvider: CurrentUserContextProvider,
 ) : AbstractSynchronizationContext(
     preferences = preferences,
     localDateTimeProvider = localDateTimeProvider,
@@ -72,19 +28,20 @@ internal class HuntingControlSynchronizationContext(
     private val repository = HuntingControlRepository(database)
 
     private val rhyFromNetworkProvider = HuntingControlRhyFromNetworkProvider(backendApiProvider)
-    private val rhyToDatabaseUpdater = HuntingControlRhyToDatabaseUpdater(database, username)
+    private val rhyToDatabaseUpdater = HuntingControlRhyToDatabaseUpdater(database, currentUserContextProvider)
     private val eventsToNetworkUpdater = HuntingControlEventToNetworkUpdater(
         backendApiProvider = backendApiProvider,
         commonFileProvider = commonFileProvider,
         database = database,
     )
 
-    override suspend fun doSynchronize() {
+    override suspend fun synchronize(config: SynchronizationConfig) {
         val lastSynchronizationTimeStamp = getLastSynchronizationTimeStamp()
+            .takeIf { config.forceContentReload.not() }
         val now = localDateTimeProvider.now()
 
         var success = true
-        val username = RiistaSDK.currentUserContext.username ?: kotlin.run {
+        val username = currentUserContextProvider.userContext.username ?: kotlin.run {
             logger.w { "Unable to sync when no logged in user" }
             return
         }
@@ -115,6 +72,10 @@ internal class HuntingControlSynchronizationContext(
         }
     }
 
+    internal suspend fun sendHuntingControlEventToBackend(event: HuntingControlEvent): Boolean {
+        return eventsToNetworkUpdater.update(listOf(event))
+    }
+
     private fun deleteDanglingAttachments() {
         val existingAttachments = repository.listAllAttachmentUuids()
         val files = commonFileProvider.getAllFilesIn(directory = CommonFileProvider.Directory.ATTACHMENTS)
@@ -139,12 +100,6 @@ internal class HuntingControlSynchronizationContext(
                 }
             }
         }
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(HuntingControlSynchronizationContext::class)
     }
 }
 

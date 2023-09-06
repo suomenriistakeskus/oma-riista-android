@@ -1,6 +1,5 @@
 package fi.riista.common.domain.specimens.ui.view
 
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.content.SpeciesResolver
 import fi.riista.common.domain.model.CommonSpecimenData
 import fi.riista.common.domain.model.Species
@@ -19,7 +18,12 @@ import fi.riista.common.ui.dataField.DataField
 import fi.riista.common.ui.dataField.LabelField
 import fi.riista.common.ui.dataField.Padding
 import fi.riista.common.ui.dataField.StringField
+import fi.riista.common.ui.helpers.DoubleFormatter
+import fi.riista.common.ui.helpers.WeightFormatter
+import fi.riista.common.ui.helpers.formatWeight
+import fi.riista.common.ui.helpers.formatWithOneDecimal
 import fi.riista.common.util.toStringOrMissingIndicator
+import fi.riista.common.util.withNumberOfElements
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -34,11 +38,9 @@ class ViewSpecimensController(
 ) : ControllerWithLoadableModel<ViewSpecimensViewModel>() {
 
     private var specimenData: SpecimenFieldDataContainer? = null
+    private val weightFormatter = WeightFormatter(stringProvider)
+    private val doubleFormatter = DoubleFormatter(stringProvider)
 
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
 
     /**
      * Loads the [SpecimenFieldDataContainer] and updates the [viewModelLoadStatus] accordingly.
@@ -79,55 +81,84 @@ class ViewSpecimensController(
     }
 
     private fun produceDataFields(specimenData: SpecimenFieldDataContainer): List<DataField<SpecimenFieldId>> {
-        return specimenData.specimens.flatMapIndexed { index: Int, specimen: CommonSpecimenData ->
-            listOf<DataField<SpecimenFieldId>>(
-                createSpeciesHeader(species = specimenData.species, index = index)
-            ) +
-            specimenData.fieldSpecifications.mapNotNull { fieldSpecification ->
-                when (fieldSpecification.fieldType) {
-                    SpecimenFieldType.GENDER ->
-                        specimen.gender?.localized(stringProvider)
-                            .createValueField(
-                                fieldId = fieldSpecification.fieldType.toField(index),
-                                fieldSpecification = fieldSpecification
-                            )
-                    SpecimenFieldType.AGE ->
-                        specimen.age
-                            ?.let { age ->
-                                age.value?.let {
-                                    stringProvider.getString(it.localizationKey(species = specimenData.species))
-                                } ?: age.rawBackendEnumValue
-                            }
-                            .createValueField(
-                                fieldId = fieldSpecification.fieldType.toField(index),
-                                fieldSpecification = fieldSpecification
-                            )
-                    SpecimenFieldType.WIDTH_OF_PAW ->
-                        specimen.widthOfPaw
-                            .createValueField(
-                                fieldId = fieldSpecification.fieldType.toField(index),
-                                fieldSpecification = fieldSpecification
-                            )
-                    SpecimenFieldType.LENGTH_OF_PAW ->
-                        specimen.lengthOfPaw
-                            .createValueField(
-                                fieldId = fieldSpecification.fieldType.toField(index),
-                                fieldSpecification = fieldSpecification
-                            )
-                    SpecimenFieldType.STATE_OF_HEALTH ->
-                        specimen.stateOfHealth?.localized(stringProvider)
-                            .createValueField(
-                                fieldId = fieldSpecification.fieldType.toField(index),
-                                fieldSpecification = fieldSpecification
-                            )
-                    SpecimenFieldType.MARKING ->
-                        specimen.marking?.localized(stringProvider)
-                            .createValueField(
-                                fieldId = fieldSpecification.fieldType.toField(index),
-                                fieldSpecification = fieldSpecification
-                            )
-                    SpecimenFieldType.SPECIMEN_HEADER -> null // header added separately
-                }
+        // it is possible that the amount of specimens is smaller/larger than the current amount of configured
+        // specimens. Ensure we have correct amount of specimens to display.
+        //
+        // The reason for this is that we don't currently store all specimens. Only specimens having data
+        // are stored and empty ones are removed upon saving. In the UI, however, we want to display specimens
+        // as they were originally displayed.
+        return specimenData.specimens
+            .withNumberOfElements(numberOfElements = specimenData.specimenAmount) {
+                CommonSpecimenData()
+            }.flatMapIndexed { index: Int, specimen: CommonSpecimenData ->
+                createSpecimenFields(
+                    specimenIndex = index,
+                    specimen = specimen,
+                    specimenData = specimenData
+                )
+        }
+    }
+
+    private fun createSpecimenFields(
+        specimenIndex: Int,
+        specimen: CommonSpecimenData,
+        specimenData: SpecimenFieldDataContainer
+    ): List<DataField<SpecimenFieldId>>  {
+        return listOf<DataField<SpecimenFieldId>>(
+            createSpeciesHeader(species = specimenData.species, index = specimenIndex)
+        ) + specimenData.fieldSpecifications.mapNotNull { fieldSpecification ->
+            when (fieldSpecification.fieldType) {
+                SpecimenFieldType.GENDER ->
+                    specimen.gender?.localized(stringProvider)
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.AGE ->
+                    specimen.age
+                        ?.let { age ->
+                            age.value?.let {
+                                stringProvider.getString(it.localizationKey(species = specimenData.species))
+                            } ?: age.rawBackendEnumValue
+                        }
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.WEIGHT ->
+                    specimen.weight
+                        ?.formatWeight(weightFormatter, specimenData.species)
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.WIDTH_OF_PAW ->
+                    specimen.widthOfPaw
+                        ?.formatWithOneDecimal(doubleFormatter)
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.LENGTH_OF_PAW ->
+                    specimen.lengthOfPaw
+                        ?.formatWithOneDecimal(doubleFormatter)
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.STATE_OF_HEALTH ->
+                    specimen.stateOfHealth?.localized(stringProvider)
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.MARKING ->
+                    specimen.marking?.localized(stringProvider)
+                        .createValueField(
+                            fieldId = fieldSpecification.fieldType.toField(specimenIndex),
+                            fieldSpecification = fieldSpecification
+                        )
+                SpecimenFieldType.SPECIMEN_HEADER -> null // header added separately
             }
         }
     }

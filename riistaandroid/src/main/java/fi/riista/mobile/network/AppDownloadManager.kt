@@ -56,19 +56,19 @@ class AppDownloadManager(val context: Context) {
                     val fileName = downloads[downloadId]
                     if (status == DownloadManager.STATUS_SUCCESSFUL) {
                         downloads.remove(downloadId)
-                        fileName?.let { fileName ->
+                        fileName?.let {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.download_manager_download_complete, fileName),
+                                context.getString(R.string.download_manager_download_complete, it),
                                 Toast.LENGTH_LONG,
                             ).show()
                         }
                     } else if (status == DownloadManager.STATUS_FAILED) {
                         downloads.remove(downloadId)
-                        fileName?.let { fileName ->
+                        fileName?.let {
                             Toast.makeText(
                                 context,
-                                context.getString(R.string.download_manager_download_failed, fileName),
+                                context.getString(R.string.download_manager_download_failed, it),
                                 Toast.LENGTH_LONG,
                             ).show()
                         }

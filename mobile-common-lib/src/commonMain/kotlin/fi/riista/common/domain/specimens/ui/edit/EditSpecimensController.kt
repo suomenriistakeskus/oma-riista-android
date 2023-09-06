@@ -1,7 +1,5 @@
 package fi.riista.common.domain.specimens.ui.edit
 
-import co.touchlab.stately.concurrency.AtomicReference
-import co.touchlab.stately.ensureNeverFrozen
 import fi.riista.common.domain.content.SpeciesResolver
 import fi.riista.common.domain.model.CommonSpecimenData
 import fi.riista.common.domain.model.Species
@@ -15,6 +13,7 @@ import fi.riista.common.ui.controller.ControllerWithLoadableModel
 import fi.riista.common.ui.controller.ViewModelLoadStatus
 import fi.riista.common.ui.dataField.DataField
 import fi.riista.common.ui.intent.IntentHandler
+import fi.riista.common.util.withNumberOfElements
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -56,10 +55,6 @@ class EditSpecimensController(
             return _specimenFieldProducer
         }
 
-    init {
-        // should be accessed from UI thread only
-        ensureNeverFrozen()
-    }
 
     fun addSpecimen() {
         val viewModel = getLoadedViewModelOrNull()
@@ -129,6 +124,8 @@ class EditSpecimensController(
                 originalSpecimen.copy(age = intent.age)
             is EditSpecimenIntent.ChangeGender ->
                 originalSpecimen.copy(gender = intent.gender?.toBackendEnum())
+            is EditSpecimenIntent.ChangeWeight ->
+                originalSpecimen.copy(weight = intent.weight)
             is EditSpecimenIntent.ChangeSpecimenMarking ->
                 originalSpecimen.copy(marking = intent.marking)
             is EditSpecimenIntent.ChangeStateOfHealth ->
@@ -165,9 +162,15 @@ class EditSpecimensController(
         val specimenData = specimenData
         if (specimenData != null) {
             val specimens = LinkedHashMap<Int, CommonSpecimenData>()
-            specimenData.specimens.forEachIndexed { index, specimen ->
-                specimens[index] = specimen
-            }
+
+            // the amount specimens is allowed to not match the actual number of specimens. Add/remove
+            // if needed.
+            specimenData.specimens
+                .withNumberOfElements(numberOfElements = specimenData.specimenAmount) {
+                    CommonSpecimenData()
+                }.forEachIndexed { index, specimen ->
+                    specimens[index] = specimen
+                }
 
             emit(ViewModelLoadStatus.Loaded(
                 viewModel = EditSpecimensViewModel(

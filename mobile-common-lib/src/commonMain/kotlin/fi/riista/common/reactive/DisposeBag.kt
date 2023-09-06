@@ -1,9 +1,7 @@
 package fi.riista.common.reactive
 
-import co.touchlab.stately.collections.IsoMutableList
-
 class DisposeBag {
-    private val subscriptions = IsoMutableList<Subscription>()
+    private val subscriptions = mutableListOf<Subscription>()
 
     fun addSubscription(subscription: Subscription) {
         subscriptions.add(subscription)

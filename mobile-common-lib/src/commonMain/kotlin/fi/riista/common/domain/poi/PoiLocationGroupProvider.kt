@@ -1,12 +1,9 @@
 package fi.riista.common.domain.poi
 
-import co.touchlab.stately.collections.IsoMutableList
 import fi.riista.common.database.RiistaDatabase
 import fi.riista.common.domain.poi.dto.PoiLocationGroupsDTO
 import fi.riista.common.domain.poi.dto.toPoiLocationGroup
 import fi.riista.common.domain.poi.model.PoiLocationGroup
-import fi.riista.common.logging.Logger
-import fi.riista.common.logging.getLogger
 import fi.riista.common.model.LoadStatus
 import fi.riista.common.network.BackendApiProvider
 import fi.riista.common.network.NetworkDataFetcher
@@ -32,7 +29,7 @@ internal class PoiLocationGroupFromNetworkOrDatabaseProvider(
         externalId = externalId,
     )
 
-    private var _poiLocationGroups = IsoMutableList<PoiLocationGroup>()
+    private var _poiLocationGroups = mutableListOf<PoiLocationGroup>()
     override val poiLocationGroups: List<PoiLocationGroup>?
         get() {
             return if (_poiLocationGroups.isEmpty() && !loadStatus.value.loaded) {
@@ -65,12 +62,6 @@ internal class PoiLocationGroupFromNetworkOrDatabaseProvider(
             }
         }
     }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(PoiLocationGroupFromNetworkOrDatabaseProvider::class)
-    }
 }
 
 internal class PoiLocationGroupFromNetworkProvider(
@@ -80,7 +71,7 @@ internal class PoiLocationGroupFromNetworkProvider(
     NetworkDataFetcher<PoiLocationGroupsDTO>(),
     BackendApiProvider by backendApiProvider {
 
-    private var _poiLocationGroups = IsoMutableList<PoiLocationGroup>()
+    private var _poiLocationGroups = mutableListOf<PoiLocationGroup>()
     override val poiLocationGroups: List<PoiLocationGroup>?
         get() {
             return if (_poiLocationGroups.isEmpty() && !loadStatus.value.loaded) {
@@ -107,11 +98,5 @@ internal class PoiLocationGroupFromNetworkProvider(
 
     override fun handleError401() {
         _poiLocationGroups.clear()
-    }
-
-    override fun logger(): Logger = logger
-
-    companion object {
-        private val logger by getLogger(PoiLocationGroupFromNetworkProvider::class)
     }
 }

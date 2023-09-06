@@ -22,6 +22,7 @@ enum class CommonObservationField(
     DEER_HUNTING_TYPE(metadataFieldName = "deerHuntingType"),
     DEER_HUNTING_OTHER_TYPE_DESCRIPTION(metadataFieldName = "deerHuntingTypeDescription"),
     SPECIMEN_AMOUNT(metadataFieldName = "amount"),
+    ERROR_SPECIMEN_AMOUNT_AT_LEAST_TWO(presence = Presence.ERROR),
     // depends on AMOUNT field i.e. should be displayed only if AMOUNT exists
     SPECIMENS(presence = Presence.DEPENDING_ON_METADATA, metadataFieldName = null),
     MOOSE_LIKE_MALE_AMOUNT(metadataFieldName = "mooselikeMaleAmount"),
@@ -66,6 +67,11 @@ enum class CommonObservationField(
          * Field is always displayed / editable based on current metadata.
          */
         DEPENDING_ON_METADATA,
+
+        /**
+         * Field is displayed when observation validation has failed.
+         */
+        ERROR,
     }
 
     constructor(presence: Presence):

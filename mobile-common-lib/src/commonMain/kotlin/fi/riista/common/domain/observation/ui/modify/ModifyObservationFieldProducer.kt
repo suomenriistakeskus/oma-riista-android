@@ -24,6 +24,7 @@ import fi.riista.common.ui.dataField.DateAndTimeField
 import fi.riista.common.ui.dataField.EnumStringListFieldFactory
 import fi.riista.common.ui.dataField.FieldSpecification
 import fi.riista.common.ui.dataField.IntField
+import fi.riista.common.ui.dataField.LabelField
 import fi.riista.common.ui.dataField.LocationField
 import fi.riista.common.ui.dataField.Padding
 import fi.riista.common.ui.dataField.SpeciesField
@@ -66,12 +67,13 @@ internal class ModifyObservationFieldProducer(
             CommonObservationField.DEER_HUNTING_TYPE -> createDeerHuntingTypeField(fieldSpecification, observation)
             CommonObservationField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION -> createDeerHuntingOtherTypeDescriptionField(fieldSpecification, observation)
             CommonObservationField.SPECIMEN_AMOUNT -> createSpecimenAmountField(fieldSpecification, observation)
+            CommonObservationField.ERROR_SPECIMEN_AMOUNT_AT_LEAST_TWO -> errorSpecimenAmountTooLow(fieldSpecification)
             CommonObservationField.SPECIMENS ->
                 specimenFieldProducer.createSpecimenField(
                     fieldSpecification = fieldSpecification,
                     observation = observation
                 ) {
-                    readOnly = false
+                    readOnly = observation.observationType.value == ObservationType.PARI
                 }
             CommonObservationField.MOOSE_LIKE_MALE_AMOUNT -> createMooseLikeMaleAmount(fieldSpecification, observation)
             CommonObservationField.MOOSE_LIKE_FEMALE_AMOUNT -> createMooseLikeFemaleAmount(fieldSpecification, observation)
@@ -218,7 +220,7 @@ internal class ModifyObservationFieldProducer(
         return createEnumChoiceField(
             fieldSpecification = fieldSpecification,
             selected = observation.deerHuntingType,
-            label = RR.string.group_hunting_harvest_field_deer_hunting_type,
+            label = RR.string.harvest_label_deer_hunting_type,
             factory = deerHuntingTypeFieldFactory
         )
     }
@@ -230,7 +232,7 @@ internal class ModifyObservationFieldProducer(
         return createStringField(
             fieldSpecification = fieldSpecification,
             value = observation.deerHuntingOtherTypeDescription ?: "",
-            label = RR.string.group_hunting_harvest_field_deer_hunting_other_type_description
+            label = RR.string.harvest_label_deer_hunting_other_type_description
         )
     }
 
@@ -243,7 +245,22 @@ internal class ModifyObservationFieldProducer(
             value = observation.totalSpecimenAmount,
             label = RR.string.observation_label_amount,
             maxValue = ObservationConstants.MAX_SPECIMEN_AMOUNT,
-        )
+        ) {
+            readOnly = observation.observationType.value == ObservationType.PARI
+        }
+    }
+
+    private fun errorSpecimenAmountTooLow(
+        fieldSpecification: FieldSpecification<CommonObservationField>,
+    ): LabelField<CommonObservationField> {
+
+        return LabelField(
+            id = fieldSpecification.fieldId,
+            text = stringProvider.getString(RR.string.error_observation_specimen_amount_at_least_two),
+            type = LabelField.Type.ERROR,
+        ) {
+            paddingTop = Padding.NONE
+        }
     }
 
     private fun createMooseLikeMaleAmount(

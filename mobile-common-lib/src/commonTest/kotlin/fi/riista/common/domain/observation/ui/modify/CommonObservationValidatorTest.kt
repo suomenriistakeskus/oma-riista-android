@@ -11,8 +11,11 @@ import fi.riista.common.domain.model.ObservationCategory
 import fi.riista.common.domain.model.ObservationType
 import fi.riista.common.domain.model.Species
 import fi.riista.common.domain.model.asKnownLocation
+import fi.riista.common.domain.observation.metadata.model.ObservationFieldRequirement
+import fi.riista.common.domain.observation.metadata.model.ObservationMetadata
 import fi.riista.common.domain.observation.model.CommonObservationData
 import fi.riista.common.domain.observation.model.CommonObservationSpecimen
+import fi.riista.common.domain.observation.model.ObservationSpecimenField
 import fi.riista.common.domain.observation.model.ObservationSpecimenMarking
 import fi.riista.common.domain.observation.model.ObservationSpecimenState
 import fi.riista.common.domain.observation.model.toCommonSpecimenData
@@ -132,13 +135,125 @@ class CommonObservationValidatorTest {
         }
     }
 
+    @Test
+    fun testMissingSpecimens() = runBlockingTest {
+        val observation = createObservation().copy(
+            species = Species.Known(speciesCode = SpeciesCodes.BEAN_GOOSE_ID),
+            specimens = null,
+            observationCategory = BackendEnum.create(ObservationCategory.NORMAL),
+        )
+
+        with (observation) {
+            val validationErrors = validate(
+                observation = this,
+            )
+            assertEquals(0, validationErrors.size, "hardcoded metadata")
+            assertFalse(validationErrors.contains(CommonObservationValidator.Error.MISSING_SPECIMENS),"hardcoded metadata")
+        }
+
+        with (observation) {
+            val hardcodedMetadata = metadataProvider.observationMetadata
+
+            // use custom metadata as current hard-coded one doesn't require specimens
+            val customMetadata = ObservationMetadata(
+                lastModified = "right now!", // not used anywhere in validation, hopefully!
+                speciesMetadata = mapOf(
+                    SpeciesCodes.BEAN_GOOSE_ID to hardcodedMetadata.speciesMetadata[SpeciesCodes.BEAN_GOOSE_ID]!!.copy(
+                        specimenFields = mapOf(
+                            ObservationSpecimenField.AGE to ObservationFieldRequirement.YES
+                        ),
+                        contextSensitiveFieldSets = listOf() // clear these so they won't override specimenFields
+                    )
+                ),
+                observationSpecVersion = Constants.OBSERVATION_SPEC_VERSION,
+            )
+            val validationErrors = validate(
+                observation = this,
+                observationMetadata = customMetadata
+            )
+            assertEquals(1, validationErrors.size, "custom metadata")
+            assertTrue(validationErrors.contains(CommonObservationValidator.Error.MISSING_SPECIMENS),"custom metadata")
+        }
+    }
+
+    @Test
+    fun testMinimumSpecimenAmountForPoikueIsTwo() = runBlockingTest {
+        var observation = createObservation().copy(
+            species = Species.Known(speciesCode = SpeciesCodes.BEAN_GOOSE_ID),
+            specimens = listOf(
+                CommonObservationSpecimen(
+                    remoteId = 1,
+                    revision = 1,
+                    gender = Gender.MALE.toBackendEnum(),
+                    age = GameAge.ADULT.toBackendEnum(),
+                    stateOfHealth = null.toBackendEnum(),
+                    marking = null.toBackendEnum(),
+                    widthOfPaw = null,
+                    lengthOfPaw = null,
+                )
+            ).map { it.toCommonSpecimenData() },
+            observationCategory = BackendEnum.create(ObservationCategory.NORMAL),
+            observationType = BackendEnum.create(ObservationType.POIKUE),
+            totalSpecimenAmount = 1,
+            mooselikeMaleAmount = null,
+            mooselikeFemaleAmount = null,
+            mooselikeFemale1CalfAmount = null,
+            mooselikeFemale2CalfsAmount = null,
+            mooselikeFemale3CalfsAmount = null,
+            mooselikeFemale4CalfsAmount = null,
+            mooselikeCalfAmount = null,
+            mooselikeUnknownSpecimenAmount = null,
+        )
+
+        with (observation) {
+            val validationErrors = validate(
+                observation = this,
+            )
+            assertEquals(1, validationErrors.size)
+            assertTrue(validationErrors.contains(CommonObservationValidator.Error.SPECIMEN_AMOUNT_AT_LEAST_TWO))
+        }
+
+        observation = observation.copy(
+            specimens = listOf(
+                CommonObservationSpecimen(
+                    remoteId = 1,
+                    revision = 1,
+                    gender = Gender.MALE.toBackendEnum(),
+                    age = GameAge.ADULT.toBackendEnum(),
+                    stateOfHealth = null.toBackendEnum(),
+                    marking = null.toBackendEnum(),
+                    widthOfPaw = null,
+                    lengthOfPaw = null,
+                ),
+                CommonObservationSpecimen(
+                    remoteId = 1,
+                    revision = 1,
+                    gender = Gender.FEMALE.toBackendEnum(),
+                    age = GameAge.ADULT.toBackendEnum(),
+                    stateOfHealth = null.toBackendEnum(),
+                    marking = null.toBackendEnum(),
+                    widthOfPaw = null,
+                    lengthOfPaw = null,
+                ),
+            ).map { it.toCommonSpecimenData() },
+            totalSpecimenAmount = 2,
+        )
+        with (observation) {
+            val validationErrors = validate(
+                observation = this,
+            )
+            assertEquals(0, validationErrors.size)
+        }
+    }
+
     private fun validate(
         observation: CommonObservationData,
         mode: ObservationFields.Context.Mode = ObservationFields.Context.Mode.EDIT,
+        observationMetadata: ObservationMetadata = metadataProvider.observationMetadata
     ): List<CommonObservationValidator.Error> {
         return CommonObservationValidator.validate(
             observation = observation,
-            observationMetadata = metadataProvider.observationMetadata,
+            observationMetadata = observationMetadata,
             displayedFields = observationFields.getFieldsToBeDisplayed(
                 context = ObservationFields.Context(
                     observation = observation,
@@ -179,6 +294,8 @@ class CommonObservationValidatorTest {
                 )
             ).map { it.toCommonSpecimenData() },
             canEdit = true,
+            modified = true,
+            deleted = false,
             totalSpecimenAmount = 1,
             mooselikeMaleAmount = 2,
             mooselikeFemaleAmount = 3,

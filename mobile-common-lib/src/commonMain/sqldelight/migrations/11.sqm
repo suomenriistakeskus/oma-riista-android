@@ -1,0 +1,7 @@
+CREATE TABLE DbHarvestSeason (
+    hunting_year INTEGER AS Int NOT NULL,
+    json_format_version INTEGER AS Int NOT NULL,
+    harvest_seasons_json TEXT,
+
+    CONSTRAINT pk_constraint_DbHarvestSeason PRIMARY KEY (hunting_year, json_format_version)
+);

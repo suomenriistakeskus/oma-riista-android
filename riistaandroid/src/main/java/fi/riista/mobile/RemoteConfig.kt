@@ -5,7 +5,6 @@ import com.google.firebase.remoteconfig.ktx.get
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import fi.riista.common.reactive.AppObservable
-import fi.riista.common.reactive.Observable
 
 interface RemoteConfigFetchedListener {
     fun remoteConfigFetched()
@@ -47,14 +46,14 @@ object RemoteConfig {
         get() = Firebase.remoteConfig["app_startup_message"].asString()
 
     @JvmStatic
-    val harvestSeasonOverrides: String
-        get() = Firebase.remoteConfig["harvest_season_overrides"].asString()
-
-    @JvmStatic
     val groupHuntingIntroMessage: String
         get() = Firebase.remoteConfig["group_hunting_intro_message"].asString()
 
     @JvmStatic
     val ssnPattern: String
         get() = Firebase.remoteConfig["ssn_pattern"].asString()
+
+    @JvmStatic
+    val mapTileVersions: String
+        get() = Firebase.remoteConfig["map_tile_versions"].asString()
 }

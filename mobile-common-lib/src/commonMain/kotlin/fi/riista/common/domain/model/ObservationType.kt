@@ -12,6 +12,8 @@ enum class ObservationType(
 ): RepresentsBackendEnum, LocalizableEnum {
 
     NAKO("NAKO", RR.string.observation_type_nako),
+    POIKUE("POIKUE", RR.string.observation_type_poikue),
+    PARI("PARI", RR.string.observation_type_pari),
     JALKI("JALKI", RR.string.observation_type_jalki),
     ULOSTE("ULOSTE", RR.string.observation_type_uloste),
     AANI("AANI", RR.string.observation_type_aani),

@@ -1,5 +1,6 @@
 package fi.riista.common.model
 
+import fi.riista.common.model.extensions.toJulianDay
 import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
 
@@ -38,6 +39,9 @@ data class LocalDateTime constructor(
                 ?: time.compareTo(other.time)
     }
 
+    /**
+     * Prints the [LocalDateTime] as ISO-8601 formatted string.
+     */
     fun toStringISO8601(): String {
         if (second == 0) {
             // toKotlinxLocalDateTime doesn't return seconds if seconds are 0
@@ -47,7 +51,7 @@ data class LocalDateTime constructor(
     }
 
     /**
-     * Prints the [LocalDateTime] as ISO-8601 formatted string.
+     * Use toStringISO8601
      */
     override fun toString(): String {
         return toStringISO8601()
@@ -134,10 +138,40 @@ fun LocalDateTime.minus(minutes: Int): LocalDateTime {
         .toRiistaCommonLocalDateTime()
 }
 
-fun LocalDateTime.plus(minutes: Int): LocalDateTime {
+fun LocalDateTime.plus(
+    days: Int = 0,
+    minutes: Int = 0,
+): LocalDateTime {
     val timeZone = TimeZone.currentSystemDefault()
     return toKotlinxLocalDateTime().toInstant(timeZone)
-        .plus(DateTimePeriod(minutes = minutes), timeZone)
+        .plus(
+            period = DateTimePeriod(
+                days = days,
+                minutes = minutes,
+            ),
+            timeZone = timeZone
+        )
         .toLocalDateTime(timeZone)
         .toRiistaCommonLocalDateTime()
 }
+
+fun LocalDateTime.toJulianDay(): Double {
+    val timeZone = TimeZone.currentSystemDefault()
+    val dayStartInstant = date.dayStart().toKotlinxLocalDateTime().toInstant(timeZone)
+    val dayEndInstant = dayStartInstant.plus(1, DateTimeUnit.DAY, timeZone)
+
+    val secondsFromDayStart = dayStartInstant.until(
+        other = toKotlinxLocalDateTime().toInstant(timeZone),
+        unit = DateTimeUnit.SECOND
+    )
+
+    val totalDaySeconds = dayStartInstant.until(
+        other = dayEndInstant,
+        unit = DateTimeUnit.SECOND
+    )
+
+    val timeFraction: Double = secondsFromDayStart.toDouble() / totalDaySeconds.toDouble()
+
+    return date.toJulianDay() + timeFraction
+}
+

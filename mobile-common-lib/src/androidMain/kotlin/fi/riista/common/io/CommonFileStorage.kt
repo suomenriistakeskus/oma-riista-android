@@ -175,6 +175,7 @@ actual object CommonFileStorage : CommonFileProvider {
         val child = when (this) {
             CommonFileProvider.Directory.ATTACHMENTS -> "attachments"
             CommonFileProvider.Directory.TEMPORARY_FILES -> "tmp"
+            CommonFileProvider.Directory.LOCAL_IMAGES -> "images"
         }
 
         return File(context.filesDir, child)

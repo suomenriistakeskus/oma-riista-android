@@ -31,6 +31,8 @@ data class CommonObservation(
     val specimens: List<CommonObservationSpecimen>?,
 
     val canEdit: Boolean,
+    val modified: Boolean,
+    val deleted: Boolean,
 
     val mooselikeMaleAmount: Int?,
     val mooselikeFemaleAmount: Int?,
@@ -71,6 +73,8 @@ internal fun CommonObservation.toObservationData() =
         totalSpecimenAmount = totalSpecimenAmount,
         specimens = specimens?.map { it.toCommonSpecimenData() },
         canEdit = canEdit,
+        modified = modified,
+        deleted = deleted,
         mooselikeMaleAmount = mooselikeMaleAmount,
         mooselikeFemaleAmount = mooselikeFemaleAmount,
         mooselikeFemale1CalfAmount = mooselikeFemale1CalfAmount,

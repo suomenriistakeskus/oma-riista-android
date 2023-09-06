@@ -39,8 +39,6 @@ import fi.riista.mobile.pages.HomeViewFragment
 import fi.riista.mobile.pages.MapViewer
 import fi.riista.mobile.pages.MyDetailsFragment
 import fi.riista.mobile.pages.MyDetailsLicenseFragment
-import fi.riista.mobile.pages.MyDetailsMhPermitDetailsFragment
-import fi.riista.mobile.pages.MyDetailsMhPermitListFragment
 import fi.riista.mobile.pages.MyDetailsOccupationsFragment
 import fi.riista.mobile.pages.MyDetailsShootingTestsFragment
 import fi.riista.mobile.pages.PermitList
@@ -96,12 +94,6 @@ abstract class FragmentModule {
 
     @ContributesAndroidInjector
     abstract fun contributeSettingsFragment(): SettingsFragment
-
-    @ContributesAndroidInjector
-    abstract fun contributeMyDetailsMhPermitListFragment(): MyDetailsMhPermitListFragment
-
-    @ContributesAndroidInjector
-    abstract fun contributeMyDetailsMhPermitDetailsFragment(): MyDetailsMhPermitDetailsFragment
 
     @ContributesAndroidInjector
     abstract fun contributeMyDetailsHuntingClubMembershipsFragment(): MyDetailsHuntingClubMembershipsFragment

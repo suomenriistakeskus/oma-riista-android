@@ -14,6 +14,7 @@ import fi.riista.common.domain.harvest.ui.modify.CreateHarvestController
 import fi.riista.common.model.GeoLocationSource
 import fi.riista.common.util.toETRMSGeoLocation
 import fi.riista.mobile.LocationClientProvider
+import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
 import fi.riista.mobile.riistaSdkHelpers.AppSpeciesResolver
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 
@@ -34,7 +35,10 @@ class CreateHarvestFragment
         CreateHarvestController(
             harvestSeasons = RiistaSDK.harvestSeasons,
             harvestContext = RiistaSDK.harvestContext,
-            permitProvider = permitProvider,
+            harvestPermitProvider = harvestPermitProvider,
+            selectableHuntingClubs = RiistaSDK.huntingClubsSelectableForEntriesFactory.create(),
+            languageProvider = AppLanguageProvider(requireContext()),
+            preferences = RiistaSDK.preferences,
             speciesResolver = AppSpeciesResolver(),
             stringProvider = ContextStringProviderFactory.createForContext(requireContext())
         )

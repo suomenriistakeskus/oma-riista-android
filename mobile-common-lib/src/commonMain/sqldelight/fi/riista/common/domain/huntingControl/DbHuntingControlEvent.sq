@@ -43,7 +43,7 @@ getEventRevision:
 SELECT rev FROM DbHuntingControlEvent WHERE remote_id = ? AND username = ?;
 
 selectByRhy:
-SELECT * FROM DbHuntingControlEvent WHERE rhy_id = ? AND username = ?;
+SELECT * FROM DbHuntingControlEvent WHERE rhy_id = ? AND username = ? ORDER BY date DESC, start_time DESC;
 
 getLocalIdByUsernameAndRemoteId:
 SELECT local_id FROM DbHuntingControlEvent WHERE username = ? AND remote_id = ?;

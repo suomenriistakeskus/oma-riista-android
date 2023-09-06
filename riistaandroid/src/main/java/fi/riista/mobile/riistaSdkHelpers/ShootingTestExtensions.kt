@@ -30,7 +30,7 @@ fun CommonShootingTestCalendarEvent.toShootingTestCalendarEvent(): ShootingTestC
     event.date = date?.toStringISO8601()
     event.beginTime = beginTime?.toHoursAndMinutesString()
     event.endTime = endTime?.toHoursAndMinutesString()
-    event.lockedTime = lockedTime?.toStringISO8601()
+    event.lockedTime = lockedTime
     event.venue = venue?.toShootingTestVenue()
     event.officials = officials?.map { it.toShootingTestOfficial() }
     event.numberOfAllParticipants = numberOfAllParticipants
@@ -68,6 +68,7 @@ fun CommonShootingTestOfficial.toShootingTestOfficial(): ShootingTestOfficial {
     official.personId = personId
     official.firstName = firstName
     official.lastName = lastName
+    official.shootingTestResponsible = shootingTestResponsible
     return official
 }
 

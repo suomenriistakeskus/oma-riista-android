@@ -1,0 +1,23 @@
+CREATE TABLE DbUserInformation (
+    username TEXT NOT NULL,
+    json_format_version INTEGER AS Int NOT NULL,
+    user_information_json TEXT,
+
+    CONSTRAINT pk_constraint_DbUserInformation PRIMARY KEY (username, json_format_version)
+);
+
+selectUserInformation:
+SELECT user_information_json FROM DbUserInformation WHERE username = ? AND json_format_version = ?;
+
+hasUserInformation:
+SELECT EXISTS(SELECT 1 FROM DbUserInformation WHERE username = ?);
+
+insertUserInformation:
+INSERT INTO DbUserInformation(username, json_format_version, user_information_json)
+VALUES (?, ?, ?);
+
+updateUserInformation:
+UPDATE DbUserInformation SET user_information_json = ? WHERE username = ? AND json_format_version = ?;
+
+deleteUserInformation:
+DELETE FROM DbUserInformation WHERE username = ?;

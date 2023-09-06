@@ -6,6 +6,19 @@
     android:gravity="center_horizontal"
     android:orientation="vertical">
 
+    <TextView
+        android:id="@+id/tv_showing_harvest_for_others"
+        style="@style/TextBase"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/item_spacing_small"
+        android:paddingBottom="@dimen/item_spacing_small"
+        android:gravity="center"
+        android:ellipsize="end"
+        android:background="@color/colorLighterGrey"
+        android:visibility="gone"
+        android:text="@string/harvest_showing_harvests_added_for_others" />
+
     <fi.riista.mobile.ui.GameLogFilterView
         android:id="@+id/log_filter_view"
         android:layout_width="match_parent"

@@ -6,8 +6,6 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
 import fi.riista.mobile.viewmodel.GameLogViewModel
-import fi.riista.mobile.viewmodel.MetsahallitusPermitListViewModel
-import fi.riista.mobile.viewmodel.MetsahallitusPermitViewModel
 import fi.riista.mobile.viewmodel.ShootingTestMainViewModel
 
 @Suppress("unused")
@@ -21,16 +19,6 @@ interface ViewModelModule {
     @IntoMap
     @ViewModelKey(GameLogViewModel::class)
     fun gameLogViewModel(viewModel: GameLogViewModel): ViewModel
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(MetsahallitusPermitViewModel::class)
-    fun metsahallitusPermitViewModel(viewModel: MetsahallitusPermitViewModel): ViewModel
-
-    @Binds
-    @IntoMap
-    @ViewModelKey(MetsahallitusPermitListViewModel::class)
-    fun metsahallitusPermitListViewModel(viewModel: MetsahallitusPermitListViewModel): ViewModel
 
     @Binds
     @IntoMap

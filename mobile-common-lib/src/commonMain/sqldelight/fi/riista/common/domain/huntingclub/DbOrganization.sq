@@ -1,0 +1,23 @@
+CREATE TABLE DbOrganization (
+    organization_remote_id INTEGER PRIMARY KEY,
+    organization_official_code TEXT NOT NULL,
+    organization_name_fi TEXT,
+    organization_name_sv TEXT,
+    organization_name_en TEXT
+);
+
+organizationExists:
+SELECT EXISTS(SELECT 1 FROM DbOrganization WHERE organization_remote_id = ?);
+
+organizationIds:
+SELECT organization_remote_id FROM DbOrganization;
+
+selectOrganizationByRemoteId:
+SELECT * FROM DbOrganization WHERE organization_remote_id = ?;
+
+selectOrganizationByOfficialCode:
+SELECT * FROM DbOrganization WHERE organization_official_code = ?;
+
+insertOrganization:
+INSERT INTO DbOrganization
+VALUES ?;

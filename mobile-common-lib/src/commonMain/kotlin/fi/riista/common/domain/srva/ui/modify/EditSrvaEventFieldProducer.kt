@@ -79,8 +79,7 @@ internal class EditSrvaEventFieldProducer(
                         fieldSpecification = fieldSpecification,
                         value = srvaEvent.otherSpeciesDescription ?: "",
                         label = RR.string.srva_event_label_other_species_description,
-                    ) {
-                    }
+                    )
                 } else {
                     null
                 }
@@ -117,11 +116,14 @@ internal class EditSrvaEventFieldProducer(
                     maxValue = SrvaConstants.MAX_SPECIMEN_AMOUNT,
                     label = RR.string.srva_event_label_specimen_amount
                 )
-            SrvaEventField.Type.SPECIMEN ->
+            SrvaEventField.Type.SPECIMEN -> {
+                val specimenAmount = srvaEvent.specimenAmount ?: srvaEvent.specimens.size
+
                 SpecimenField(
                     id = fieldSpecification.fieldId,
                     specimenData = SpecimenFieldDataContainer.createForSrva(
                         species = srvaEvent.species,
+                        specimenAmount = specimenAmount,
                         specimens = srvaEvent.specimens,
                         fieldSpecifications = specimenFieldSpecifications,
                     )
@@ -129,6 +131,7 @@ internal class EditSrvaEventFieldProducer(
                     requirementStatus = fieldSpecification.requirementStatus
                     readOnly = false
                 }
+            }
             SrvaEventField.Type.EVENT_CATEGORY ->
                 createEnumChoiceField(
                     fieldSpecification = fieldSpecification,
@@ -142,7 +145,9 @@ internal class EditSrvaEventFieldProducer(
                     fieldSpecification = fieldSpecification,
                     value = srvaEvent.deportationOrderNumber ?: "",
                     label = RR.string.srva_event_label_deportation_order_number
-                )
+                ) {
+                    singleLine = true
+                }
             SrvaEventField.Type.EVENT_TYPE ->
                 createEnumChoiceField(
                     fieldSpecification = fieldSpecification,

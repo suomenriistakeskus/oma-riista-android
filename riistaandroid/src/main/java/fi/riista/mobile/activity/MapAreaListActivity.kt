@@ -27,9 +27,15 @@ import fi.riista.mobile.network.FetchClubAreaMapTask
 import fi.riista.mobile.network.FetchUserMapAreasTask
 import fi.riista.mobile.network.ListAreasTask
 import fi.riista.mobile.ui.AlertDialogFragment
-import fi.riista.mobile.ui.DelegatingAlertDialogListener
 import fi.riista.mobile.ui.AlertDialogId
-import fi.riista.mobile.utils.*
+import fi.riista.mobile.ui.DelegatingAlertDialogListener
+import fi.riista.mobile.utils.AppPreferences
+import fi.riista.mobile.utils.ClubAreaHelper
+import fi.riista.mobile.utils.ClubAreaUtils
+import fi.riista.mobile.utils.KeyboardUtils
+import fi.riista.mobile.utils.LocaleUtil
+import fi.riista.mobile.utils.SoftInputService
+import fi.riista.mobile.utils.isResumed
 import fi.riista.mobile.vectormap.VectorTileProvider
 import fi.vincit.androidutilslib.context.WorkContext
 import fi.vincit.androidutilslib.task.NetworkTask
@@ -320,7 +326,7 @@ class MapAreaListActivity : BaseActivity() {
     }
 
     private fun showAddAreaErrorDialog() {
-        if (!this.isFinishing) {
+        if (lifecycle.isResumed()) {
             AlertDialogFragment.Builder(this, AlertDialogId.MAP_AREA_LIST_ACTIVITY_AREA_ERROR_DIALOG)
                 .setMessage(getString(R.string.map_add_area_error))
                 .setPositiveButton(R.string.ok)

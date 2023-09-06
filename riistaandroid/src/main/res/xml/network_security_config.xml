@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
+    <!-- when modifying remember to update the same file also under dev variant -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">kartta.riista.fi</domain>
         <domain includeSubdomains="true">lehtiluukku.fi</domain>

@@ -13,6 +13,12 @@ import fi.riista.common.resources.StringProvider
 import fi.riista.common.resources.localized
 import fi.riista.common.ui.dataField.*
 
+/**
+ * A class that helps displaying hunting day data using DataFields.
+ *
+ * Used on iOS. Do not remove.
+ */
+@Suppress("unused")
 class ViewHuntingDayDataFields(
     private val stringProvider: StringProvider,
 ) {

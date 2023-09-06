@@ -52,7 +52,8 @@ import fi.riista.mobile.database.PermitManager
 import fi.riista.mobile.database.SpeciesResolver
 import fi.riista.mobile.feature.groupHunting.DataFieldPageFragment
 import fi.riista.mobile.feature.specimens.SpecimensActivity
-import fi.riista.mobile.riistaSdkHelpers.AppPermitProvider
+import fi.riista.mobile.riistaSdkHelpers.AppHarvestPermitProvider
+import fi.riista.mobile.riistaSdkHelpers.AppLanguageProvider
 import fi.riista.mobile.riistaSdkHelpers.AppSpeciesResolver
 import fi.riista.mobile.riistaSdkHelpers.ContextStringProviderFactory
 import fi.riista.mobile.riistaSdkHelpers.determineViewHolderType
@@ -119,8 +120,10 @@ class ViewHarvestFragment
             harvestContext = RiistaSDK.harvestContext,
             harvestSeasons = RiistaSDK.harvestSeasons,
             speciesResolver = AppSpeciesResolver(),
-            permitProvider = AppPermitProvider(permitManager),
-            stringProvider = ContextStringProviderFactory.createForContext(requireContext())
+            harvestPermitProvider = AppHarvestPermitProvider(permitManager),
+            preferences = RiistaSDK.preferences,
+            stringProvider = ContextStringProviderFactory.createForContext(requireContext()),
+            languageProvider = AppLanguageProvider(requireContext()),
         )
     }
 

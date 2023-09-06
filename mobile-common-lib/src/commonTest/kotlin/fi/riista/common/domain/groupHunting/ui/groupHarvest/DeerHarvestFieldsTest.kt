@@ -1,6 +1,6 @@
 package fi.riista.common.domain.groupHunting.ui.groupHarvest
 
-import fi.riista.common.domain.groupHunting.ui.GroupHarvestField
+import fi.riista.common.domain.harvest.ui.CommonHarvestField
 import fi.riista.common.ui.dataField.*
 
 
@@ -9,17 +9,17 @@ open class DeerHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
     fun getCommonViewFields(
         includeDeerHuntingType: Boolean = false,
         includeDeerHuntingOtherTypeDescription: Boolean = false
-    ): Array<FieldSpecification<GroupHarvestField>> {
+    ): Array<FieldSpecification<CommonHarvestField>> {
         return listOfNotNull(
-                GroupHarvestField.LOCATION.required(),
-                GroupHarvestField.SPECIES_CODE.required(),
-                GroupHarvestField.DATE_AND_TIME.required(),
-                GroupHarvestField.ACTOR.required(),
-                GroupHarvestField.AUTHOR.required(),
-                GroupHarvestField.DEER_HUNTING_TYPE.voluntary().takeIf { includeDeerHuntingType },
-                GroupHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION.voluntary().takeIf { includeDeerHuntingOtherTypeDescription },
-                GroupHarvestField.GENDER.required(),
-                GroupHarvestField.AGE.required(),
+                CommonHarvestField.LOCATION.required(),
+                CommonHarvestField.SPECIES_CODE.required(),
+                CommonHarvestField.DATE_AND_TIME.required(),
+                CommonHarvestField.ACTOR.required(),
+                CommonHarvestField.AUTHOR.required(),
+                CommonHarvestField.DEER_HUNTING_TYPE.voluntary().takeIf { includeDeerHuntingType },
+                CommonHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION.voluntary().takeIf { includeDeerHuntingOtherTypeDescription },
+                CommonHarvestField.GENDER.required(),
+                CommonHarvestField.AGE.required(),
         ).toTypedArray()
     }
 
@@ -29,23 +29,23 @@ open class DeerHarvestFieldsTest: GroupHuntingHarvestFieldsTest() {
         actorHunterNumberRequirement: FieldRequirement = FieldRequirement.voluntary(),
         includeActorHunterNumber: Boolean = true,
         includeActorHunterNumberInfoOrError: Boolean = false,
-    ): Array<FieldSpecification<GroupHarvestField>> {
+    ): Array<FieldSpecification<CommonHarvestField>> {
         return listOfNotNull(
-                GroupHarvestField.LOCATION.required(),
-                GroupHarvestField.SPECIES_CODE.required(),
-                GroupHarvestField.DATE_AND_TIME.required(),
-                GroupHarvestField.HEADLINE_SHOOTER.noRequirement(),
-                GroupHarvestField.ACTOR.required(),
-                GroupHarvestField.ACTOR_HUNTER_NUMBER
+                CommonHarvestField.LOCATION.required(),
+                CommonHarvestField.SPECIES_CODE.required(),
+                CommonHarvestField.DATE_AND_TIME.required(),
+                CommonHarvestField.HEADLINE_SHOOTER.noRequirement(),
+                CommonHarvestField.ACTOR.required(),
+                CommonHarvestField.ACTOR_HUNTER_NUMBER
                     .withRequirement { actorHunterNumberRequirement }
                     .takeIf { includeActorHunterNumber },
-                GroupHarvestField.ACTOR_HUNTER_NUMBER_INFO_OR_ERROR.voluntary()
+                CommonHarvestField.ACTOR_HUNTER_NUMBER_INFO_OR_ERROR.voluntary()
                     .takeIf { includeActorHunterNumberInfoOrError },
-                GroupHarvestField.DEER_HUNTING_TYPE.voluntary().takeIf { includeDeerHuntingType },
-                GroupHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION.voluntary().takeIf { includeDeerHuntingOtherTypeDescription },
-                GroupHarvestField.HEADLINE_SPECIMEN.noRequirement(),
-                GroupHarvestField.GENDER.required(),
-                GroupHarvestField.AGE.required(),
+                CommonHarvestField.DEER_HUNTING_TYPE.voluntary().takeIf { includeDeerHuntingType },
+                CommonHarvestField.DEER_HUNTING_OTHER_TYPE_DESCRIPTION.voluntary().takeIf { includeDeerHuntingOtherTypeDescription },
+                CommonHarvestField.HEADLINE_SPECIMEN.noRequirement(),
+                CommonHarvestField.GENDER.required(),
+                CommonHarvestField.AGE.required(),
         ).toTypedArray()
     }
 }
